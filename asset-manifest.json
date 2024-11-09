@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/ceylon_bucket/static/css/main.31e6b8ce.css",
+    "main.js": "/ceylon_bucket/static/js/main.8a40aa5c.js",
+    "static/js/453.ffad2c40.chunk.js": "/ceylon_bucket/static/js/453.ffad2c40.chunk.js",
+    "index.html": "/ceylon_bucket/index.html",
+    "main.31e6b8ce.css.map": "/ceylon_bucket/static/css/main.31e6b8ce.css.map",
+    "main.8a40aa5c.js.map": "/ceylon_bucket/static/js/main.8a40aa5c.js.map",
+    "453.ffad2c40.chunk.js.map": "/ceylon_bucket/static/js/453.ffad2c40.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.31e6b8ce.css",
+    "static/js/main.8a40aa5c.js"
+  ]
+}
