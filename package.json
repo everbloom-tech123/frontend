@@ -4,6 +4,7 @@
   "private": true,
   "proxy": "http://localhost:8080",
   "homepage": "https://everbloom-tech123.github.io/frontend",
+  "build": "NODE_ENV=production react-scripts build",
   "dependencies": {
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
