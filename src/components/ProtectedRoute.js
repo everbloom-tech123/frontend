@@ -25,7 +25,7 @@ export const ProtectedRoute = ({ children, role }) => {
   // Check for role-based access
   if (role) {
     // For admin routes
-    if (role === 'ADMIN' && user?.role !== 'ADMIN') {
+    if (role === 'ROLE_ADMIN' && user?.role !== 'ROLE_ADMIN') {
       return <Navigate to="/" replace />;
     }
     // Add other role checks if needed
