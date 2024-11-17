@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import ExperienceGrid from './ExperienceGrid';
+import ExperienceGrid from './ExperienceGrid.jsx';
+import CategoryGrid from './CategoryGrid.jsx';
 import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 
@@ -94,26 +95,22 @@ const HomePage = () => {
 
       <div className="container mx-auto px-4 py-12">
         {/* Categories Grid */}
-        <ExperienceGrid
+        <CategoryGrid
           title="Explore by Category"
-          experiences={categories.map(cat => ({
-            id: cat.id,
-            title: cat.name,
-            imageUrl: cat.imageUrl,
-            badge: `${cat.experienceCount || 0} Experiences`
-          }))}
+          categories={categories}
           columns={4}
-          showPrice={false}
-          onExperienceClick={(category) => navigate(`/experience?category=${category.id}`)}
+          onCategoryClick={(category) => navigate(`/experience?category=${category.id}`)}
         />
 
         {/* Featured Experiences */}
-        <ExperienceGrid
-          title="Featured Experiences"
-          subtitle="Discover our most popular adventures"
-          experiences={featuredExperiences}
-          columns={3}
-        />
+        {featuredExperiences.length > 0 && (
+          <ExperienceGrid
+            title="Featured Experiences"
+            subtitle="Discover our most popular adventures"
+            experiences={featuredExperiences}
+            columns={3}
+          />
+        )}
 
         {/* Shop by Price */}
         <ExperienceGrid
