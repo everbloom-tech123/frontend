@@ -17,7 +17,6 @@ import {
 import ExperienceForm from './components/ExperienceForm.jsx';
 import PricingSection from './components/PricingSection.jsx';
 import CategorySection from './components/CategorySection.jsx';
-import CategorySection from './components/CategorySection.jsx';
 import TagsSection from './components/TagsSection.jsx';
 import MediaUpload from './components/MediaUploads.jsx';
 import CategoryDialog from './components/CategoryDialog.jsx';
