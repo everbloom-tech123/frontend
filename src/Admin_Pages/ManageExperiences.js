@@ -1,4 +1,3 @@
-// Admin_Pages/ManageExperience.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -11,16 +10,16 @@ import {
   ThemeProvider,
   createTheme,
   CssBaseline,
-  Snackbar
+  Snackbar,
 } from '@mui/material';
 
 // Import components
-import ExperienceForm from './components/ExperienceForm';
-import PricingSection from './components/PricingSection';
-import CategorySection from './components/CategorySection';
-import TagsSection from './components/TagsSection';
-import MediaUpload from './components/MediaUploads';
-import CategoryDialog from './components/CategoryDialog';
+import ExperienceForm from './components/experience/ExperienceForm';
+import PricingSection from './components/experience/PricingSection';
+import CategorySection from './components/experience/CategorySection';
+import TagsSection from './components/experience/TagsSection';
+import MediaUpload from './components/experience/MediaUpload';
+import CategoryDialog from './components/experience/CategoryDialog';
 
 // Import services
 import ExperienceService from './ExperienceService';
@@ -28,40 +27,17 @@ import CategoryService from './CategoryService';
 
 const theme = createTheme({
   palette: {
-    primary: {
-      main: '#2196f3',
-    },
-    secondary: {
-      main: '#f50057',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none',
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 3px 5px 2px rgba(0, 0, 0, .05)',
-        },
-      },
-    },
-  },
+    primary: { main: '#2196f3' },
+    secondary: { main: '#f50057' },
+    background: { default: '#f5f5f5' },
+  }
 });
 
 const ManageExperience = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // Main form state
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -73,27 +49,32 @@ const ManageExperience = () => {
     imageUrls: [],
     videoUrl: ''
   });
-  
-  const [newImages, setNewImages] = useState([]);
-  const [newVideo, setNewVideo] = useState(null);
-  const [categories, setCategories] = useState([]);
+
+  // UI state
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
+  // Media state
+  const [newImages, setNewImages] = useState([]);
+  const [newVideo, setNewVideo] = useState(null);
+
+  // Category state
+  const [categories, setCategories] = useState([]);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState(null);
+
+  // Fetch initial data
   const fetchCategories = useCallback(async () => {
-    setLoading(true);
     try {
-      const fetchedCategories = await CategoryService.getAllCategories();
-      setCategories(Array.isArray(fetchedCategories) ? fetchedCategories : []);
+      console.log('Fetching categories...');
+      const response = await CategoryService.getAllCategories();
+      console.log('Categories response:', response);
+      setCategories(Array.isArray(response) ? response : []);
     } catch (err) {
       console.error('Error fetching categories:', err);
-      setError('Failed to fetch categories. Please try again.');
-    } finally {
-      setLoading(false);
+      setError('Failed to load categories');
     }
   }, []);
 
@@ -101,11 +82,12 @@ const ManageExperience = () => {
     if (!id) return;
     setLoading(true);
     try {
-      const fetchedExperience = await ExperienceService.getExperience(id);
-      setFormData(fetchedExperience);
+      const response = await ExperienceService.getExperience(id);
+      console.log('Experience data:', response);
+      setFormData(response);
     } catch (err) {
       console.error('Error fetching experience:', err);
-      setError('Failed to fetch experience details.');
+      setError('Failed to load experience details');
     } finally {
       setLoading(false);
     }
@@ -116,24 +98,32 @@ const ManageExperience = () => {
     fetchExperience();
   }, [fetchCategories, fetchExperience]);
 
+  // Form handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log('Input change:', name, value);
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
-    setNewImages(prev => [...prev, ...Array.from(e.target.files)]);
+    const files = Array.from(e.target.files);
+    console.log('New images:', files);
+    setNewImages(prev => [...prev, ...files]);
   };
 
   const handleVideoChange = (e) => {
-    setNewVideo(e.target.files[0]);
+    const file = e.target.files[0];
+    console.log('New video:', file);
+    setNewVideo(file);
   };
 
   const handleAddTag = (tag) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: [...prev.tags, tag]
-    }));
+    if (tag && !formData.tags.includes(tag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, tag]
+      }));
+    }
   };
 
   const handleRemoveTag = (tagToRemove) => {
@@ -154,50 +144,16 @@ const ManageExperience = () => {
     setFormData(prev => ({ ...prev, videoUrl: '' }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-
-    const submitData = {
-      title: formData.title,
-      description: formData.description,
-      additionalInfo: formData.additionalInfo,
-      price: formData.price.toString(),
-      discount: formData.discount.toString(),
-      category: formData.category,
-      tags: formData.tags,
-      images: newImages,
-      video: newVideo
-    };
-
-    try {
-      if (id) {
-        await ExperienceService.updateExperience(id, submitData);
-        setSuccess('Experience updated successfully!');
-      } else {
-        await ExperienceService.createExperience(submitData);
-        setSuccess('Experience created successfully!');
-        setSnackbarOpen(true);
-      }
-      navigate('/dashboard');
-    } catch (err) {
-      console.error('Error submitting experience:', err);
-      setError('Failed to submit experience. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Category handlers
   const handleAddCategory = async (name) => {
     try {
       const newCategory = await CategoryService.createCategory({ name });
       setCategories(prev => [...prev, newCategory]);
       setCategoryDialogOpen(false);
-      setSuccess('Category added successfully!');
+      setSuccess('Category added successfully');
     } catch (err) {
-      setError('Failed to add category.');
+      console.error('Error adding category:', err);
+      setError('Failed to add category');
     }
   };
 
@@ -210,9 +166,10 @@ const ManageExperience = () => {
       ));
       setCategoryDialogOpen(false);
       setEditingCategoryId(null);
-      setSuccess('Category updated successfully!');
+      setSuccess('Category updated successfully');
     } catch (err) {
-      setError('Failed to update category.');
+      console.error('Error updating category:', err);
+      setError('Failed to update category');
     }
   };
 
@@ -220,20 +177,59 @@ const ManageExperience = () => {
     try {
       await CategoryService.deleteCategory(categoryId);
       setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-      setSuccess('Category deleted successfully!');
+      setSuccess('Category deleted successfully');
     } catch (err) {
-      setError('Failed to delete category.');
+      console.error('Error deleting category:', err);
+      setError('Failed to delete category');
     }
   };
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') return;
+  // Main form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        additionalInfo: formData.additionalInfo,
+        price: formData.price.toString(),
+        discount: formData.discount.toString(),
+        category: formData.category,
+        tags: formData.tags,
+        images: newImages,
+        video: newVideo
+      };
+
+      console.log('Submitting data:', submitData);
+
+      if (id) {
+        await ExperienceService.updateExperience(id, submitData);
+        setSuccess('Experience updated successfully');
+      } else {
+        await ExperienceService.createExperience(submitData);
+        setSuccess('Experience created successfully');
+      }
+      setSnackbarOpen(true);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error('Submit error:', err);
+      setError('Failed to save experience');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Container>
     );
@@ -243,8 +239,8 @@ const ManageExperience = () => {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Container maxWidth="md" sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Typography variant="h4" gutterBottom sx={{ mb: 3, fontWeight: 'bold', color: 'primary.main' }}>
+        <Paper sx={{ p: 4 }}>
+          <Typography variant="h4" gutterBottom>
             {id ? 'Edit Experience' : 'Create New Experience'}
           </Typography>
 
@@ -253,12 +249,12 @@ const ManageExperience = () => {
 
           <form onSubmit={handleSubmit}>
             <ExperienceForm 
-              formData={formData} 
-              handleInputChange={handleInputChange} 
+              formData={formData}
+              handleInputChange={handleInputChange}
             />
 
             <PricingSection 
-              formData={formData} 
+              formData={formData}
               handleInputChange={handleInputChange}
             />
 
@@ -286,9 +282,9 @@ const ManageExperience = () => {
             />
 
             <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
+              type="submit"
+              variant="contained"
+              color="primary"
               disabled={loading}
               sx={{ mt: 2 }}
             >
@@ -320,7 +316,7 @@ const ManageExperience = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseSnackbar} severity="success">
-          Experience added successfully!
+          Experience {id ? 'updated' : 'created'} successfully!
         </Alert>
       </Snackbar>
     </ThemeProvider>
