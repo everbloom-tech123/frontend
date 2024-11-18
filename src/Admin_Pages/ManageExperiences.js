@@ -1,3 +1,4 @@
+// src/Admin_Pages/ManageExperiences.js
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
@@ -10,15 +11,15 @@ import {
   ThemeProvider,
   createTheme,
   CssBaseline,
-  Snackbar,
+  Snackbar
 } from '@mui/material';
 
-// Import components
+// Import components (match your exact file names)
 import ExperienceForm from './components/ExperienceForm.jsx';
-import CategorySection from './components/CategorySection.jsx';
 import PricingSection from './components/PricingSection.jsx';
+import CategorySection from './components/CategorySection.jsx';
 import TagsSection from './components/TagsSection.jsx';
-import MediaUpload from './components/MediaUploads.jsx';
+import MediaUpload from './components/MediaUploads.jsx';  // Note: Matches your file name
 import CategoryDialog from './components/CategoryDialog.jsx';
 
 // Import services
@@ -33,11 +34,11 @@ const theme = createTheme({
   }
 });
 
-const ManageExperience = () => {
+const ManageExperiences = () => {  // Note: Changed to match your file name
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Main form state
+  // State management
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -50,44 +51,46 @@ const ManageExperience = () => {
     videoUrl: ''
   });
 
-  // UI state
+  // UI states
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  // Media state
+  // Media states
   const [newImages, setNewImages] = useState([]);
   const [newVideo, setNewVideo] = useState(null);
 
-  // Category state
+  // Category states
   const [categories, setCategories] = useState([]);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [editingCategoryId, setEditingCategoryId] = useState(null);
 
-  // Fetch initial data
+  // Fetch data
   const fetchCategories = useCallback(async () => {
     try {
-      console.log('Fetching categories...');
       const response = await CategoryService.getAllCategories();
-      console.log('Categories response:', response);
-      setCategories(Array.isArray(response) ? response : []);
+      if (response && Array.isArray(response)) {
+        setCategories(response);
+      }
     } catch (err) {
-      console.error('Error fetching categories:', err);
       setError('Failed to load categories');
+      console.error(err);
     }
   }, []);
 
   const fetchExperience = useCallback(async () => {
     if (!id) return;
+    
     setLoading(true);
     try {
       const response = await ExperienceService.getExperience(id);
-      console.log('Experience data:', response);
-      setFormData(response);
+      if (response) {
+        setFormData(response);
+      }
     } catch (err) {
-      console.error('Error fetching experience:', err);
       setError('Failed to load experience details');
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -101,20 +104,20 @@ const ManageExperience = () => {
   // Form handlers
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log('Input change:', name, value);
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
-    console.log('New images:', files);
-    setNewImages(prev => [...prev, ...files]);
+    if (e.target.files) {
+      const files = Array.from(e.target.files);
+      setNewImages(prev => [...prev, ...files]);
+    }
   };
 
   const handleVideoChange = (e) => {
-    const file = e.target.files[0];
-    console.log('New video:', file);
-    setNewVideo(file);
+    if (e.target.files?.[0]) {
+      setNewVideo(e.target.files[0]);
+    }
   };
 
   const handleAddTag = (tag) => {
@@ -142,49 +145,38 @@ const ManageExperience = () => {
 
   const handleDeleteVideo = () => {
     setFormData(prev => ({ ...prev, videoUrl: '' }));
+    setNewVideo(null);
   };
 
   // Category handlers
-  const handleAddCategory = async (name) => {
+  const handleCategoryAction = async (actionType, payload) => {
     try {
-      const newCategory = await CategoryService.createCategory({ name });
-      setCategories(prev => [...prev, newCategory]);
+      switch (actionType) {
+        case 'add':
+          const newCategory = await CategoryService.createCategory(payload);
+          setCategories(prev => [...prev, newCategory]);
+          break;
+        case 'update':
+          const updated = await CategoryService.updateCategory(editingCategoryId, payload);
+          setCategories(prev => prev.map(cat => 
+            cat.id === editingCategoryId ? updated : cat
+          ));
+          setEditingCategoryId(null);
+          break;
+        case 'delete':
+          await CategoryService.deleteCategory(payload);
+          setCategories(prev => prev.filter(cat => cat.id !== payload));
+          break;
+      }
       setCategoryDialogOpen(false);
-      setSuccess('Category added successfully');
+      setSuccess(`Category ${actionType}d successfully`);
     } catch (err) {
-      console.error('Error adding category:', err);
-      setError('Failed to add category');
+      setError(`Failed to ${actionType} category`);
+      console.error(err);
     }
   };
 
-  const handleUpdateCategory = async (name) => {
-    if (!editingCategoryId) return;
-    try {
-      const updatedCategory = await CategoryService.updateCategory(editingCategoryId, { name });
-      setCategories(prev => prev.map(cat => 
-        cat.id === editingCategoryId ? updatedCategory : cat
-      ));
-      setCategoryDialogOpen(false);
-      setEditingCategoryId(null);
-      setSuccess('Category updated successfully');
-    } catch (err) {
-      console.error('Error updating category:', err);
-      setError('Failed to update category');
-    }
-  };
-
-  const handleDeleteCategory = async (categoryId) => {
-    try {
-      await CategoryService.deleteCategory(categoryId);
-      setCategories(prev => prev.filter(cat => cat.id !== categoryId));
-      setSuccess('Category deleted successfully');
-    } catch (err) {
-      console.error('Error deleting category:', err);
-      setError('Failed to delete category');
-    }
-  };
-
-  // Main form submission
+  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -193,18 +185,12 @@ const ManageExperience = () => {
 
     try {
       const submitData = {
-        title: formData.title,
-        description: formData.description,
-        additionalInfo: formData.additionalInfo,
+        ...formData,
         price: formData.price.toString(),
         discount: formData.discount.toString(),
-        category: formData.category,
-        tags: formData.tags,
         images: newImages,
         video: newVideo
       };
-
-      console.log('Submitting data:', submitData);
 
       if (id) {
         await ExperienceService.updateExperience(id, submitData);
@@ -213,18 +199,15 @@ const ManageExperience = () => {
         await ExperienceService.createExperience(submitData);
         setSuccess('Experience created successfully');
       }
+      
       setSnackbarOpen(true);
       navigate('/dashboard');
     } catch (err) {
-      console.error('Submit error:', err);
       setError('Failed to save experience');
+      console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbarOpen(false);
   };
 
   if (loading) {
@@ -301,21 +284,19 @@ const ManageExperience = () => {
           setEditingCategoryId(null);
         }}
         categories={categories}
-        onAdd={handleAddCategory}
-        onUpdate={handleUpdateCategory}
-        onDelete={handleDeleteCategory}
-        editingCategory={editingCategoryId ? 
-          categories.find(c => c.id === editingCategoryId) : null
-        }
+        onAdd={(name) => handleCategoryAction('add', { name })}
+        onUpdate={(name) => handleCategoryAction('update', { name })}
+        onDelete={(categoryId) => handleCategoryAction('delete', categoryId)}
+        editingCategory={categories.find(c => c.id === editingCategoryId)}
       />
 
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
+        onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="success">
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success">
           Experience {id ? 'updated' : 'created'} successfully!
         </Alert>
       </Snackbar>
@@ -323,4 +304,4 @@ const ManageExperience = () => {
   );
 };
 
-export default ManageExperience;
+export default ManageExperiences;  // Note: Changed to match file name
