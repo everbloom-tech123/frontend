@@ -14,12 +14,12 @@ import {
 } from '@mui/material';
 
 // Import components
-import ExperienceForm from './components/experience/ExperienceForm';
-import PricingSection from './components/experience/PricingSection';
-import CategorySection from './components/experience/CategorySection';
-import TagsSection from './components/experience/TagsSection';
-import MediaUpload from './components/experience/MediaUpload';
-import CategoryDialog from './components/experience/CategoryDialog';
+import ExperienceForm from './components/ExperienceForm';
+import PricingSection from './components/PricingSection';
+import CategorySection from './components/CategorySection';
+import TagsSection from './components/TagsSection';
+import MediaUpload from './components/MediaUploads';
+import CategoryDialog from './components/CategoryDialog';
 
 // Import services
 import ExperienceService from './ExperienceService';
