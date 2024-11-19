@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:8080",
-  "homepage": "https://everbloom-tech123.github.io/frontend",
+  "homepage": "https://everbloom-tech123.github.io/frontend/",
   "build": "NODE_ENV=production react-scripts build",
   "dependencies": {
     "@emotion/react": "^11.13.3",
