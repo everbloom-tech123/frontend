@@ -1,8 +1,10 @@
+// src/Admin_Pages/components/CategoryManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Table } from '@/components/ui/table';
-import { Edit, Trash2 } from 'lucide-react';
+import {
+  Table, TableBody, TableCell, TableHead, TableRow, Paper,
+  Button, TextField, IconButton, TableContainer, Box
+} from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
 import CategoryService from '../CategoryService';
 
 const CategoryManagement = () => {
@@ -56,32 +58,29 @@ const CategoryManagement = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <Input
-              placeholder="Category Name"
-              value={newCategory.name}
-              onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
-              required
-            />
-          </div>
-          <div className="flex-1">
-            <Input
-              placeholder="Description"
-              value={newCategory.description}
-              onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
-              required
-            />
-          </div>
-          <Button type="submit">
+    <Box sx={{ maxWidth: 1200, margin: '0 auto', padding: 2 }}>
+      <form onSubmit={handleSubmit}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
+          <TextField
+            label="Category Name"
+            value={newCategory.name}
+            onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+            required
+            size="small"
+          />
+          <TextField
+            label="Description"
+            value={newCategory.description}
+            onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
+            required
+            size="small"
+          />
+          <Button type="submit" variant="contained">
             {editingCategory ? 'Update Category' : 'Add Category'}
           </Button>
           {editingCategory && (
             <Button
-              type="button"
-              variant="outline"
+              variant="outlined"
               onClick={() => {
                 setEditingCategory(null);
                 setNewCategory({ name: '', description: '' });
@@ -90,48 +89,40 @@ const CategoryManagement = () => {
               Cancel
             </Button>
           )}
-        </div>
+        </Box>
       </form>
 
-      <div className="rounded-md border">
+      <TableContainer component={Paper}>
         <Table>
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="p-4 text-left font-medium">Name</th>
-              <th className="p-4 text-left font-medium">Description</th>
-              <th className="p-4 text-left font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Description</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {categories.map((category) => (
-              <tr key={category.id} className="border-t">
-                <td className="p-4">{category.name}</td>
-                <td className="p-4">{category.description}</td>
-                <td className="p-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleEdit(category)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(category.id)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
+              <TableRow key={category.id}>
+                <TableCell>{category.name}</TableCell>
+                <TableCell>{category.description}</TableCell>
+                <TableCell>
+                  <IconButton onClick={() => handleEdit(category)}>
+                    <Edit />
+                  </IconButton>
+                  <IconButton 
+                    onClick={() => handleDelete(category.id)}
+                    color="error"
+                  >
+                    <Delete />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
+          </TableBody>
         </Table>
-      </div>
-    </div>
+      </TableContainer>
+    </Box>
   );
 };
 

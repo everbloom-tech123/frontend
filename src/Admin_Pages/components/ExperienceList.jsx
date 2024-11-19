@@ -1,8 +1,11 @@
+// src/Admin_Pages/components/ExperienceList.jsx
 import React, { useState, useEffect } from 'react';
-import { Table } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Edit, Trash2, Eye } from 'lucide-react';
-import ExperienceService from '../ExperienceService';
+import { 
+  Table, TableBody, TableCell, TableHead, TableRow, Paper, 
+  IconButton, Chip, TableContainer 
+} from '@mui/material';
+import { Edit, Delete, Visibility } from '@mui/icons-material';
+import ExperienceService from '../../../services/ExperienceService';
 
 const ExperienceList = ({ onEdit, onView, refreshList }) => {
   const [experiences, setExperiences] = useState([]);
@@ -35,67 +38,56 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading experiences...</div>;
+    return <div>Loading experiences...</div>;
   }
 
   return (
-    <div className="rounded-md border">
+    <TableContainer component={Paper}>
       <Table>
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="p-4 text-left font-medium">Title</th>
-            <th className="p-4 text-left font-medium">Category</th>
-            <th className="p-4 text-left font-medium">Price</th>
-            <th className="p-4 text-left font-medium">Tags</th>
-            <th className="p-4 text-left font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+        <TableHead>
+          <TableRow>
+            <TableCell>Title</TableCell>
+            <TableCell>Category</TableCell>
+            <TableCell>Price</TableCell>
+            <TableCell>Tags</TableCell>
+            <TableCell>Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
           {experiences.map((experience) => (
-            <tr key={experience.id} className="border-t">
-              <td className="p-4">{experience.title}</td>
-              <td className="p-4">{experience.category?.name}</td>
-              <td className="p-4">${experience.price}</td>
-              <td className="p-4">
-                <div className="flex flex-wrap gap-1">
-                  {experience.tags?.map((tag, index) => (
-                    <span key={index} className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </td>
-              <td className="p-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onView(experience)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(experience)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(experience.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </td>
-            </tr>
+            <TableRow key={experience.id}>
+              <TableCell>{experience.title}</TableCell>
+              <TableCell>{experience.category?.name}</TableCell>
+              <TableCell>${experience.price}</TableCell>
+              <TableCell>
+                {experience.tags?.map((tag, index) => (
+                  <Chip
+                    key={index}
+                    label={tag}
+                    size="small"
+                    style={{ marginRight: 4 }}
+                  />
+                ))}
+              </TableCell>
+              <TableCell>
+                <IconButton onClick={() => onView(experience)}>
+                  <Visibility />
+                </IconButton>
+                <IconButton onClick={() => onEdit(experience)}>
+                  <Edit />
+                </IconButton>
+                <IconButton 
+                  onClick={() => handleDelete(experience.id)}
+                  color="error"
+                >
+                  <Delete />
+                </IconButton>
+              </TableCell>
+            </TableRow>
           ))}
-        </tbody>
+        </TableBody>
       </Table>
-    </div>
+    </TableContainer>
   );
 };
 

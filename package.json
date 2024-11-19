@@ -6,10 +6,10 @@
   "homepage": "https://everbloom-tech123.github.io/frontend",
   "build": "NODE_ENV=production react-scripts build",
   "dependencies": {
-    "@emotion/react": "^11.11.3",
-    "@emotion/styled": "^11.11.0",
-    "@mui/icons-material": "^5.15.10",
-    "@mui/material": "^5.15.10",
+    "@emotion/react": "^11.13.3",
+    "@emotion/styled": "^11.13.0",
+    "@mui/icons-material": "^5.16.7",
+    "@mui/material": "^5.16.7",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.2",
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@shadcn/ui": "^0.0.4",
     "gh-pages": "^6.2.0"
   },
   "scripts": {

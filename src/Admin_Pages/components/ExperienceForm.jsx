@@ -1,11 +1,11 @@
+// src/Admin_Pages/components/ExperienceForm.jsx
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
-import { X } from 'lucide-react';
-import CategoryService from '../CategoryService';
+import {
+  TextField, Button, FormControl, InputLabel, Select, MenuItem,
+  Box, Chip, Stack, Typography
+} from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
+import CategoryService from '../../../services/CategoryService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -86,119 +86,123 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto p-6">
-      <div className="space-y-2">
-        <Label htmlFor="title">Title</Label>
-        <Input
-          id="title"
+    <form onSubmit={handleSubmit}>
+      <Stack spacing={3}>
+        <TextField
+          label="Title"
           name="title"
           value={formData.title}
           onChange={handleChange}
           required
+          fullWidth
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
+        <TextField
+          label="Description"
           name="description"
           value={formData.description}
           onChange={handleChange}
           required
+          multiline
           rows={4}
+          fullWidth
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="price">Price</Label>
-        <Input
-          id="price"
+        <TextField
+          label="Price"
           name="price"
           type="number"
           value={formData.price}
           onChange={handleChange}
           required
+          fullWidth
         />
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="categoryId">Category</Label>
-        <Select
-          id="categoryId"
-          name="categoryId"
-          value={formData.categoryId}
-          onChange={handleChange}
-          required
-        >
-          <option value="">Select a category</option>
-          {categories.map(category => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </Select>
-      </div>
+        <FormControl fullWidth>
+          <InputLabel>Category</InputLabel>
+          <Select
+            name="categoryId"
+            value={formData.categoryId}
+            onChange={handleChange}
+            required
+          >
+            {categories.map(category => (
+              <MenuItem key={category.id} value={category.id}>
+                {category.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
-      <div className="space-y-2">
-        <Label>Tags</Label>
-        <div className="flex gap-2">
-          <Input
-            value={newTag}
-            onChange={(e) => setNewTag(e.target.value)}
-            placeholder="Add a tag"
-          />
-          <Button type="button" onClick={handleAddTag}>
-            Add
-          </Button>
-        </div>
-        <div className="flex flex-wrap gap-2 mt-2">
-          {formData.tags.map((tag, index) => (
-            <span
-              key={index}
-              className="bg-blue-100 text-blue-800 px-2 py-1 rounded flex items-center gap-1"
-            >
-              {tag}
-              <X
-                className="h-4 w-4 cursor-pointer"
-                onClick={() => handleRemoveTag(tag)}
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            Tags
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+            <TextField
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              placeholder="Add a tag"
+              size="small"
+            />
+            <Button variant="contained" onClick={handleAddTag}>
+              Add
+            </Button>
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {formData.tags.map((tag, index) => (
+              <Chip
+                key={index}
+                label={tag}
+                onDelete={() => handleRemoveTag(tag)}
+                deleteIcon={<CloseIcon />}
               />
-            </span>
-          ))}
-        </div>
-      </div>
+            ))}
+          </Box>
+        </Box>
 
-      <div className="space-y-2">
-        <Label htmlFor="images">Images</Label>
-        <Input
-          id="images"
-          name="images"
-          type="file"
-          onChange={handleFileChange}
-          multiple
-          accept="image/*"
-        />
-      </div>
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            Images
+          </Typography>
+          <Button variant="contained" component="label">
+            Upload Images
+            <input
+              type="file"
+              name="images"
+              onChange={handleFileChange}
+              multiple
+              accept="image/*"
+              hidden
+            />
+          </Button>
+        </Box>
 
-      <div className="space-y-2">
-        <Label htmlFor="video">Video</Label>
-        <Input
-          id="video"
-          name="video"
-          type="file"
-          onChange={handleFileChange}
-          accept="video/*"
-        />
-      </div>
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>
+            Video
+          </Typography>
+          <Button variant="contained" component="label">
+            Upload Video
+            <input
+              type="file"
+              name="video"
+              onChange={handleFileChange}
+              accept="video/*"
+              hidden
+            />
+          </Button>
+        </Box>
 
-      <div className="flex justify-end gap-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          {experience ? 'Update Experience' : 'Create Experience'}
-        </Button>
-      </div>
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+          <Button variant="outlined" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained">
+            {experience ? 'Update Experience' : 'Create Experience'}
+          </Button>
+        </Box>
+      </Stack>
     </form>
   );
 };
