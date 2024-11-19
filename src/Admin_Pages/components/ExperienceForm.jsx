@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import {
   TextField, Button, FormControl, InputLabel, Select, MenuItem,
-  Box, Chip, Stack, Typography, Alert
+  Box, Chip, Stack, Typography, Alert, IconButton // Added IconButton to imports
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import CategoryService from '../CategoryService.js';
+
+// Rest of the component code remains exactly the same
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
