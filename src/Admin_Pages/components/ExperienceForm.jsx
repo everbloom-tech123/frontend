@@ -14,7 +14,7 @@ import {
   IconButton
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import CategoryService from '../services/CategoryService';
+import CategoryService from '../CategoryService';
 import ExperienceService from '../services/ExperienceService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
