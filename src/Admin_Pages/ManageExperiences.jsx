@@ -1,12 +1,11 @@
-// src/Admin_Pages/ManageExperience.jsx
 import React, { useState } from 'react';
 import {
   Box, Tab, Tabs, Button, Container, Typography, Paper
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import ExperienceList from './components/ExperienceList.jsx';
-import ExperienceForm from './components/ExperienceForm.jsx';
-import CategoryManagement from './components/CategoryManagement.jsx';
+import ExperienceList from './components/ExperienceList';
+import ExperienceForm from './components/ExperienceForm';
+import CategoryManagement from './components/CategoryManagment';
 import ExperienceService from './ExperienceService';
 
 const TabPanel = ({ children, value, index, ...other }) => (
