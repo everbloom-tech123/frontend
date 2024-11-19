@@ -11,11 +11,12 @@ import {
   Stack, 
   Typography, 
   Alert,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import CategoryService from '../CategoryService';
-import ExperienceService from '../services/ExperienceService';
+import ExperienceService from '../ExperienceService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     description: '',
     additionalInfo: '',
     price: '',
-    discount: '',
+    discount: '0',
     categoryId: '',
     tags: [],
     images: [],
@@ -36,6 +37,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [newTag, setNewTag] = useState('');
   const [imageError, setImageError] = useState('');
   const [previewUrls, setPreviewUrls] = useState([]);
+  const [submitError, setSubmitError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -44,7 +47,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         ...experience,
         categoryId: experience.category?.id || '',
         images: [],
-        video: null
+        video: null,
+        imageUrls: experience.imageUrls || [],
+        videoUrl: experience.videoUrl || ''
       });
       
       if (experience.imageUrls) {
@@ -61,6 +66,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setSubmitError('Failed to load categories. Please refresh the page.');
     }
   };
 
@@ -70,6 +76,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       ...prev,
       [name]: value
     }));
+    // Clear any previous errors
+    setSubmitError('');
   };
 
   const handleFileChange = (e) => {
@@ -86,7 +94,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       
       setFormData(prev => ({
         ...prev,
-        images: Array.from(files)
+        images: files
       }));
     } else if (name === 'video') {
       setFormData(prev => ({
@@ -135,25 +143,32 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError('');
+    setIsLoading(true);
     
     try {
       const submitData = new FormData();
       
+      // Validate required fields
+      if (!formData.title.trim()) throw new Error('Title is required');
+      if (!formData.description.trim()) throw new Error('Description is required');
+      if (!formData.price) throw new Error('Price is required');
+      if (!formData.categoryId) throw new Error('Category is required');
+
       // Basic fields
-      submitData.append('title', formData.title);
-      submitData.append('description', formData.description);
-      submitData.append('additionalInfo', formData.additionalInfo || '');
-      submitData.append('price', formData.price);
-      submitData.append('discount', formData.discount || '0');
-      
-      // Category
-      const selectedCategory = categories.find(c => c.id === formData.categoryId);
-      submitData.append('category', selectedCategory?.name || '');
+      submitData.append('title', formData.title.trim());
+      submitData.append('description', formData.description.trim());
+      submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
+      submitData.append('price', formData.price.toString());
+      submitData.append('discount', (formData.discount || '0').toString());
+      submitData.append('categoryId', formData.categoryId.toString());
       
       // Tags
-      formData.tags?.forEach(tag => {
-        submitData.append('tags', tag);
-      });
+      if (formData.tags?.length > 0) {
+        formData.tags.forEach(tag => {
+          submitData.append('tags', tag.trim());
+        });
+      }
 
       // Images
       if (formData.images?.length > 0) {
@@ -165,8 +180,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       // Existing images for updates
       if (experience && formData.imageUrls?.length > 0) {
         formData.imageUrls.forEach(url => {
-          const filename = url.split('/').pop();
-          submitData.append('existingImages', filename);
+          submitData.append('existingImages', url);
         });
       }
 
@@ -175,16 +189,30 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         submitData.append('video', formData.video);
       }
 
+      // Log FormData contents for debugging
+      console.log('Submitting form data:');
+      for (let pair of submitData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+      }
+
       await onSubmit(submitData);
     } catch (error) {
       console.error('Form submission error:', error);
-      setImageError('Error submitting form. Please try again.');
+      setSubmitError(error.message || 'Error submitting form. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <Stack spacing={3}>
+        {submitError && (
+          <Alert severity="error" onClose={() => setSubmitError('')}>
+            {submitError}
+          </Alert>
+        )}
+
         <TextField
           label="Title"
           name="title"
@@ -192,6 +220,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           onChange={handleChange}
           required
           fullWidth
+          error={submitError.includes('Title')}
         />
 
         <TextField
@@ -203,6 +232,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           multiline
           rows={4}
           fullWidth
+          error={submitError.includes('Description')}
         />
 
         <TextField
@@ -224,6 +254,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             onChange={handleChange}
             required
             fullWidth
+            error={submitError.includes('Price')}
+            InputProps={{
+              inputProps: { min: 0, step: "0.01" }
+            }}
           />
 
           <TextField
@@ -233,10 +267,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             value={formData.discount}
             onChange={handleChange}
             fullWidth
+            InputProps={{
+              inputProps: { min: 0, max: 100, step: "0.1" }
+            }}
           />
         </Box>
 
-        <FormControl fullWidth required>
+        <FormControl fullWidth required error={submitError.includes('Category')}>
           <InputLabel>Category</InputLabel>
           <Select
             name="categoryId"
@@ -262,6 +299,12 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               onChange={(e) => setNewTag(e.target.value)}
               placeholder="Add a tag"
               size="small"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag(e);
+                }
+              }}
             />
             <Button variant="contained" onClick={handleAddTag}>
               Add
@@ -273,7 +316,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
                 key={index}
                 label={tag}
                 onDelete={() => handleRemoveTag(tag)}
-                deleteIcon={<CloseIcon />}
+                color="primary"
+                variant="outlined"
               />
             ))}
           </Box>
@@ -366,10 +410,19 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button variant="outlined" onClick={onCancel}>
+          <Button 
+            variant="outlined" 
+            onClick={onCancel}
+            disabled={isLoading}
+          >
             Cancel
           </Button>
-          <Button type="submit" variant="contained">
+          <Button 
+            type="submit" 
+            variant="contained"
+            disabled={isLoading}
+            startIcon={isLoading ? <CircularProgress size={20} /> : null}
+          >
             {experience ? 'Update Experience' : 'Create Experience'}
           </Button>
         </Box>

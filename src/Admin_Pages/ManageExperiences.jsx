@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Box, Tab, Tabs, Button, Container, Typography, Paper
+  Box, Tab, Tabs, Button, Container, Typography, Paper, Alert, Snackbar
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import ExperienceList from './components/ExperienceList';
@@ -27,25 +27,81 @@ const ManageExperience = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingExperience, setEditingExperience] = useState(null);
   const [refreshList, setRefreshList] = useState(false);
+  const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateExperience = async (formData) => {
+    setIsSubmitting(true);
     try {
-      await ExperienceService.createExperience(formData);
+      // Log FormData contents
+      console.log('Creating experience with data:');
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0], ':', pair[1].name, '(File)');
+        } else {
+          console.log(pair[0], ':', pair[1]);
+        }
+      }
+
+      const response = await ExperienceService.createExperience(formData);
+      console.log('Creation response:', response);
+      
+      setNotification({
+        open: true,
+        message: 'Experience created successfully!',
+        type: 'success'
+      });
       setShowForm(false);
       setRefreshList(prev => !prev);
     } catch (error) {
       console.error('Error creating experience:', error);
+      console.error('Error details:', error.response?.data);
+      
+      setNotification({
+        open: true,
+        message: error.response?.data?.message || 'Error creating experience. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateExperience = async (formData) => {
+    setIsSubmitting(true);
     try {
-      await ExperienceService.updateExperience(editingExperience.id, formData);
+      // Log FormData contents
+      console.log('Updating experience with data:');
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0], ':', pair[1].name, '(File)');
+        } else {
+          console.log(pair[0], ':', pair[1]);
+        }
+      }
+
+      const response = await ExperienceService.updateExperience(editingExperience.id, formData);
+      console.log('Update response:', response);
+      
+      setNotification({
+        open: true,
+        message: 'Experience updated successfully!',
+        type: 'success'
+      });
       setShowForm(false);
       setEditingExperience(null);
       setRefreshList(prev => !prev);
     } catch (error) {
       console.error('Error updating experience:', error);
+      console.error('Error details:', error.response?.data);
+      
+      setNotification({
+        open: true,
+        message: error.response?.data?.message || 'Error updating experience. Please try again.',
+        type: 'error'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -62,6 +118,10 @@ const ManageExperience = () => {
   const handleCancel = () => {
     setShowForm(false);
     setEditingExperience(null);
+  };
+
+  const handleCloseNotification = () => {
+    setNotification({ ...notification, open: false });
   };
 
   return (
@@ -103,6 +163,7 @@ const ManageExperience = () => {
                       experience={editingExperience}
                       onSubmit={editingExperience ? handleUpdateExperience : handleCreateExperience}
                       onCancel={handleCancel}
+                      isSubmitting={isSubmitting}
                     />
                   </Box>
                 ) : (
@@ -120,6 +181,21 @@ const ManageExperience = () => {
             <CategoryManagement />
           </TabPanel>
         </Paper>
+
+        <Snackbar 
+          open={notification.open} 
+          autoHideDuration={6000} 
+          onClose={handleCloseNotification}
+        >
+          <Alert 
+            onClose={handleCloseNotification} 
+            severity={notification.type} 
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </Container>
   );
