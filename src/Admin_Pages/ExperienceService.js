@@ -4,7 +4,6 @@ import config from '../config';
 const API_BASE_URL = `${config.API_BASE_URL}/public/api/products`;
 
 class ExperienceService {
-  // Public methods
   static async getAllExperiences() {
     try {
       const response = await axios.get(API_BASE_URL);
@@ -25,46 +24,27 @@ class ExperienceService {
     }
   }
 
-  // Protected methods
   static async createExperience(experienceData) {
     try {
-      const token = localStorage.getItem('token');
       const formData = new FormData();
-
-      // Add basic fields
-      formData.append('title', experienceData.title);
-      formData.append('description', experienceData.description);
-      formData.append('price', experienceData.price);
-      formData.append('categoryName', experienceData.category?.name || experienceData.categoryName || '');
-
-      // Optional fields
-      if (experienceData.additionalInfo) {
-        formData.append('additionalInfo', experienceData.additionalInfo);
-      }
-      if (experienceData.discount) {
-        formData.append('discount', experienceData.discount);
-      }
-
-      // Add tags
-      if (experienceData.tags && experienceData.tags.length > 0) {
-        experienceData.tags.forEach(tag => formData.append('tags', tag));
-      }
-
-      // Add images
-      if (experienceData.images && experienceData.images.length > 0) {
-        experienceData.images.forEach(image => formData.append('images', image));
-      }
-
-      // Add video if exists
-      if (experienceData.video) {
-        formData.append('video', experienceData.video);
-      }
+      Object.keys(experienceData).forEach(key => {
+        if (key === 'tags') {
+          experienceData[key].forEach(tag => formData.append('tags', tag));
+        } else if (key === 'images') {
+          experienceData[key].forEach(image => formData.append('images', image));
+        } else if (key === 'video') {
+          if (experienceData[key]) {
+            formData.append('video', experienceData[key]);
+          }
+        } else {
+          formData.append(key, experienceData[key]);
+        }
+      });
 
       const response = await axios.post(API_BASE_URL, formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
       return response.data;
     } catch (error) {
@@ -75,43 +55,25 @@ class ExperienceService {
 
   static async updateExperience(id, experienceData) {
     try {
-      const token = localStorage.getItem('token');
       const formData = new FormData();
-
-      // Add basic fields
-      formData.append('title', experienceData.title);
-      formData.append('description', experienceData.description);
-      formData.append('price', experienceData.price);
-      formData.append('categoryName', experienceData.category?.name || experienceData.categoryName || '');
-
-      // Optional fields
-      if (experienceData.additionalInfo) {
-        formData.append('additionalInfo', experienceData.additionalInfo);
-      }
-      if (experienceData.discount) {
-        formData.append('discount', experienceData.discount);
-      }
-
-      // Add tags
-      if (experienceData.tags && experienceData.tags.length > 0) {
-        experienceData.tags.forEach(tag => formData.append('tags', tag));
-      }
-
-      // Add new images
-      if (experienceData.images && experienceData.images.length > 0) {
-        experienceData.images.forEach(image => formData.append('images', image));
-      }
-
-      // Add new video if exists
-      if (experienceData.video) {
-        formData.append('video', experienceData.video);
-      }
+      Object.keys(experienceData).forEach(key => {
+        if (key === 'tags') {
+          experienceData[key].forEach(tag => formData.append('tags', tag));
+        } else if (key === 'images') {
+          experienceData[key].forEach(image => formData.append('images', image));
+        } else if (key === 'video') {
+          if (experienceData[key]) {
+            formData.append('video', experienceData[key]);
+          }
+        } else {
+          formData.append(key, experienceData[key]);
+        }
+      });
 
       const response = await axios.put(`${API_BASE_URL}/${id}`, formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
+          'Content-Type': 'multipart/form-data',
+        },
       });
       return response.data;
     } catch (error) {
@@ -122,12 +84,7 @@ class ExperienceService {
 
   static async deleteExperience(id) {
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`${API_BASE_URL}/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+      await axios.delete(`${API_BASE_URL}/${id}`);
     } catch (error) {
       console.error('Error deleting experience:', error.response?.data || error.message);
       throw error;

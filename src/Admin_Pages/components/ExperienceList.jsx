@@ -1,8 +1,7 @@
-// src/Admin_Pages/components/ExperienceList.jsx
 import React, { useState, useEffect } from 'react';
 import { 
   Table, TableBody, TableCell, TableHead, TableRow, Paper, 
-  IconButton, Chip, TableContainer 
+  IconButton, Chip, TableContainer, Box
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
 import ExperienceService from '../ExperienceService';
@@ -37,6 +36,11 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
     }
   };
 
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl) return null;
+    return imageUrl.includes('http') ? imageUrl : `/public/api/products/files/${imageUrl}`;
+  };
+
   if (loading) {
     return <div>Loading experiences...</div>;
   }
@@ -46,6 +50,7 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
       <Table>
         <TableHead>
           <TableRow>
+            <TableCell>Image</TableCell>
             <TableCell>Title</TableCell>
             <TableCell>Category</TableCell>
             <TableCell>Price</TableCell>
@@ -56,18 +61,34 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
         <TableBody>
           {experiences.map((experience) => (
             <TableRow key={experience.id}>
+              <TableCell>
+                {experience.imageUrls && experience.imageUrls[0] && (
+                  <img 
+                    src={getImageUrl(experience.imageUrls[0])}
+                    alt={experience.title}
+                    style={{ 
+                      width: 60, 
+                      height: 60, 
+                      objectFit: 'cover',
+                      borderRadius: '4px'
+                    }}
+                  />
+                )}
+              </TableCell>
               <TableCell>{experience.title}</TableCell>
               <TableCell>{experience.category?.name}</TableCell>
               <TableCell>${experience.price}</TableCell>
               <TableCell>
-                {experience.tags?.map((tag, index) => (
-                  <Chip
-                    key={index}
-                    label={tag}
-                    size="small"
-                    style={{ marginRight: 4 }}
-                  />
-                ))}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {experience.tags?.map((tag, index) => (
+                    <Chip
+                      key={index}
+                      label={tag}
+                      size="small"
+                      style={{ marginRight: 4 }}
+                    />
+                  ))}
+                </Box>
               </TableCell>
               <TableCell>
                 <IconButton onClick={() => onView(experience)}>

@@ -14,7 +14,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     price: '',
     discount: '',
     categoryId: '',
-    category: { name: '' },
     tags: [],
     images: [],
     video: null,
@@ -25,6 +24,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [categories, setCategories] = useState([]);
   const [newTag, setNewTag] = useState('');
   const [imageError, setImageError] = useState('');
+  const [previewUrls, setPreviewUrls] = useState([]);
 
   useEffect(() => {
     fetchCategories();
@@ -33,8 +33,16 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         ...experience,
         categoryId: experience.category?.id || '',
         images: [],  // Reset files as we can't repopulate them
-        video: null, // Reset video as we can't repopulate it
+        video: null  // Reset video as we can't repopulate it
       });
+      
+      // Set preview URLs for existing images
+      if (experience.imageUrls) {
+        const urls = experience.imageUrls.map(url => 
+          url.includes('http') ? url : `/public/api/products/files/${url}`
+        );
+        setPreviewUrls(urls);
+      }
     }
   }, [experience]);
 
@@ -63,9 +71,14 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         return;
       }
       setImageError('');
+      
+      // Create preview URLs for new images
+      const newPreviewUrls = Array.from(files).map(file => URL.createObjectURL(file));
+      setPreviewUrls([...previewUrls, ...newPreviewUrls]);
+      
       setFormData(prev => ({
         ...prev,
-        images: Array.from(files)
+        images: files
       }));
     } else if (name === 'video') {
       setFormData(prev => ({
@@ -74,6 +87,17 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       }));
     }
   };
+
+  // Clean up preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => {
+        if (url.startsWith('blob:')) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [previewUrls]);
 
   const handleAddTag = (e) => {
     e.preventDefault();
@@ -93,27 +117,44 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }));
   };
 
+  const handleRemoveImage = (index) => {
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    setFormData(prev => ({
+      ...prev,
+      images: Array.from(prev.images).filter((_, i) => i !== index),
+      imageUrls: prev.imageUrls?.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Create FormData object
     const submitData = new FormData();
     submitData.append('title', formData.title);
     submitData.append('description', formData.description);
     submitData.append('additionalInfo', formData.additionalInfo || '');
     submitData.append('price', formData.price);
     submitData.append('discount', formData.discount || '');
-    submitData.append('categoryName', categories.find(c => c.id === formData.categoryId)?.name || '');
+    submitData.append('category', categories.find(c => c.id === formData.categoryId)?.name || '');
     
     // Append tags
-    formData.tags.forEach(tag => {
+    formData.tags?.forEach(tag => {
       submitData.append('tags', tag);
     });
 
     // Append images
-    formData.images.forEach(image => {
-      submitData.append('images', image);
-    });
+    if (formData.images?.length > 0) {
+      Array.from(formData.images).forEach(image => {
+        submitData.append('images', image);
+      });
+    }
+
+    // Keep existing images
+    if (formData.imageUrls?.length > 0) {
+      formData.imageUrls.forEach(url => {
+        submitData.append('existingImages', url);
+      });
+    }
 
     // Append video if exists
     if (formData.video) {
@@ -236,25 +277,37 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             />
           </Button>
           {imageError && <Alert severity="error" sx={{ mt: 1 }}>{imageError}</Alert>}
-          {formData.images.length > 0 && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">
-                Selected images: {formData.images.length}
-              </Typography>
-              {formData.images.map((image, index) => (
-                <Typography key={index} variant="caption" display="block">
-                  {image.name}
-                </Typography>
-              ))}
-            </Box>
-          )}
-          {experience && formData.imageUrls && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">
-                Existing images: {formData.imageUrls.length}
-              </Typography>
-            </Box>
-          )}
+          
+          {/* Image previews */}
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+            {previewUrls.map((url, index) => (
+              <Box key={index} sx={{ position: 'relative' }}>
+                <img
+                  src={url}
+                  alt={`Preview ${index + 1}`}
+                  style={{ 
+                    width: 100, 
+                    height: 100, 
+                    objectFit: 'cover',
+                    borderRadius: '4px'
+                  }}
+                />
+                <IconButton
+                  sx={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -8,
+                    backgroundColor: 'white',
+                    '&:hover': { backgroundColor: 'white' }
+                  }}
+                  size="small"
+                  onClick={() => handleRemoveImage(index)}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
         </Box>
 
         <Box>
@@ -272,17 +325,17 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             />
           </Button>
           {formData.video && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">
-                Selected video: {formData.video.name}
-              </Typography>
-            </Box>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              Selected video: {formData.video.name}
+            </Typography>
           )}
-          {experience && formData.videoUrl && (
+          {formData.videoUrl && (
             <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">
-                Existing video: {formData.videoUrl}
-              </Typography>
+              <video
+                controls
+                style={{ maxWidth: '100%', maxHeight: '200px' }}
+                src={`/public/api/products/files/${formData.videoUrl}`}
+              />
             </Box>
           )}
         </Box>
