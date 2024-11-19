@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   TextField, Button, FormControl, InputLabel, Select, MenuItem,
-  Box, Chip, Stack, Typography
+  Box, Chip, Stack, Typography, Alert
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import CategoryService from '../CategoryService.js';
@@ -10,27 +10,30 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    additionalInfo: '',
     price: '',
+    discount: '',
     categoryId: '',
+    category: { name: '' },
     tags: [],
     images: [],
-    video: null
+    video: null,
+    imageUrls: [],
+    videoUrl: ''
   });
   
   const [categories, setCategories] = useState([]);
   const [newTag, setNewTag] = useState('');
+  const [imageError, setImageError] = useState('');
 
   useEffect(() => {
     fetchCategories();
     if (experience) {
       setFormData({
-        title: experience.title || '',
-        description: experience.description || '',
-        price: experience.price || '',
+        ...experience,
         categoryId: experience.category?.id || '',
-        tags: experience.tags || [],
-        images: experience.images || [],
-        video: experience.video || null
+        images: [],  // Reset files as we can't repopulate them
+        video: null, // Reset video as we can't repopulate it
       });
     }
   }, [experience]);
@@ -55,14 +58,19 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (name === 'images') {
+      if (files.length > 5) {
+        setImageError('Maximum 5 images allowed');
+        return;
+      }
+      setImageError('');
       setFormData(prev => ({
         ...prev,
-        images: [...(prev.images || []), ...Array.from(files)]
+        images: Array.from(files)
       }));
-    } else {
+    } else if (name === 'video') {
       setFormData(prev => ({
         ...prev,
-        [name]: files[0]
+        video: files[0]
       }));
     }
   };
@@ -87,7 +95,32 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Create FormData object
+    const submitData = new FormData();
+    submitData.append('title', formData.title);
+    submitData.append('description', formData.description);
+    submitData.append('additionalInfo', formData.additionalInfo || '');
+    submitData.append('price', formData.price);
+    submitData.append('discount', formData.discount || '');
+    submitData.append('categoryName', categories.find(c => c.id === formData.categoryId)?.name || '');
+    
+    // Append tags
+    formData.tags.forEach(tag => {
+      submitData.append('tags', tag);
+    });
+
+    // Append images
+    formData.images.forEach(image => {
+      submitData.append('images', image);
+    });
+
+    // Append video if exists
+    if (formData.video) {
+      submitData.append('video', formData.video);
+    }
+
+    onSubmit(submitData);
   };
 
   return (
@@ -114,14 +147,35 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         />
 
         <TextField
-          label="Price"
-          name="price"
-          type="number"
-          value={formData.price}
+          label="Additional Information"
+          name="additionalInfo"
+          value={formData.additionalInfo}
           onChange={handleChange}
-          required
+          multiline
+          rows={3}
           fullWidth
         />
+
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField
+            label="Price"
+            name="price"
+            type="number"
+            value={formData.price}
+            onChange={handleChange}
+            required
+            fullWidth
+          />
+
+          <TextField
+            label="Discount"
+            name="discount"
+            type="number"
+            value={formData.discount}
+            onChange={handleChange}
+            fullWidth
+          />
+        </Box>
 
         <FormControl fullWidth>
           <InputLabel>Category</InputLabel>
@@ -168,7 +222,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
         <Box>
           <Typography variant="subtitle1" gutterBottom>
-            Images
+            Images (Maximum 5)
           </Typography>
           <Button variant="contained" component="label">
             Upload Images
@@ -181,10 +235,23 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               hidden
             />
           </Button>
-          {formData.images && formData.images.length > 0 && (
+          {imageError && <Alert severity="error" sx={{ mt: 1 }}>{imageError}</Alert>}
+          {formData.images.length > 0 && (
             <Box sx={{ mt: 1 }}>
               <Typography variant="body2">
-                {formData.images.length} image(s) selected
+                Selected images: {formData.images.length}
+              </Typography>
+              {formData.images.map((image, index) => (
+                <Typography key={index} variant="caption" display="block">
+                  {image.name}
+                </Typography>
+              ))}
+            </Box>
+          )}
+          {experience && formData.imageUrls && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                Existing images: {formData.imageUrls.length}
               </Typography>
             </Box>
           )}
@@ -207,7 +274,14 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           {formData.video && (
             <Box sx={{ mt: 1 }}>
               <Typography variant="body2">
-                Video selected: {formData.video.name}
+                Selected video: {formData.video.name}
+              </Typography>
+            </Box>
+          )}
+          {experience && formData.videoUrl && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                Existing video: {formData.videoUrl}
               </Typography>
             </Box>
           )}
