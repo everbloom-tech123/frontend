@@ -1,16 +1,15 @@
-// src/Admin_Pages/components/CategoryManagement.jsx
 import React, { useState, useEffect } from 'react';
 import {
   Table, TableBody, TableCell, TableHead, TableRow, Paper,
   Button, TextField, IconButton, TableContainer, Box
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
-import CategoryService from '../CategoryService';
+import CategoryService from '../CategoryService.js';
 
 const CategoryManagement = () => {
   const [categories, setCategories] = useState([]);
   const [editingCategory, setEditingCategory] = useState(null);
-  const [newCategory, setNewCategory] = useState({ name: '', description: '' });
+  const [newCategory, setNewCategory] = useState({ name: '' });
 
   useEffect(() => {
     fetchCategories();
@@ -29,12 +28,14 @@ const CategoryManagement = () => {
     e.preventDefault();
     try {
       if (editingCategory) {
-        await CategoryService.updateCategory(editingCategory.id, newCategory);
+        // Only send the name for update
+        await CategoryService.updateCategory(editingCategory.id, { name: newCategory.name });
       } else {
-        await CategoryService.createCategory(newCategory);
+        // Only send the name for create
+        await CategoryService.createCategory({ name: newCategory.name });
       }
       fetchCategories();
-      setNewCategory({ name: '', description: '' });
+      setNewCategory({ name: '' });
       setEditingCategory(null);
     } catch (error) {
       console.error('Error saving category:', error);
@@ -43,7 +44,7 @@ const CategoryManagement = () => {
 
   const handleEdit = (category) => {
     setEditingCategory(category);
-    setNewCategory({ name: category.name, description: category.description });
+    setNewCategory({ name: category.name });
   };
 
   const handleDelete = async (id) => {
@@ -64,16 +65,10 @@ const CategoryManagement = () => {
           <TextField
             label="Category Name"
             value={newCategory.name}
-            onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+            onChange={(e) => setNewCategory({ name: e.target.value })}
             required
             size="small"
-          />
-          <TextField
-            label="Description"
-            value={newCategory.description}
-            onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
-            required
-            size="small"
+            sx={{ minWidth: 300 }}
           />
           <Button type="submit" variant="contained">
             {editingCategory ? 'Update Category' : 'Add Category'}
@@ -83,7 +78,7 @@ const CategoryManagement = () => {
               variant="outlined"
               onClick={() => {
                 setEditingCategory(null);
-                setNewCategory({ name: '', description: '' });
+                setNewCategory({ name: '' });
               }}
             >
               Cancel
@@ -97,16 +92,14 @@ const CategoryManagement = () => {
           <TableHead>
             <TableRow>
               <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {categories.map((category) => (
               <TableRow key={category.id}>
                 <TableCell>{category.name}</TableCell>
-                <TableCell>{category.description}</TableCell>
-                <TableCell>
+                <TableCell align="right">
                   <IconButton onClick={() => handleEdit(category)}>
                     <Edit />
                   </IconButton>
