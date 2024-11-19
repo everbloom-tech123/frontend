@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TextField, Button, FormControl, InputLabel, Select, MenuItem,
-  Box, Chip, Stack, Typography, Alert, IconButton // Added IconButton to imports
+  TextField, 
+  Button, 
+  FormControl, 
+  InputLabel, 
+  Select, 
+  MenuItem,
+  Box, 
+  Chip, 
+  Stack, 
+  Typography, 
+  Alert,
+  IconButton
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import CategoryService from '../CategoryService.js';
-
-// Rest of the component code remains exactly the same
+import CategoryService from '../services/CategoryService';
+import ExperienceService from '../services/ExperienceService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -34,16 +43,14 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       setFormData({
         ...experience,
         categoryId: experience.category?.id || '',
-        images: [],  // Reset files as we can't repopulate them
-        video: null  // Reset video as we can't repopulate it
+        images: [],
+        video: null
       });
       
-      // Set preview URLs for existing images
       if (experience.imageUrls) {
-        const urls = experience.imageUrls.map(url => 
-          url.includes('http') ? url : `/public/api/products/files/${url}`
-        );
-        setPreviewUrls(urls);
+        setPreviewUrls(experience.imageUrls.map(url => 
+          ExperienceService.getImageUrl(url)
+        ));
       }
     }
   }, [experience]);
@@ -74,13 +81,12 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       }
       setImageError('');
       
-      // Create preview URLs for new images
       const newPreviewUrls = Array.from(files).map(file => URL.createObjectURL(file));
-      setPreviewUrls([...previewUrls, ...newPreviewUrls]);
+      setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
       
       setFormData(prev => ({
         ...prev,
-        images: files
+        images: Array.from(files)
       }));
     } else if (name === 'video') {
       setFormData(prev => ({
@@ -90,7 +96,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }
   };
 
-  // Clean up preview URLs when component unmounts
   useEffect(() => {
     return () => {
       previewUrls.forEach(url => {
@@ -128,42 +133,53 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const submitData = new FormData();
-    submitData.append('title', formData.title);
-    submitData.append('description', formData.description);
-    submitData.append('additionalInfo', formData.additionalInfo || '');
-    submitData.append('price', formData.price);
-    submitData.append('discount', formData.discount || '');
-    submitData.append('category', categories.find(c => c.id === formData.categoryId)?.name || '');
-    
-    // Append tags
-    formData.tags?.forEach(tag => {
-      submitData.append('tags', tag);
-    });
-
-    // Append images
-    if (formData.images?.length > 0) {
-      Array.from(formData.images).forEach(image => {
-        submitData.append('images', image);
+    try {
+      const submitData = new FormData();
+      
+      // Basic fields
+      submitData.append('title', formData.title);
+      submitData.append('description', formData.description);
+      submitData.append('additionalInfo', formData.additionalInfo || '');
+      submitData.append('price', formData.price);
+      submitData.append('discount', formData.discount || '0');
+      
+      // Category
+      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+      submitData.append('category', selectedCategory?.name || '');
+      
+      // Tags
+      formData.tags?.forEach(tag => {
+        submitData.append('tags', tag);
       });
-    }
 
-    // Keep existing images
-    if (formData.imageUrls?.length > 0) {
-      formData.imageUrls.forEach(url => {
-        submitData.append('existingImages', url);
-      });
-    }
+      // Images
+      if (formData.images?.length > 0) {
+        Array.from(formData.images).forEach(image => {
+          submitData.append('images', image);
+        });
+      }
 
-    // Append video if exists
-    if (formData.video) {
-      submitData.append('video', formData.video);
-    }
+      // Existing images for updates
+      if (experience && formData.imageUrls?.length > 0) {
+        formData.imageUrls.forEach(url => {
+          const filename = url.split('/').pop();
+          submitData.append('existingImages', filename);
+        });
+      }
 
-    onSubmit(submitData);
+      // Video
+      if (formData.video) {
+        submitData.append('video', formData.video);
+      }
+
+      await onSubmit(submitData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      setImageError('Error submitting form. Please try again.');
+    }
   };
 
   return (
@@ -220,13 +236,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           />
         </Box>
 
-        <FormControl fullWidth>
+        <FormControl fullWidth required>
           <InputLabel>Category</InputLabel>
           <Select
             name="categoryId"
             value={formData.categoryId}
             onChange={handleChange}
-            required
+            label="Category"
           >
             {categories.map(category => (
               <MenuItem key={category.id} value={category.id}>
@@ -278,9 +294,12 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               hidden
             />
           </Button>
-          {imageError && <Alert severity="error" sx={{ mt: 1 }}>{imageError}</Alert>}
+          {imageError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {imageError}
+            </Alert>
+          )}
           
-          {/* Image previews */}
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
             {previewUrls.map((url, index) => (
               <Box key={index} sx={{ position: 'relative' }}>
@@ -292,6 +311,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
                     height: 100, 
                     objectFit: 'cover',
                     borderRadius: '4px'
+                  }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/100';
                   }}
                 />
                 <IconButton
@@ -336,7 +359,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               <video
                 controls
                 style={{ maxWidth: '100%', maxHeight: '200px' }}
-                src={`/public/api/products/files/${formData.videoUrl}`}
+                src={ExperienceService.getImageUrl(formData.videoUrl)}
               />
             </Box>
           )}
