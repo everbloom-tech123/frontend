@@ -13,7 +13,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import VerifyEmail from './pages/VerifyEmail';
 import ViewAllExperiencesPage from './pages/viewall';
-import ManageExperiences from './Admin_Pages/ManageExperience.jsx';  // Updated import
+import ManageExperience from './Admin_Pages/ManageExperiences';
 import WishlistPage from './pages/WishlistPage';
 import ExperienceDetails from './pages/ExperienceDetails';
 
@@ -25,7 +25,7 @@ const AdminLayout = () => {
           path="/manage-experiences" 
           element={
             <ProtectedRoute role="ADMIN">
-              <ManageExperiences />  {/* Updated component name */}
+              <ManageExperience />  {/* Updated component name */}
             </ProtectedRoute>
           } 
         />
