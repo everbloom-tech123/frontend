@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
-import ExperienceService from '../services/ExperienceService';
+import ExperienceService from '../Admin_Pages/ExperienceService';
 
 const ExperienceGrid = ({ 
   title,
