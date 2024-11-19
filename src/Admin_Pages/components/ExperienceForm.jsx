@@ -1,11 +1,10 @@
-// src/Admin_Pages/components/ExperienceForm.jsx
 import React, { useState, useEffect } from 'react';
 import {
   TextField, Button, FormControl, InputLabel, Select, MenuItem,
   Box, Chip, Stack, Typography
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import CategoryService from '../CategoryService';
+import CategoryService from '../CategoryService.js';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -17,6 +16,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     images: [],
     video: null
   });
+  
   const [categories, setCategories] = useState([]);
   const [newTag, setNewTag] = useState('');
 
@@ -24,8 +24,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     fetchCategories();
     if (experience) {
       setFormData({
-        ...experience,
-        categoryId: experience.category?.id || ''
+        title: experience.title || '',
+        description: experience.description || '',
+        price: experience.price || '',
+        categoryId: experience.category?.id || '',
+        tags: experience.tags || [],
+        images: experience.images || [],
+        video: experience.video || null
       });
     }
   }, [experience]);
@@ -52,7 +57,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     if (name === 'images') {
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, ...Array.from(files)]
+        images: [...(prev.images || []), ...Array.from(files)]
       }));
     } else {
       setFormData(prev => ({
@@ -67,7 +72,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     if (newTag.trim()) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, newTag.trim()]
+        tags: [...(prev.tags || []), newTag.trim()]
       }));
       setNewTag('');
     }
@@ -150,7 +155,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             </Button>
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {formData.tags.map((tag, index) => (
+            {formData.tags?.map((tag, index) => (
               <Chip
                 key={index}
                 label={tag}
@@ -176,6 +181,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               hidden
             />
           </Button>
+          {formData.images && formData.images.length > 0 && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                {formData.images.length} image(s) selected
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Box>
@@ -192,6 +204,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               hidden
             />
           </Button>
+          {formData.video && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">
+                Video selected: {formData.video.name}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
