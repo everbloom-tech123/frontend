@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import ExperienceList from './components/ExperienceList';
-import ExperienceForm from './components/ExperienceForm';
-import CategoryManagement from './components/CategoryManagement';
+import ExperienceList from './components/ExperienceList.jsx';
+import ExperienceForm from './components/ExperienceForm.jsx';
+import CategoryManagement from './components/CategoryManagment.jsx';
 import ExperienceService from './ExperienceService';
 
 const ManageExperience = () => {
