@@ -5,7 +5,7 @@ import {
   IconButton, Chip, TableContainer 
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
-import ExperienceService from '../../../services/ExperienceService';
+import ExperienceService from '../ExperienceService';
 
 const ExperienceList = ({ onEdit, onView, refreshList }) => {
   const [experiences, setExperiences] = useState([]);

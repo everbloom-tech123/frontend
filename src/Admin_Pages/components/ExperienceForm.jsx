@@ -5,7 +5,7 @@ import {
   Box, Chip, Stack, Typography
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import CategoryService from '../../../services/CategoryService';
+import CategoryService from '../CategoryService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
