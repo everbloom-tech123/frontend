@@ -155,6 +155,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       if (!formData.price) throw new Error('Price is required');
       if (!formData.categoryId) throw new Error('Category is required');
 
+      // Find the selected category
+      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+      if (!selectedCategory) throw new Error('Invalid category selected');
+
       // Basic fields
       submitData.append('title', formData.title.trim());
       submitData.append('description', formData.description.trim());
@@ -162,9 +166,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Find the selected category name
-      const selectedCategory = categories.find(c => c.id === formData.categoryId);
-      submitData.append('category', selectedCategory?.name || ''); // Changed from categoryId to category
+      // Send both category name and ID
+      submitData.append('category', selectedCategory.name);
+      submitData.append('categoryId', selectedCategory.id.toString());
       
       // Tags
       if (formData.tags?.length > 0) {
@@ -210,7 +214,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       setIsLoading(false);
     }
   };
-
   return (
     <form onSubmit={handleSubmit}>
       <Stack spacing={3}>
