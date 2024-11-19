@@ -161,7 +161,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
-      submitData.append('categoryId', formData.categoryId.toString());
+      
+      // Find the selected category name
+      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+      submitData.append('category', selectedCategory?.name || ''); // Changed from categoryId to category
       
       // Tags
       if (formData.tags?.length > 0) {
@@ -192,7 +195,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       // Log FormData contents for debugging
       console.log('Submitting form data:');
       for (let pair of submitData.entries()) {
-        console.log(pair[0] + ': ' + pair[1]);
+        if (pair[1] instanceof File) {
+          console.log(pair[0], ':', pair[1].name, '(File)');
+        } else {
+          console.log(pair[0], ':', pair[1]);
+        }
       }
 
       await onSubmit(submitData);
