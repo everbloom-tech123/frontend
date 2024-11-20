@@ -18,21 +18,29 @@ const HomePage = () => {
       try {
         setLoading(true);
         setError(null);
-        const [experiencesData, categoriesData] = await Promise.all([
+
+        // Fetch experiences and categories
+        const [experiencesResponse, categoriesResponse] = await Promise.all([
           ExperienceService.getAllExperiences(),
           CategoryService.getAllCategories()
         ]);
 
-        if (!experiencesData || !categoriesData) {
-          throw new Error('Failed to fetch data');
-        }
+        console.log('Experiences fetched:', experiencesResponse);
+        console.log('Categories fetched:', categoriesResponse);
 
-        const featured = experiencesData.filter(exp => exp.featured) || experiencesData.slice(0, 6);
+        // Set featured experiences (either featured ones or first 6)
+        const featured = Array.isArray(experiencesResponse) ? 
+          (experiencesResponse.filter(exp => exp.featured).length > 0 ? 
+            experiencesResponse.filter(exp => exp.featured) : 
+            experiencesResponse.slice(0, 6)
+          ) : [];
+
         setFeaturedExperiences(featured);
-        setCategories(categoriesData);
+        setCategories(Array.isArray(categoriesResponse) ? categoriesResponse : []);
+
       } catch (err) {
-        setError('Failed to load data');
         console.error('Error loading homepage data:', err);
+        setError('Failed to load data');
       } finally {
         setLoading(false);
       }
@@ -48,22 +56,41 @@ const HomePage = () => {
     { label: '$200+', value: '200-plus' }
   ];
 
-  const filterByPrice = (range) => {
+  const handleExperienceClick = (experience) => {
+    if (experience?.id) {
+      console.log('Navigating to experience:', experience.id);
+      navigate(`/experience/${experience.id}`);
+    }
+  };
+
+  const handleCategoryClick = (category) => {
+    if (category?.id) {
+      console.log('Filtering by category:', category.id);
+      navigate(`/experience?category=${category.id}`);
+    }
+  };
+
+  const handlePriceRangeClick = (range) => {
+    console.log('Filtering by price range:', range);
     navigate(`/experience?priceRange=${range}`);
   };
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600"></div>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="text-center py-8 text-red-600">
-      <h2 className="text-2xl font-bold mb-4">Error</h2>
-      <p>{error}</p>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-600">
+        <h2 className="text-2xl font-bold mb-4">Error</h2>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -110,16 +137,14 @@ const HomePage = () => {
 
       <div className="container mx-auto px-4 py-12">
         {/* Categories Grid */}
-        <CategoryGrid
-          title="Explore by Category"
-          categories={categories}
-          columns={4}
-          onCategoryClick={(category) => {
-            if (category && category.id) {
-              navigate(`/experience?category=${category.id}`);
-            }
-          }}
-        />
+        {categories.length > 0 && (
+          <CategoryGrid
+            title="Explore by Category"
+            categories={categories}
+            columns={4}
+            onCategoryClick={handleCategoryClick}
+          />
+        )}
 
         {/* Featured Experiences */}
         {featuredExperiences.length > 0 && (
@@ -128,11 +153,7 @@ const HomePage = () => {
             subtitle="Discover our most popular adventures"
             experiences={featuredExperiences}
             columns={3}
-            onExperienceClick={(experience) => {
-              if (experience && experience.id) {
-                navigate(`/experience/${experience.id}`);
-              }
-            }}
+            onExperienceClick={handleExperienceClick}
           />
         )}
 
@@ -143,7 +164,7 @@ const HomePage = () => {
           className="bg-gradient-to-r from-red-100 to-red-200 rounded-lg shadow-md p-8"
           filterOptions={priceRanges.map(range => ({
             ...range,
-            onClick: () => filterByPrice(range.value)
+            onClick: () => handlePriceRangeClick(range.value)
           }))}
           experiences={[]}
         />
