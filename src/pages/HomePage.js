@@ -16,13 +16,18 @@ const HomePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const [experiencesData, categoriesData] = await Promise.all([
           ExperienceService.getAllExperiences(),
           CategoryService.getAllCategories()
         ]);
 
-        // Filter featured experiences (you might need to adjust this based on your data structure)
-        const featured = experiencesData.filter(exp => exp.featured || experiencesData.slice(0, 6));
+        if (!experiencesData || !categoriesData) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const featured = experiencesData.filter(exp => exp.featured) || experiencesData.slice(0, 6);
         setFeaturedExperiences(featured);
         setCategories(categoriesData);
       } catch (err) {
@@ -47,8 +52,18 @@ const HomePage = () => {
     navigate(`/experience?priceRange=${range}`);
   };
 
-  if (loading) return <div className="text-center py-8">Loading...</div>;
-  if (error) return <div className="text-center py-8 text-red-600">{error}</div>;
+  if (loading) return (
+    <div className="flex justify-center items-center h-screen">
+      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600"></div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="text-center py-8 text-red-600">
+      <h2 className="text-2xl font-bold mb-4">Error</h2>
+      <p>{error}</p>
+    </div>
+  );
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -99,7 +114,11 @@ const HomePage = () => {
           title="Explore by Category"
           categories={categories}
           columns={4}
-          onCategoryClick={(category) => navigate(`/experience?category=${category.id}`)}
+          onCategoryClick={(category) => {
+            if (category && category.id) {
+              navigate(`/experience?category=${category.id}`);
+            }
+          }}
         />
 
         {/* Featured Experiences */}
@@ -109,6 +128,11 @@ const HomePage = () => {
             subtitle="Discover our most popular adventures"
             experiences={featuredExperiences}
             columns={3}
+            onExperienceClick={(experience) => {
+              if (experience && experience.id) {
+                navigate(`/experience/${experience.id}`);
+              }
+            }}
           />
         )}
 
@@ -119,7 +143,7 @@ const HomePage = () => {
           className="bg-gradient-to-r from-red-100 to-red-200 rounded-lg shadow-md p-8"
           filterOptions={priceRanges.map(range => ({
             ...range,
-            onClick: filterByPrice
+            onClick: () => filterByPrice(range.value)
           }))}
           experiences={[]}
         />

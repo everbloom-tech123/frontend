@@ -17,7 +17,7 @@ const API_BASE_URL = `${config.API_BASE_URL}/public/api/products`;
 const API_BASE_URL2 = `${config.API_BASE_URL}/public/api/wishlist`;
 
 const ExperienceDetails = () => {
-  const { experienceId } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
@@ -71,7 +71,7 @@ const ExperienceDetails = () => {
           authenticatedAxios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           return authenticatedAxios(originalRequest);
         } catch (refreshError) {
-          navigate('/login', { state: { from: `/experience/${experienceId}` } });
+          navigate('/login', { state: { from: `/experience/${id}` } });
           return Promise.reject(refreshError);
         }
       }
@@ -79,7 +79,7 @@ const ExperienceDetails = () => {
     }
   );
 
-  const handleErrorResponse = (error) => {
+  const handleErrorResponse = useCallback((error) => {
     if (error.response) {
       switch (error.response.status) {
         case 400: return 'Bad request. Please try again.';
@@ -90,9 +90,9 @@ const ExperienceDetails = () => {
     }
     if (error.request) return 'No response received from the server. Please check your internet connection.';
     return `Error: ${error.message}`;
-  };
+  }, []);
 
-  const generateFakeReviews = (count) => {
+  const generateFakeReviews = useCallback((count) => {
     const reviews = [];
     for (let i = 0; i < count; i++) {
       reviews.push({
@@ -111,14 +111,24 @@ const ExperienceDetails = () => {
       });
     }
     return reviews;
-  };
+  }, []);
 
   const fetchExperienceDetails = useCallback(async () => {
+    if (!id) {
+      setError('Experience ID is required');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
       
-      const response = await authenticatedAxios.get(`${API_BASE_URL}/${experienceId}`);
+      const response = await authenticatedAxios.get(`${API_BASE_URL}/${id}`);
+      if (!response.data) {
+        throw new Error('Experience not found');
+      }
+
       setExperience({
         ...response.data,
         viewCount: Math.floor(Math.random() * 10000) + 1000,
@@ -127,7 +137,7 @@ const ExperienceDetails = () => {
 
       if (isUserAuthenticated) {
         try {
-          const wishlistResponse = await authenticatedAxios.get(`${API_BASE_URL2}/check/${experienceId}`);
+          const wishlistResponse = await authenticatedAxios.get(`${API_BASE_URL2}/check/${id}`);
           setIsInWishlist(wishlistResponse.data);
         } catch (wishlistError) {
           console.error('Error checking wishlist status:', wishlistError);
@@ -139,7 +149,7 @@ const ExperienceDetails = () => {
     } finally {
       setLoading(false);
     }
-  }, [experienceId, isUserAuthenticated]);
+  }, [id, isUserAuthenticated, generateFakeReviews, handleErrorResponse]);
 
   useEffect(() => {
     fetchExperienceDetails();
@@ -156,21 +166,21 @@ const ExperienceDetails = () => {
 
   const handleWishlistToggle = async () => {
     if (!isUserAuthenticated) {
-      navigate('/login', { state: { from: `/experience/${experienceId}` } });
+      navigate('/login', { state: { from: `/experience/${id}` } });
       return;
     }
 
     try {
       if (isInWishlist) {
-        await authenticatedAxios.delete(`${API_BASE_URL2}/${experienceId}`);
+        await authenticatedAxios.delete(`${API_BASE_URL2}/${id}`);
       } else {
-        await authenticatedAxios.post(`${API_BASE_URL2}`, { experienceId });
+        await authenticatedAxios.post(`${API_BASE_URL2}`, { experienceId: id });
       }
       setIsInWishlist(!isInWishlist);
     } catch (error) {
       console.error('Error updating wishlist:', error);
       if (error.response?.status === 401) {
-        navigate('/login', { state: { from: `/experience/${experienceId}` } });
+        navigate('/login', { state: { from: `/experience/${id}` } });
       } else {
         setError(handleErrorResponse(error));
       }
@@ -179,10 +189,10 @@ const ExperienceDetails = () => {
 
   const handleBooking = () => {
     if (!isUserAuthenticated) {
-      navigate('/login', { state: { from: `/experience/${experienceId}` } });
+      navigate('/login', { state: { from: `/experience/${id}` } });
       return;
     }
-    navigate(`/booking/${experienceId}`);
+    navigate(`/booking/${id}`);
   };
 
   if (loading) return (
@@ -197,7 +207,7 @@ const ExperienceDetails = () => {
       <p>{error}</p>
       {error.includes('Authentication error') && (
         <button 
-          onClick={() => navigate('/login', { state: { from: `/experience/${experienceId}` } })} 
+          onClick={() => navigate('/login', { state: { from: `/experience/${id}` } })} 
           className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
         >
           Go to Login
@@ -212,7 +222,9 @@ const ExperienceDetails = () => {
     </div>
   );
 
-  if (!experience) return <div className="text-center mt-8">No experience found.</div>;
+  if (!experience) return (
+    <div className="text-center mt-8">No experience found.</div>
+  );
 
   return (
     <div className="bg-white min-h-screen">
@@ -253,7 +265,10 @@ const ExperienceDetails = () => {
                   ))}
                 </div>
 
-                <TabContent selectedTab={selectedTab} experience={experience} />
+                <TabContent
+                  selectedTab={selectedTab}
+                  experience={experience}
+                />
               </div>
             </div>
           </div>
