@@ -128,12 +128,13 @@ const ExperienceGrid = ({
           )}
 
           {showViewDetails && (
-            <Link 
-              to={`/experience/${experience.id}`}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 inline-block w-full text-center"
-            >
-              View Details
-            </Link>
+            // In ExperienceGrid.jsx, change the Link like this:
+        <Link 
+          to={`/experience/${experience.id}`}
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 inline-block w-full text-center"
+        >
+          View Details
+        </Link>
           )}
         </div>
       </motion.div>
