@@ -1,12 +1,22 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlay, FaChevronLeft, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
+import config from '../config';
 
 const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideoPlaying, onBack }) => {
+  // Helper function to construct correct URL
+  const getMediaUrl = (mediaPath) => {
+    if (!mediaPath) return '/placeholder-image.jpg';
+    // Check if it's already a full URL
+    if (mediaPath.startsWith('http')) return mediaPath;
+    // Otherwise, construct the full URL
+    return `${config.API_BASE_URL}/public/api/products/files/${mediaPath}`;
+  };
+
   // Combine all media sources into one array
   const allMedia = [
-    ...(media.imageUrls ? (Array.isArray(media.imageUrls) ? media.imageUrls : [media.imageUrls]) : []),
     ...(media.imageUrl ? [media.imageUrl] : []),
+    ...(Array.isArray(media.imageUrls) ? media.imageUrls : []),
     ...(media.videoUrl ? [media.videoUrl] : [])
   ].filter(Boolean);
 
@@ -36,10 +46,14 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
             <div className="w-full h-full bg-black flex items-center justify-center">
               {isVideoPlaying ? (
                 <video
-                  src={`${process.env.REACT_APP_API_URL}/public/api/products/files/${allMedia[activeMedia]}`}
+                  src={getMediaUrl(allMedia[activeMedia])}
                   className="w-full h-full object-contain"
                   controls
                   autoPlay
+                  onError={(e) => {
+                    console.error('Video loading error:', e);
+                    e.target.onerror = null;
+                  }}
                 />
               ) : (
                 <motion.button
@@ -53,19 +67,25 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
               )}
             </div>
           ) : (
-            <img
-              src={`${process.env.REACT_APP_API_URL}/public/api/products/files/${allMedia[activeMedia]}`}
+            <motion.img
+              src={getMediaUrl(allMedia[activeMedia])}
               alt={`Experience ${activeMedia + 1}`}
               className="w-full h-full object-contain"
               onError={(e) => {
+                console.error('Image loading error:', e);
                 e.target.onerror = null;
                 e.target.src = '/placeholder-image.jpg';
               }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
             />
           )}
         </motion.div>
       </AnimatePresence>
 
+      {/* Navigation arrows - only show if there's more than one media item */}
       {allMedia.length > 1 && (
         <>
           <button
@@ -83,14 +103,15 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
         </>
       )}
 
+      {/* Back button */}
       <button
         onClick={onBack}
-        className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition duration-300"
+        className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition duration-300 z-10"
       >
         <FaArrowLeft />
       </button>
 
-      {/* Thumbnail navigation */}
+      {/* Media indicators */}
       {allMedia.length > 1 && (
         <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
           {allMedia.map((_, index) => (
@@ -100,8 +121,16 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
               className={`w-3 h-3 rounded-full transition-all ${
                 activeMedia === index ? 'bg-red-600 scale-125' : 'bg-white opacity-60 hover:opacity-100'
               }`}
+              aria-label={`Go to media ${index + 1}`}
             />
           ))}
+        </div>
+      )}
+
+      {/* Loading state indicator */}
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
         </div>
       )}
     </div>
