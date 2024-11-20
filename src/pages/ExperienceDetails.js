@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaStar, FaPlay, FaArrowLeft, FaEye, FaHeart, FaShare, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import axios from 'axios';
 import config from '../config';
 import { 
@@ -10,6 +8,10 @@ import {
   getToken,
   refreshToken
 } from '../services/AuthService';
+import MediaGallery from './MediaGallery.jsx';
+import RatingInfo from './RatingInfo.jsx';
+import TabContent from './TabContent.jsx';
+import BookingCard from './BookingCard.jsx';
 
 const API_BASE_URL = `${config.API_BASE_URL}/public/api/products`;
 const API_BASE_URL2 = `${config.API_BASE_URL}/public/api/wishlist`;
@@ -27,26 +29,25 @@ const ExperienceDetails = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
 
-  // Initialize authentication state
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const authenticated = isAuthenticated();
-        setIsUserAuthenticated(authenticated);
-        if (authenticated) {
-          const user = getCurrentUser();
-          setCurrentUser(user);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
+  const initializeAuth = async () => {
+    try {
+      const authenticated = isAuthenticated();
+      setIsUserAuthenticated(authenticated);
+      if (authenticated) {
+        const user = getCurrentUser();
+        setCurrentUser(user);
       }
-    };
+    } catch (error) {
+      console.error('Error initializing auth:', error);
+    }
+  };
 
+  useEffect(() => {
     initializeAuth();
   }, []);
 
-  // Axios instance with authentication
   const authenticatedAxios = axios.create();
+  
   authenticatedAxios.interceptors.request.use(
     (config) => {
       const token = getToken();
@@ -55,12 +56,9 @@ const ExperienceDetails = () => {
       }
       return config;
     },
-    (error) => {
-      return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
   );
 
-  // Handle token refresh
   authenticatedAxios.interceptors.response.use(
     (response) => response,
     async (error) => {
@@ -84,20 +82,14 @@ const ExperienceDetails = () => {
   const handleErrorResponse = (error) => {
     if (error.response) {
       switch (error.response.status) {
-        case 400:
-          return 'Bad request. Please try again.';
-        case 401:
-          return 'Authentication error. Please log in again.';
-        case 404:
-          return 'Experience not found.';
-        default:
-          return `An error occurred: ${error.response.data.message || 'Unknown error'}`;
+        case 400: return 'Bad request. Please try again.';
+        case 401: return 'Authentication error. Please log in again.';
+        case 404: return 'Experience not found.';
+        default: return `An error occurred: ${error.response.data.message || 'Unknown error'}`;
       }
-    } else if (error.request) {
-      return 'No response received from the server. Please check your internet connection.';
-    } else {
-      return `Error: ${error.message}`;
     }
+    if (error.request) return 'No response received from the server. Please check your internet connection.';
+    return `Error: ${error.message}`;
   };
 
   const generateFakeReviews = (count) => {
@@ -126,7 +118,6 @@ const ExperienceDetails = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch experience details
       const response = await authenticatedAxios.get(`${API_BASE_URL}/${experienceId}`);
       setExperience({
         ...response.data,
@@ -134,7 +125,6 @@ const ExperienceDetails = () => {
         reviews: generateFakeReviews(5)
       });
 
-      // Check wishlist status if authenticated
       if (isUserAuthenticated) {
         try {
           const wishlistResponse = await authenticatedAxios.get(`${API_BASE_URL2}/check/${experienceId}`);
@@ -224,92 +214,27 @@ const ExperienceDetails = () => {
 
   if (!experience) return <div className="text-center mt-8">No experience found.</div>;
 
-  const allMedia = [...(experience.imageUrls || []), experience.videoUrl].filter(Boolean);
-
   return (
     <div className="bg-white min-h-screen">
-      <div className="relative w-full h-[70vh] bg-gray-200">
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={activeMedia}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="absolute inset-0 flex items-center justify-center"
-          >
-            {activeMedia === allMedia.length - 1 && experience.videoUrl ? (
-              <div className="w-full h-full bg-black flex items-center justify-center">
-                {isVideoPlaying ? (
-                  <video
-                    src={`/public/api/products/files/${experience.videoUrl}`}
-                    className="w-full h-full object-contain"
-                    controls
-                    autoPlay
-                  />
-                ) : (
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={handleVideoClick}
-                    className="text-white text-6xl hover:text-red-600 transition duration-300"
-                  >
-                    <FaPlay />
-                  </motion.button>
-                )}
-              </div>
-            ) : (
-              <img
-                src={`/public/api/products/files/${allMedia[activeMedia]}`}
-                alt={`Experience ${activeMedia + 1}`}
-                className="w-full h-full object-contain"
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        <button
-          onClick={() => handleMediaChange((activeMedia - 1 + allMedia.length) % allMedia.length)}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition duration-300"
-        >
-          <FaChevronLeft />
-        </button>
-        <button
-          onClick={() => handleMediaChange((activeMedia + 1) % allMedia.length)}
-          className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition duration-300"
-        >
-          <FaChevronRight />
-        </button>
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition duration-300"
-        >
-          <FaArrowLeft />
-        </button>
-      </div>
+      <MediaGallery
+        media={experience}
+        activeMedia={activeMedia}
+        onMediaChange={handleMediaChange}
+        onVideoClick={handleVideoClick}
+        isVideoPlaying={isVideoPlaying}
+        onBack={() => navigate(-1)}
+      />
 
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">{experience.title}</h1>
         <div className="flex flex-col lg:flex-row lg:space-x-8">
           <div className="lg:w-2/3">
             <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-              <div className="flex items-center mb-4 space-x-4">
-                <div className="flex items-center">
-                  {[...Array(5)].map((_, index) => (
-                    <FaStar
-                      key={index}
-                      className={`${
-                        index < (experience.rating || 0) ? 'text-yellow-400' : 'text-gray-300'
-                      } text-xl`}
-                    />
-                  ))}
-                  <span className="ml-2 text-gray-600">({experience.reviews?.length || 0} reviews)</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <FaEye className="mr-2" />
-                  {experience.viewCount?.toLocaleString() || 0} views
-                </div>
-              </div>
+              <RatingInfo
+                rating={experience.rating}
+                reviewCount={experience.reviews?.length}
+                viewCount={experience.viewCount}
+              />
 
               <div className="mb-6">
                 <div className="flex border-b">
@@ -328,144 +253,20 @@ const ExperienceDetails = () => {
                   ))}
                 </div>
 
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={selectedTab}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-4"
-                  >
-                    {selectedTab === 'description' && (
-                      <p className="text-gray-600 leading-relaxed">{experience.description}</p>
-                    )}
-                    {selectedTab === 'additional info' && (
-                      <div
-                        className="text-gray-600 leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: experience.additionalInfo }}
-                      />
-                    )}
-                    {selectedTab === 'reviews' && (
-                      <div className="space-y-6">
-                        {experience.reviews?.map((review) => (
-                          <div key={review.id} className="border-b pb-6">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center">
-                                <img src={review.avatar} alt={review.user} className="w-12 h-12 rounded-full mr-4" />
-                                <div>
-                                  <p className="font-semibold text-lg">{review.user}</p>
-                                  <div className="flex items-center">
-                                    {[...Array(5)].map((_, index) => (
-                                      <FaStar
-                                        key={index}
-                                        className={`${
-                                          index < review.rating ? 'text-yellow-400' : 'text-gray-300'
-                                        } text-sm`}
-                                      />
-                                    ))}
-                                  </div>
-                                </div>
-                              </div><p className="text-sm text-gray-500">{review.date}</p>
-                            </div>
-                            <p className="mt-2 text-gray-600">{review.comment}</p>
-                            {review.replies.map((reply, index) => (
-                              <div key={index} className="ml-12 mt-4 bg-gray-50 p-4 rounded-lg">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center">
-                                    <img src={reply.avatar} alt={reply.user} className="w-10 h-10 rounded-full mr-3" />
-                                    <p className="font-semibold">{reply.user}</p>
-                                  </div>
-                                  <p className="text-sm text-gray-500">{reply.date}</p>
-                                </div>
-                                <p className="mt-1 text-gray-600">{reply.comment}</p>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                </AnimatePresence>
+                <TabContent selectedTab={selectedTab} experience={experience} />
               </div>
             </div>
           </div>
 
           <div className="lg:w-1/3">
-            <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Book this experience</h2>
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <p className="text-3xl font-bold text-gray-800">
-                    ${experience.price?.toFixed(2)}
-                  </p>
-                  {experience.discount > 0 && (
-                    <p className="text-sm text-gray-500 line-through">
-                      ${((experience.price || 0) / (1 - (experience.discount || 0) / 100)).toFixed(2)}
-                    </p>
-                  )}
-                </div>
-                {experience.discount > 0 && (
-                  <div className="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold">
-                    {experience.discount}% OFF
-                  </div>
-                )}
-              </div>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleBooking}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full text-lg transition duration-300"
-              >
-                {isUserAuthenticated ? 'Book Now' : 'Login to Book'}
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleWishlistToggle}
-                className={`w-full mt-4 border font-bold py-3 px-4 rounded-full text-lg transition duration-300 flex items-center justify-center ${
-                  isInWishlist
-                    ? 'bg-red-100 text-red-600 border-red-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-                }`}
-              >
-                <FaHeart className={`mr-2 ${isInWishlist ? 'text-red-600' : 'text-gray-400'}`} />
-                {isUserAuthenticated 
-                  ? (isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist')
-                  : 'Login to Save'
-                }
-              </motion.button>
-
-              {currentUser && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Logged in as:</p>
-                  <p className="font-semibold">{currentUser.username}</p>
-                  <p className="text-gray-500 text-sm">{currentUser.email}</p>
-                </div>
-              )}
-
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold mb-2">Share this experience</h3>
-                <div className="flex space-x-4">
-                  <button 
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: experience.title,
-                          text: experience.description,
-                          url: window.location.href
-                        }).catch(console.error);
-                      }
-                    }}
-                    className="text-red-600 hover:text-red-700 transition duration-300"
-                  >
-                    <FaShare className="text-2xl" />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <BookingCard
+              experience={experience}
+              isUserAuthenticated={isUserAuthenticated}
+              currentUser={currentUser}
+              isInWishlist={isInWishlist}
+              onBooking={handleBooking}
+              onWishlistToggle={handleWishlistToggle}
+            />
           </div>
         </div>
       </div>
