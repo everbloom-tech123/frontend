@@ -23,38 +23,30 @@ const ExperienceDetails = () => {
 
   // Create axios instance with base configuration
   const api = axios.create({
-    baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
+    baseURL: config.API_BASE_URL,
     headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      'Content-Type': 'application/json'
     }
   });
 
   // Add request interceptor for authentication
   api.interceptors.request.use(
     (config) => {
-      console.log('Making request to:', config.url);
       const token = getToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
-        console.log('Token attached:', token);
       }
       return config;
     },
     (error) => {
-      console.error('Request interceptor error:', error);
       return Promise.reject(error);
     }
   );
 
   // Add response interceptor for handling auth errors
   api.interceptors.response.use(
-    (response) => {
-      console.log('Response received:', response);
-      return response;
-    },
+    (response) => response,
     async (error) => {
-      console.error('API Error:', error.response || error);
       if (error.response?.status === 401) {
         navigate('/signin', { state: { from: `/experience/${id}` } });
       }
@@ -94,28 +86,15 @@ const ExperienceDetails = () => {
       setLoading(true);
       setError(null);
 
-      // Log the full URL being called
-      console.log('Fetching experience from:', `${api.defaults.baseURL}/public/api/products/${id}`);
-
       // Fetch experience details
-      const response = await api.get(`/public/api/products/${id}`, {
-        validateStatus: function (status) {
-          return status < 500; // Resolve only if the status code is less than 500
-        }
-      });
-
-      console.log('Experience API response:', response);
-
-      if (response.status === 404) {
-        setError('Experience not found');
-        return;
-      }
+      const response = await api.get(`/public/api/products/${id}`);
+      console.log('Experience details response:', response.data);
 
       if (!response.data) {
-        throw new Error('No data received from server');
+        throw new Error('Experience not found');
       }
 
-      // Enhance the experience data
+      // Enhance the experience data with additional properties
       const enhancedExperience = {
         ...response.data,
         viewCount: Math.floor(Math.random() * 10000) + 1000,
@@ -130,19 +109,18 @@ const ExperienceDetails = () => {
           const wishlistResponse = await api.get(`/public/api/wishlist/check/${id}`);
           setIsInWishlist(wishlistResponse.data);
         } catch (wishlistError) {
-          console.error('Wishlist check error:', wishlistError);
+          console.error('Error checking wishlist status:', wishlistError);
         }
       }
     } catch (err) {
-      console.error('Experience fetch error:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to load experience details');
+      console.error('Error fetching experience details:', err);
+      setError(err.response?.data?.message || 'Failed to load experience details');
     } finally {
       setLoading(false);
     }
   }, [id, isAuthenticated, api, generateFakeReviews]);
 
   useEffect(() => {
-    console.log('Experience ID:', id);
     fetchExperienceDetails();
   }, [fetchExperienceDetails]);
 
@@ -164,17 +142,16 @@ const ExperienceDetails = () => {
     try {
       if (isInWishlist) {
         await api.delete(`/public/api/wishlist/${id}`);
-        setIsInWishlist(false);
       } else {
         await api.post('/public/api/wishlist', { experienceId: id });
-        setIsInWishlist(true);
       }
+      setIsInWishlist(!isInWishlist);
     } catch (error) {
-      console.error('Wishlist toggle error:', error);
+      console.error('Error updating wishlist:', error);
       if (error.response?.status === 401) {
         navigate('/signin', { state: { from: `/experience/${id}` } });
       } else {
-        setError('Failed to update wishlist');
+        setError(error.response?.data?.message || 'Failed to update wishlist');
       }
     }
   };
@@ -197,15 +174,25 @@ const ExperienceDetails = () => {
 
   if (error) {
     return (
-      <div className="text-center mt-8">
-        <h2 className="text-2xl font-bold mb-4 text-red-600">Oops!</h2>
-        <p className="text-gray-600 mb-4">{error}</p>
-        <button 
-          onClick={() => navigate(-1)}
-          className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-full transition duration-300"
-        >
-          Go Back
-        </button>
+      <div className="text-center mt-8 text-red-600">
+        <h2 className="text-2xl font-bold mb-4">Error</h2>
+        <p>{error}</p>
+        <div className="mt-4 space-x-4">
+          {error.includes('Authentication required') && (
+            <button 
+              onClick={() => navigate('/signin', { state: { from: `/experience/${id}` } })}
+              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Sign In
+            </button>
+          )}
+          <button 
+            onClick={() => navigate(-1)} 
+            className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Go Back
+          </button>
+        </div>
       </div>
     );
   }
@@ -215,8 +202,8 @@ const ExperienceDetails = () => {
       <div className="text-center mt-8">
         <h2 className="text-2xl font-bold mb-4">Experience Not Found</h2>
         <button 
-          onClick={() => navigate(-1)}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition duration-300"
+          onClick={() => navigate(-1)} 
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
         >
           Go Back
         </button>
