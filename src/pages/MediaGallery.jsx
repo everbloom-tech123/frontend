@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlay, FaChevronLeft, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
 import config from '../config';
 
 const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideoPlaying, onBack }) => {
+  const [loading, setLoading] = useState(false);
+
   // Helper function to construct correct URL
   const getMediaUrl = (mediaPath) => {
     if (!mediaPath) return '/placeholder-image.jpg';
@@ -50,8 +52,11 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
                   className="w-full h-full object-contain"
                   controls
                   autoPlay
+                  onLoadStart={() => setLoading(true)}
+                  onLoadedData={() => setLoading(false)}
                   onError={(e) => {
                     console.error('Video loading error:', e);
+                    setLoading(false);
                     e.target.onerror = null;
                   }}
                 />
@@ -71,8 +76,11 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
               src={getMediaUrl(allMedia[activeMedia])}
               alt={`Experience ${activeMedia + 1}`}
               className="w-full h-full object-contain"
+              onLoadStart={() => setLoading(true)}
+              onLoad={() => setLoading(false)}
               onError={(e) => {
                 console.error('Image loading error:', e);
+                setLoading(false);
                 e.target.onerror = null;
                 e.target.src = '/placeholder-image.jpg';
               }}
