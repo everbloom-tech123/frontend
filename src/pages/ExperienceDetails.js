@@ -1,27 +1,17 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-// Custom hooks and contexts
+import axios from 'axios';
+import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
-import useApi from '../hooks/useApi';  // New custom hook we created
-
-// Components
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
 import BookingCard from '../components/BookingCard';
 
-// Utils and config
-import { debounce } from 'lodash';
-import config from '../config';
-
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, getToken } = useAuth();
-  const { get, post, delete: deleteRequest, isLoading: apiLoading, error: apiError } = useApi(getToken);
-
-  // State management
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
