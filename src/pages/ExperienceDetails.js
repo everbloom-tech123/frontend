@@ -18,7 +18,7 @@ const ExperienceDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false); // Just for UI state
   const [currentUser, setCurrentUser] = useState(null);
 
   // Create memoized API instance
@@ -37,7 +37,6 @@ const ExperienceDetails = () => {
         if (token) {
           config.headers['Authorization'] = `Bearer ${token}`;
         }
-        // Make sure headers are properly merged
         return {
           ...config,
           headers: {
@@ -53,7 +52,6 @@ const ExperienceDetails = () => {
     return instance;
   }, [getToken]);
 
-  // Generate fake reviews for demo purposes
   const generateFakeReviews = useCallback((count) => {
     const reviews = [];
     for (let i = 0; i < count; i++) {
@@ -107,30 +105,6 @@ const ExperienceDetails = () => {
 
         setExperience(enhancedExperience);
 
-        // Check wishlist status only if authenticated
-        if (isAuthenticated) {
-          try {
-            const wishlistResponse = await api.get(`/public/api/wishlist/check/${id}`);
-            if (isMounted) {
-              setIsInWishlist(wishlistResponse.data);
-            }
-          } catch (wishlistError) {
-            console.error('Wishlist check error:', wishlistError);
-          }
-        }
-
-        // Fetch current user data if authenticated
-        if (isAuthenticated) {
-          try {
-            const userResponse = await api.get('/public/api/users/me');
-            if (isMounted) {
-              setCurrentUser(userResponse.data);
-            }
-          } catch (userError) {
-            console.error('User data fetch error:', userError);
-          }
-        }
-
       } catch (err) {
         if (isMounted) {
           setError(err.response?.data?.message || err.message || 'Failed to load experience details');
@@ -148,7 +122,7 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api, isAuthenticated, generateFakeReviews]);
+  }, [id, api, generateFakeReviews]);
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
@@ -159,23 +133,14 @@ const ExperienceDetails = () => {
     setIsVideoPlaying(prev => !prev);
   }, []);
 
+  // Mock wishlist toggle function
   const handleWishlistToggle = async () => {
     if (!isAuthenticated) {
       navigate('/signin', { state: { from: `/experience/${id}` } });
       return;
     }
-
-    try {
-      if (isInWishlist) {
-        await api.delete(`/public/api/wishlist/${id}`);
-        setIsInWishlist(false);
-      } else {
-        await api.post('/public/api/wishlist', { experienceId: id });
-        setIsInWishlist(true);
-      }
-    } catch (error) {
-      console.error('Wishlist toggle error:', error);
-    }
+    // Just toggle the UI state
+    setIsInWishlist(prev => !prev);
   };
 
   const handleBooking = useCallback(() => {
