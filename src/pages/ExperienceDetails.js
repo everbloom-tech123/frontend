@@ -1,17 +1,27 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import config from '../config';
+
+// Custom hooks and contexts
 import { useAuth } from '../contexts/AuthContext';
-import MediaGallery from './MediaGallery';
-import RatingInfo from './RatingInfo';
-import TabContent from './TabContent';
-import BookingCard from './BookingCard';
+import useApi from '../hooks/useApi';  // New custom hook we created
+
+// Components
+import MediaGallery from '../components/MediaGallery';
+import RatingInfo from '../components/RatingInfo';
+import TabContent from '../components/TabContent';
+import BookingCard from '../components/BookingCard';
+
+// Utils and config
+import { debounce } from 'lodash';
+import config from '../config';
 
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, getToken } = useAuth();
+  const { get, post, delete: deleteRequest, isLoading: apiLoading, error: apiError } = useApi(getToken);
+
+  // State management
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -20,6 +30,7 @@ const ExperienceDetails = () => {
   const [selectedTab, setSelectedTab] = useState('description');
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isDataFetched, setIsDataFetched] = useState(false);
 
   // Create memoized API instance
   const api = useMemo(() => {
@@ -71,7 +82,7 @@ const ExperienceDetails = () => {
     let isMounted = true;
 
     const fetchExperience = async () => {
-      if (!id) return;
+      if (!id || isDataFetched) return;
 
       try {
         setLoading(true);
@@ -81,11 +92,6 @@ const ExperienceDetails = () => {
         
         if (!isMounted) return;
 
-        if (response.status === 404) {
-          setError('Experience not found');
-          return;
-        }
-
         if (!response.data) {
           throw new Error('No data received from server');
         }
@@ -93,10 +99,17 @@ const ExperienceDetails = () => {
         const enhancedExperience = {
           ...response.data,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
-          reviews: generateFakeReviews(5)
+          reviews: generateFakeReviews(5),
+          // Pre-process image URLs to prevent repeated requests
+          imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
+          imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
+            `${config.API_BASE_URL}/public/api/products/files/${url}`
+          ) : [],
+          videoUrl: response.data.videoUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.videoUrl}` : null
         };
 
         setExperience(enhancedExperience);
+        setIsDataFetched(true);
 
         // Check wishlist status only if authenticated
         if (isAuthenticated) {
@@ -112,6 +125,7 @@ const ExperienceDetails = () => {
       } catch (err) {
         if (isMounted) {
           setError(err.response?.data?.message || err.message || 'Failed to load experience details');
+          console.error('Error fetching experience details:', err);
         }
       } finally {
         if (isMounted) {
@@ -125,7 +139,7 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api, isAuthenticated, generateFakeReviews]);
+  }, [id, api, isAuthenticated, generateFakeReviews, isDataFetched]);
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
@@ -163,6 +177,7 @@ const ExperienceDetails = () => {
     navigate(`/booking/${id}`);
   }, [id, isAuthenticated, navigate]);
 
+  // Render loading state
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -171,6 +186,7 @@ const ExperienceDetails = () => {
     );
   }
 
+  // Render error state
   if (error) {
     return (
       <div className="text-center mt-8">
@@ -186,6 +202,7 @@ const ExperienceDetails = () => {
     );
   }
 
+  // Render not found state
   if (!experience) {
     return (
       <div className="text-center mt-8">

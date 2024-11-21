@@ -1,19 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlay, FaChevronLeft, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
-import config from '../config';
 
 const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideoPlaying, onBack }) => {
   const [loading, setLoading] = useState(false);
-
-  // Helper function to construct correct URL
-  const getMediaUrl = (mediaPath) => {
-    if (!mediaPath) return '/placeholder-image.jpg';
-    // Check if it's already a full URL
-    if (mediaPath.startsWith('http')) return mediaPath;
-    // Otherwise, construct the full URL
-    return `${config.API_BASE_URL}/public/api/products/files/${mediaPath}`;
-  };
 
   // Combine all media sources into one array
   const allMedia = [
@@ -48,7 +38,7 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
             <div className="w-full h-full bg-black flex items-center justify-center">
               {isVideoPlaying ? (
                 <video
-                  src={getMediaUrl(allMedia[activeMedia])}
+                  src={allMedia[activeMedia]}
                   className="w-full h-full object-contain"
                   controls
                   autoPlay
@@ -57,7 +47,6 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
                   onError={(e) => {
                     console.error('Video loading error:', e);
                     setLoading(false);
-                    e.target.onerror = null;
                   }}
                 />
               ) : (
@@ -73,7 +62,7 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
             </div>
           ) : (
             <motion.img
-              src={getMediaUrl(allMedia[activeMedia])}
+              src={allMedia[activeMedia]}
               alt={`Experience ${activeMedia + 1}`}
               className="w-full h-full object-contain"
               onLoadStart={() => setLoading(true)}
@@ -81,7 +70,6 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
               onError={(e) => {
                 console.error('Image loading error:', e);
                 setLoading(false);
-                e.target.onerror = null;
                 e.target.src = '/placeholder-image.jpg';
               }}
               initial={{ opacity: 0 }}
@@ -93,7 +81,7 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation arrows - only show if there's more than one media item */}
+      {/* Navigation controls */}
       {allMedia.length > 1 && (
         <>
           <button
