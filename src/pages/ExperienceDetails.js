@@ -20,7 +20,6 @@ const ExperienceDetails = () => {
   const [selectedTab, setSelectedTab] = useState('description');
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [isDataFetched, setIsDataFetched] = useState(false);
 
   // Create memoized API instance
   const api = useMemo(() => {
@@ -36,9 +35,17 @@ const ExperienceDetails = () => {
       (config) => {
         const token = getToken();
         if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
+          config.headers['Authorization'] = `Bearer ${token}`;
         }
-        return config;
+        // Make sure headers are properly merged
+        return {
+          ...config,
+          headers: {
+            ...config.headers,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        };
       },
       (error) => Promise.reject(error)
     );
@@ -46,6 +53,7 @@ const ExperienceDetails = () => {
     return instance;
   }, [getToken]);
 
+  // Generate fake reviews for demo purposes
   const generateFakeReviews = useCallback((count) => {
     const reviews = [];
     for (let i = 0; i < count; i++) {
@@ -72,7 +80,7 @@ const ExperienceDetails = () => {
     let isMounted = true;
 
     const fetchExperience = async () => {
-      if (!id || isDataFetched) return;
+      if (!id) return;
 
       try {
         setLoading(true);
@@ -90,7 +98,6 @@ const ExperienceDetails = () => {
           ...response.data,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
           reviews: generateFakeReviews(5),
-          // Pre-process image URLs to prevent repeated requests
           imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
           imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
             `${config.API_BASE_URL}/public/api/products/files/${url}`
@@ -99,7 +106,6 @@ const ExperienceDetails = () => {
         };
 
         setExperience(enhancedExperience);
-        setIsDataFetched(true);
 
         // Check wishlist status only if authenticated
         if (isAuthenticated) {
@@ -112,6 +118,19 @@ const ExperienceDetails = () => {
             console.error('Wishlist check error:', wishlistError);
           }
         }
+
+        // Fetch current user data if authenticated
+        if (isAuthenticated) {
+          try {
+            const userResponse = await api.get('/public/api/users/me');
+            if (isMounted) {
+              setCurrentUser(userResponse.data);
+            }
+          } catch (userError) {
+            console.error('User data fetch error:', userError);
+          }
+        }
+
       } catch (err) {
         if (isMounted) {
           setError(err.response?.data?.message || err.message || 'Failed to load experience details');
@@ -129,7 +148,7 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api, isAuthenticated, generateFakeReviews, isDataFetched]);
+  }, [id, api, isAuthenticated, generateFakeReviews]);
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
