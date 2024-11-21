@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import ExperienceGrid from './ExperienceGrid.jsx';
-import CategoryGrid from './CategoryGrid.jsx';
+import ExperienceGrid from '../components/ExperienceGrid.jsx';
+import CategoryGrid from '../components/CategoryGrid.jsx'
 import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 
