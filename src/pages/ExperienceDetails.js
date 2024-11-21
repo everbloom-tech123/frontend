@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
-import MediaGallery from './MediaGallery.jsx';
-import RatingInfo from './RatingInfo.jsx';
-import TabContent from './TabContent.jsx';
-import BookingCard from './BookingCard.jsx';
+import MediaGallery from './MediaGallery';
+import RatingInfo from './RatingInfo';
+import TabContent from './TabContent';
+import BookingCard from './BookingCard';
 
 const ExperienceDetails = () => {
   const { id } = useParams();
@@ -21,38 +21,29 @@ const ExperienceDetails = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Create axios instance with base configuration
-  const api = axios.create({
-    baseURL: config.API_BASE_URL,
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  // Add request interceptor for authentication
-  api.interceptors.request.use(
-    (config) => {
-      const token = getToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+  // Create memoized API instance
+  const api = useMemo(() => {
+    const instance = axios.create({
+      baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
+    });
 
-  // Add response interceptor for handling auth errors
-  api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      if (error.response?.status === 401) {
-        navigate('/signin', { state: { from: `/experience/${id}` } });
-      }
-      return Promise.reject(error);
-    }
-  );
+    instance.interceptors.request.use(
+      (config) => {
+        const token = getToken();
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    return instance;
+  }, [getToken]);
 
   const generateFakeReviews = useCallback((count) => {
     const reviews = [];
@@ -67,7 +58,7 @@ const ExperienceDetails = () => {
         replies: Math.random() > 0.5 ? [{
           user: 'Host',
           avatar: 'https://i.pravatar.cc/150?img=66',
-          comment: 'Thank you for your feedback! We are glad you enjoyed the experience.',
+          comment: 'Thank you for your feedback!',
           date: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toLocaleDateString()
         }] : []
       });
@@ -75,63 +66,75 @@ const ExperienceDetails = () => {
     return reviews;
   }, []);
 
-  const fetchExperienceDetails = useCallback(async () => {
-    if (!id) {
-      setError('Experience ID is required');
-      setLoading(false);
-      return;
-    }
+  // Fetch experience details
+  useEffect(() => {
+    let isMounted = true;
 
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchExperience = async () => {
+      if (!id) return;
 
-      // Fetch experience details
-      const response = await api.get(`/public/api/products/${id}`);
-      console.log('Experience details response:', response.data);
+      try {
+        setLoading(true);
+        setError(null);
 
-      if (!response.data) {
-        throw new Error('Experience not found');
-      }
+        const response = await api.get(`/public/api/products/${id}`);
+        
+        if (!isMounted) return;
 
-      // Enhance the experience data with additional properties
-      const enhancedExperience = {
-        ...response.data,
-        viewCount: Math.floor(Math.random() * 10000) + 1000,
-        reviews: generateFakeReviews(5)
-      };
+        if (response.status === 404) {
+          setError('Experience not found');
+          return;
+        }
 
-      setExperience(enhancedExperience);
+        if (!response.data) {
+          throw new Error('No data received from server');
+        }
 
-      // Check wishlist status if authenticated
-      if (isAuthenticated) {
-        try {
-          const wishlistResponse = await api.get(`/public/api/wishlist/check/${id}`);
-          setIsInWishlist(wishlistResponse.data);
-        } catch (wishlistError) {
-          console.error('Error checking wishlist status:', wishlistError);
+        const enhancedExperience = {
+          ...response.data,
+          viewCount: Math.floor(Math.random() * 10000) + 1000,
+          reviews: generateFakeReviews(5)
+        };
+
+        setExperience(enhancedExperience);
+
+        // Check wishlist status only if authenticated
+        if (isAuthenticated) {
+          try {
+            const wishlistResponse = await api.get(`/public/api/wishlist/check/${id}`);
+            if (isMounted) {
+              setIsInWishlist(wishlistResponse.data);
+            }
+          } catch (wishlistError) {
+            console.error('Wishlist check error:', wishlistError);
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(err.response?.data?.message || err.message || 'Failed to load experience details');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
-    } catch (err) {
-      console.error('Error fetching experience details:', err);
-      setError(err.response?.data?.message || 'Failed to load experience details');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, isAuthenticated, api, generateFakeReviews]);
+    };
 
-  useEffect(() => {
-    fetchExperienceDetails();
-  }, [fetchExperienceDetails]);
+    fetchExperience();
 
-  const handleMediaChange = (index) => {
+    return () => {
+      isMounted = false;
+    };
+  }, [id, api, isAuthenticated, generateFakeReviews]);
+
+  const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
     setIsVideoPlaying(false);
-  };
+  }, []);
 
-  const handleVideoClick = () => {
-    setIsVideoPlaying(!isVideoPlaying);
-  };
+  const handleVideoClick = useCallback(() => {
+    setIsVideoPlaying(prev => !prev);
+  }, []);
 
   const handleWishlistToggle = async () => {
     if (!isAuthenticated) {
@@ -142,27 +145,23 @@ const ExperienceDetails = () => {
     try {
       if (isInWishlist) {
         await api.delete(`/public/api/wishlist/${id}`);
+        setIsInWishlist(false);
       } else {
         await api.post('/public/api/wishlist', { experienceId: id });
+        setIsInWishlist(true);
       }
-      setIsInWishlist(!isInWishlist);
     } catch (error) {
-      console.error('Error updating wishlist:', error);
-      if (error.response?.status === 401) {
-        navigate('/signin', { state: { from: `/experience/${id}` } });
-      } else {
-        setError(error.response?.data?.message || 'Failed to update wishlist');
-      }
+      console.error('Wishlist toggle error:', error);
     }
   };
 
-  const handleBooking = () => {
+  const handleBooking = useCallback(() => {
     if (!isAuthenticated) {
       navigate('/signin', { state: { from: `/experience/${id}` } });
       return;
     }
     navigate(`/booking/${id}`);
-  };
+  }, [id, isAuthenticated, navigate]);
 
   if (loading) {
     return (
@@ -174,25 +173,15 @@ const ExperienceDetails = () => {
 
   if (error) {
     return (
-      <div className="text-center mt-8 text-red-600">
-        <h2 className="text-2xl font-bold mb-4">Error</h2>
-        <p>{error}</p>
-        <div className="mt-4 space-x-4">
-          {error.includes('Authentication required') && (
-            <button 
-              onClick={() => navigate('/signin', { state: { from: `/experience/${id}` } })}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-            >
-              Sign In
-            </button>
-          )}
-          <button 
-            onClick={() => navigate(-1)} 
-            className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-          >
-            Go Back
-          </button>
-        </div>
+      <div className="text-center mt-8">
+        <h2 className="text-2xl font-bold mb-4 text-red-600">Oops!</h2>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <button 
+          onClick={() => navigate(-1)}
+          className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-full transition duration-300"
+        >
+          Go Back
+        </button>
       </div>
     );
   }
@@ -202,8 +191,8 @@ const ExperienceDetails = () => {
       <div className="text-center mt-8">
         <h2 className="text-2xl font-bold mb-4">Experience Not Found</h2>
         <button 
-          onClick={() => navigate(-1)} 
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          onClick={() => navigate(-1)}
+          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition duration-300"
         >
           Go Back
         </button>
