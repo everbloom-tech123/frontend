@@ -11,15 +11,13 @@ import BookingCard from '../components/BookingCard';
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, getToken } = useAuth();
+  const { isAuthenticated, getToken, getCurrentUser } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
-  const [isInWishlist, setIsInWishlist] = useState(false); // Just for UI state
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
   // Create memoized API instance
   const api = useMemo(() => {
@@ -52,26 +50,21 @@ const ExperienceDetails = () => {
     return instance;
   }, [getToken]);
 
-  const generateFakeReviews = useCallback((count) => {
-    const reviews = [];
-    for (let i = 0; i < count; i++) {
-      reviews.push({
-        id: i + 1,
-        user: `User${i + 1}`,
-        avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
-        rating: Math.floor(Math.random() * 5) + 1,
-        comment: `This experience was ${['amazing', 'fantastic', 'wonderful', 'great', 'superb'][Math.floor(Math.random() * 5)]}! I would definitely recommend it to others.`,
-        date: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toLocaleDateString(),
-        replies: Math.random() > 0.5 ? [{
-          user: 'Host',
-          avatar: 'https://i.pravatar.cc/150?img=66',
-          comment: 'Thank you for your feedback!',
-          date: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toLocaleDateString()
-        }] : []
-      });
-    }
-    return reviews;
+  const handleMediaChange = useCallback((index) => {
+    setActiveMedia(index);
   }, []);
+
+  const handleQuery = useCallback(() => {
+    const user = getCurrentUser();
+    const username = user?.username || 'Guest';
+    
+    console.log(`Query requested by: ${username}`);
+    alert(`Hello ${username}! Your query has been received.`);
+  }, []);
+
+  const handleWishlistToggle = () => {
+    setIsInWishlist(prev => !prev);
+  };
 
   // Fetch experience details
   useEffect(() => {
@@ -95,7 +88,6 @@ const ExperienceDetails = () => {
         const enhancedExperience = {
           ...response.data,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
-          reviews: generateFakeReviews(5),
           imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
           imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
             `${config.API_BASE_URL}/public/api/products/files/${url}`
@@ -122,34 +114,7 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api, generateFakeReviews]);
-
-  const handleMediaChange = useCallback((index) => {
-    setActiveMedia(index);
-    setIsVideoPlaying(false);
-  }, []);
-
-  const handleVideoClick = useCallback(() => {
-    setIsVideoPlaying(prev => !prev);
-  }, []);
-
-  // Mock wishlist toggle function
-  const handleWishlistToggle = async () => {
-    if (!isAuthenticated) {
-      navigate('/signin', { state: { from: `/experience/${id}` } });
-      return;
-    }
-    // Just toggle the UI state
-    setIsInWishlist(prev => !prev);
-  };
-
-  const handleBooking = useCallback(() => {
-    if (!isAuthenticated) {
-      navigate('/signin', { state: { from: `/experience/${id}` } });
-      return;
-    }
-    navigate(`/booking/${id}`);
-  }, [id, isAuthenticated, navigate]);
+  }, [id, api]);
 
   // Render loading state
   if (loading) {
@@ -197,8 +162,6 @@ const ExperienceDetails = () => {
         media={experience}
         activeMedia={activeMedia}
         onMediaChange={handleMediaChange}
-        onVideoClick={handleVideoClick}
-        isVideoPlaying={isVideoPlaying}
         onBack={() => navigate(-1)}
       />
 
@@ -215,7 +178,7 @@ const ExperienceDetails = () => {
 
               <div className="mb-6">
                 <div className="flex border-b">
-                  {['description', 'additional info', 'reviews'].map((tab) => (
+                  {['description', 'additional info'].map((tab) => (
                     <button
                       key={tab}
                       className={`px-4 py-2 font-semibold ${
@@ -241,10 +204,10 @@ const ExperienceDetails = () => {
           <div className="lg:w-1/3">
             <BookingCard
               experience={experience}
-              isAuthenticated={isAuthenticated}
-              currentUser={currentUser}
+              isAuthenticated={true}
+              currentUser={getCurrentUser()}
               isInWishlist={isInWishlist}
-              onBooking={handleBooking}
+              onBooking={handleQuery}
               onWishlistToggle={handleWishlistToggle}
             />
           </div>

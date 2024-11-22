@@ -1,8 +1,6 @@
 // src/services/AuthService.js
 
-const API_URL = process.env.NODE_ENV === 'production'
-  ? 'https://3.83.93.102.nip.io/auth'  // This will be your deployed backend URL
-  : 'http://localhost:8080/auth';
+const API_URL = (process.env.REACT_APP_API_URL || 'https://3.83.93.102.nip.io') + '/auth';
 
 export const register = async (username, email, password) => {
   try {
