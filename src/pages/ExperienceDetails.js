@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
-import { useAuth } from '../contexts/AuthContext';
+import { getCurrentUser, getToken } from '../services/AuthService';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
@@ -11,7 +11,6 @@ import BookingCard from '../components/BookingCard';
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, getToken, getCurrentUser } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -48,7 +47,7 @@ const ExperienceDetails = () => {
     );
 
     return instance;
-  }, [getToken]);
+  }, []);
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
@@ -88,6 +87,7 @@ const ExperienceDetails = () => {
         const enhancedExperience = {
           ...response.data,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
+          reviews: generateFakeReviews(5),
           imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
           imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
             `${config.API_BASE_URL}/public/api/products/files/${url}`
@@ -114,7 +114,11 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api]);
+  }, [id, api, generateFakeReviews]);
+
+  const handleVideoClick = useCallback(() => {
+    setIsVideoPlaying(prev => !prev);
+  }, []);
 
   // Render loading state
   if (loading) {
@@ -162,6 +166,8 @@ const ExperienceDetails = () => {
         media={experience}
         activeMedia={activeMedia}
         onMediaChange={handleMediaChange}
+        onVideoClick={handleVideoClick}
+        isVideoPlaying={isVideoPlaying}
         onBack={() => navigate(-1)}
       />
 
@@ -178,7 +184,7 @@ const ExperienceDetails = () => {
 
               <div className="mb-6">
                 <div className="flex border-b">
-                  {['description', 'additional info'].map((tab) => (
+                  {['description', 'additional info', 'reviews'].map((tab) => (
                     <button
                       key={tab}
                       className={`px-4 py-2 font-semibold ${
