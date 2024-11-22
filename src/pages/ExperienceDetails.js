@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
-import { getCurrentUser, getToken } from '../services/AuthService';
+import { useAuth } from '../contexts/AuthContext';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
@@ -11,12 +11,15 @@ import BookingCard from '../components/BookingCard';
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, getToken } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
-  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [isInWishlist, setIsInWishlist] = useState(false); // Just for UI state
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Create memoized API instance
   const api = useMemo(() => {
@@ -47,22 +50,27 @@ const ExperienceDetails = () => {
     );
 
     return instance;
-  }, []);
+  }, [getToken]);
 
-  const handleMediaChange = useCallback((index) => {
-    setActiveMedia(index);
-  }, []);
-
-  const handleQuery = useCallback(() => {
-    const user = getCurrentUser();
-    const username = user?.username || 'Guest';
-    
-    console.log(`Query requested by: ${username}`);
-    alert(`Hello ${username}! Your query has been received.`);
-  }, []);
-
-  const handleWishlistToggle = () => {
-    setIsInWishlist(prev => !prev);
+  const generateFakeReviews = (count) => {
+    const reviews = [];
+    for (let i = 0; i < count; i++) {
+      reviews.push({
+        id: i + 1,
+        user: `User${i + 1}`,
+        avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
+        rating: Math.floor(Math.random() * 5) + 1,
+        comment: `This experience was ${['amazing', 'fantastic', 'wonderful', 'great', 'superb'][Math.floor(Math.random() * 5)]}! I would definitely recommend it to others.`,
+        date: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toLocaleDateString(),
+        replies: Math.random() > 0.5 ? [{
+          user: 'Host',
+          avatar: 'https://i.pravatar.cc/150?img=66',
+          comment: 'Thank you for your feedback! We are glad you enjoyed the experience.',
+          date: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toLocaleDateString()
+        }] : []
+      });
+    }
+    return reviews;
   };
 
   // Fetch experience details
@@ -116,9 +124,32 @@ const ExperienceDetails = () => {
     };
   }, [id, api, generateFakeReviews]);
 
+  const handleMediaChange = useCallback((index) => {
+    setActiveMedia(index);
+    setIsVideoPlaying(false);
+  }, []);
+
   const handleVideoClick = useCallback(() => {
     setIsVideoPlaying(prev => !prev);
   }, []);
+
+  // Mock wishlist toggle function
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      navigate('/signin', { state: { from: `/experience/${id}` } });
+      return;
+    }
+    // Just toggle the UI state
+    setIsInWishlist(prev => !prev);
+  };
+
+  const handleBooking = useCallback(() => {
+    if (!isAuthenticated) {
+      navigate('/signin', { state: { from: `/experience/${id}` } });
+      return;
+    }
+    navigate(`/booking/${id}`);
+  }, [id, isAuthenticated, navigate]);
 
   // Render loading state
   if (loading) {
@@ -210,10 +241,10 @@ const ExperienceDetails = () => {
           <div className="lg:w-1/3">
             <BookingCard
               experience={experience}
-              isAuthenticated={true}
-              currentUser={getCurrentUser()}
+              isAuthenticated={isAuthenticated}
+              currentUser={currentUser}
               isInWishlist={isInWishlist}
-              onBooking={handleQuery}
+              onBooking={handleBooking}
               onWishlistToggle={handleWishlistToggle}
             />
           </div>
