@@ -45,6 +45,7 @@ const ViewAllExperiencesPage = () => {
   useEffect(() => {
     const fetchExperiences = async () => {
       try {
+        console.log('Fetching experiences...');
         setLoading(true);
         const response = await api.get('/public/api/products');
         
@@ -65,12 +66,12 @@ const ViewAllExperiencesPage = () => {
           throw new Error('Invalid data format received');
         }
       } catch (err) {
-        console.error('Error details:', {
+        console.error('Error fetching experiences:', {
           message: err.message,
           response: err.response,
-          status: err.response?.status
+          stack: err.stack
         });
-        setError(`Failed to fetch experiences: ${err.message}`);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -124,8 +125,28 @@ const ViewAllExperiencesPage = () => {
     }));
   };
 
-  if (loading) return <div className="text-center mt-8">Loading...</div>;
-  if (error) return <div className="text-center mt-8 text-red-500">{error}</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center mt-8">
+        <h2 className="text-2xl font-bold text-red-600">Error Loading Experiences</h2>
+        <p className="text-gray-600 mt-2">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
   
   return (
     <div className="bg-gray-50 min-h-screen mt-16">

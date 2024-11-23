@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Route, Routes } from 'react-router-dom';
+import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 
 // Import components
@@ -40,20 +40,21 @@ const PublicLayout = () => {
       <Navbar />
       <main className="flex-grow">
         <Routes>
-          <Route index element={<HomePage />} />
-          <Route path="signin" element={<SignIn />} />
-          <Route path="signup" element={<SignUp />} />
-          <Route path="verify-email" element={<VerifyEmail />} />
-          <Route path="experience/:id" element={<ExperienceDetails />} />
-          <Route path="experience" element={<ViewAllExperiencesPage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/experience/:id" element={<ExperienceDetails />} />
+          <Route path="/experience" element={<ViewAllExperiencesPage />} />
           <Route 
-            path="wishlist" 
+            path="/wishlist" 
             element={
               <ProtectedRoute>
                 <WishlistPage />
               </ProtectedRoute>
             } 
           />
+          <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
       <Footer />
@@ -63,10 +64,11 @@ const PublicLayout = () => {
 
 const App = () => {
   return (
-    <Router>
+    <Router basename="/">
       <AuthProvider>
         <div className="flex flex-col min-h-screen">
           <Routes>
+            <Route path="/" element={<Navigate to="/home" replace />} />
             <Route path="/admin/*" element={<AdminLayout />} />
             <Route path="/*" element={<PublicLayout />} />
           </Routes>
