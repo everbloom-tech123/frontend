@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaFilter, FaStar, FaEye } from 'react-icons/fa';
 import axios from 'axios';
+import config from '../config';
 
 const ViewAllExperiencesPage = () => {
   const [filter, setFilter] = useState('All');
@@ -33,25 +34,43 @@ const ViewAllExperiencesPage = () => {
     }
   };
 
+  const api = axios.create({
+    baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  });
+
   useEffect(() => {
     const fetchExperiences = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/public/api/products');
+        const response = await api.get('/public/api/products');
+        
+        console.log('API Response:', response);
+        
         if (response.data && Array.isArray(response.data)) {
           const enhancedExperiences = response.data.map(exp => ({
             ...exp,
             viewCount: Math.floor(Math.random() * 10000) + 1000,
             rating: (Math.random() * 2 + 3).toFixed(1),
-            reviews: generateFakeReviews()
+            reviews: generateFakeReviews(),
+            imageUrls: exp.imageUrls ? exp.imageUrls.map(url => 
+              `${config.API_BASE_URL}/public/api/products/files/${url}`
+            ) : []
           }));
           setExperiences(enhancedExperiences);
         } else {
           throw new Error('Invalid data format received');
         }
       } catch (err) {
-        console.error('Error fetching experiences:', err);
-        setError(`Failed to fetch experiences. Please try again later.`);
+        console.error('Error details:', {
+          message: err.message,
+          response: err.response,
+          status: err.response?.status
+        });
+        setError(`Failed to fetch experiences: ${err.message}`);
       } finally {
         setLoading(false);
       }
@@ -79,7 +98,8 @@ const ViewAllExperiencesPage = () => {
     : experiences.filter(exp => exp.category === filter);
 
   const getImageUrl = (filename) => {
-    return `/public/api/products/files/${filename}`;
+    if (!filename) return '/placeholder-image.jpg';
+    return `${config.API_BASE_URL}/public/api/products/files/${filename}`;
   };
 
   const ImageWithFallback = ({ src, alt, ...props }) => {
