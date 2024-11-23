@@ -20,6 +20,9 @@ const ExperienceDetails = () => {
   const [selectedTab, setSelectedTab] = useState('description');
   const [isInWishlist, setIsInWishlist] = useState(false); // Just for UI state
   const [currentUser, setCurrentUser] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 2000; // 2 seconds
 
   // Create memoized API instance
   const api = useMemo(() => {
@@ -52,7 +55,7 @@ const ExperienceDetails = () => {
     return instance;
   }, [getToken]);
 
-  const generateFakeReviews = (count) => {
+  const generateFakeReviews = useCallback((count) => {
     const reviews = [];
     for (let i = 0; i < count; i++) {
       reviews.push({
@@ -65,13 +68,13 @@ const ExperienceDetails = () => {
         replies: Math.random() > 0.5 ? [{
           user: 'Host',
           avatar: 'https://i.pravatar.cc/150?img=66',
-          comment: 'Thank you for your feedback! We are glad you enjoyed the experience.',
+          comment: 'Thank you for your feedback!',
           date: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toLocaleDateString()
         }] : []
       });
     }
     return reviews;
-  };
+  }, []);
 
   // Fetch experience details
   useEffect(() => {
@@ -155,7 +158,14 @@ const ExperienceDetails = () => {
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600 mb-4"></div>
+          {retryCount > 0 && (
+            <p className="text-white">
+              Retrying... Attempt {retryCount} of {MAX_RETRIES}
+            </p>
+          )}
+        </div>
       </div>
     );
   }
