@@ -6,6 +6,8 @@ import axios from 'axios';
 import config from '../config';
 
 const ViewAllExperiencesPage = () => {
+  console.log('ViewAllExperiencesPage mounting');
+  
   const [filter, setFilter] = useState('All');
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);

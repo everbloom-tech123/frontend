@@ -44,8 +44,8 @@ const PublicLayout = () => {
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/viewall" element={<ViewAllExperiencesPage />} />
           <Route path="/experience/:id" element={<ExperienceDetails />} />
-          <Route path="/experience" element={<ViewAllExperiencesPage />} />
           <Route 
             path="/wishlist" 
             element={
