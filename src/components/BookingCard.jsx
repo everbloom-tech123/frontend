@@ -4,7 +4,7 @@ import { FaHeart, FaShare } from 'react-icons/fa';
 
 const BookingCard = ({
   experience,
-  isUserAuthenticated,
+  isAuthenticated,
   currentUser,
   isInWishlist,
   onBooking,
@@ -36,7 +36,7 @@ const BookingCard = ({
       onClick={onBooking}
       className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full text-lg transition duration-300"
     >
-      {isUserAuthenticated ? 'Book Now' : 'Login to Book'}
+      {isAuthenticated ? 'Book Now' : 'Login to Book'}
     </motion.button>
 
     <motion.button
@@ -50,7 +50,7 @@ const BookingCard = ({
       }`}
     >
       <FaHeart className={`mr-2 ${isInWishlist ? 'text-red-600' : 'text-gray-400'}`} />
-      {isUserAuthenticated 
+      {isAuthenticated 
         ? (isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist')
         : 'Login to Save'
       }

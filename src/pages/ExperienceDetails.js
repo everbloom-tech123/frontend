@@ -60,31 +60,46 @@ const ExperienceDetails = () => {
         setLoading(true);
         setError(null);
 
-        const response = await api.get(`/public/api/products/${id}`);
+        const response = await api.get(`/public/api/products/${id}`).catch(error => {
+          if (error.response?.status === 404) {
+            throw new Error('Experience not found');
+          }
+          throw error;
+        });
         
         if (!isMounted) return;
 
-        if (!response.data) {
+        if (!response?.data) {
           throw new Error('No data received from server');
         }
 
         const enhancedExperience = {
           ...response.data,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
-          reviews: generateFakeReviews(5),
-          imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
-          imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
-            `${config.API_BASE_URL}/public/api/products/files/${url}`
-          ) : [],
-          videoUrl: response.data.videoUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.videoUrl}` : null
+          imageUrl: response.data.imageUrl ? 
+            `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
+          imageUrls: response.data.imageUrls ? 
+            response.data.imageUrls.map(url => 
+              `${config.API_BASE_URL}/public/api/products/files/${url}`
+            ) : [],
+          videoUrl: response.data.videoUrl ? 
+            `${config.API_BASE_URL}/public/api/products/files/${response.data.videoUrl}` : null
         };
 
         setExperience(enhancedExperience);
 
       } catch (err) {
         if (isMounted) {
-          setError(err.response?.data?.message || err.message || 'Failed to load experience details');
-          console.error('Error fetching experience details:', err);
+          const errorMessage = err.response?.status === 404 
+            ? 'Experience not found' 
+            : err.response?.data?.message || err.message || 'Failed to load experience details';
+          
+          setError(errorMessage);
+          console.error('Error fetching experience details:', {
+            status: err.response?.status,
+            message: errorMessage,
+            error: err
+          });
         }
       } finally {
         if (isMounted) {
@@ -98,7 +113,7 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api, generateFakeReviews]);
+  }, [id, api]);
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
