@@ -15,11 +15,14 @@ import {
 } from '@mui/material';
 import { Edit, Delete, Visibility } from '@mui/icons-material';
 import ExperienceService from '../ExperienceService';
+import ExperienceDetails from './ExperienceDetails';
 
 const ExperienceList = ({ onEdit, onView, refreshList }) => {
   const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedExperience, setSelectedExperience] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     fetchExperiences();
@@ -48,6 +51,11 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
         setError('Failed to delete experience. Please try again.');
       }
     }
+  };
+
+  const handleView = (experience) => {
+    setSelectedExperience(experience);
+    setDetailsOpen(true);
   };
 
   if (loading) {
@@ -105,7 +113,7 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
                   </Box>
                 </TableCell>
                 <TableCell>
-                  <IconButton onClick={() => onView(experience)} title="View">
+                  <IconButton onClick={() => handleView(experience)} title="View">
                     <Visibility />
                   </IconButton>
                   <IconButton onClick={() => onEdit(experience)} title="Edit">
@@ -124,6 +132,15 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
           </TableBody>
         </Table>
       </TableContainer>
+      
+      <ExperienceDetails
+        experience={selectedExperience}
+        open={detailsOpen}
+        onClose={() => {
+          setDetailsOpen(false);
+          setSelectedExperience(null);
+        }}
+      />
       
       <Snackbar 
         open={!!error} 

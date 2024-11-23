@@ -45,7 +45,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     if (experience) {
       setFormData({
         ...experience,
-        categoryId: experience.category?.id || '',
+        categoryId: experience.category?.id || experience.categoryId || '',
         images: [],
         video: null,
         imageUrls: experience.imageUrls || [],
@@ -156,7 +156,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       if (!formData.categoryId) throw new Error('Category is required');
 
       // Find the selected category
-      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+      const selectedCategory = categories.find(c => c.id === parseInt(formData.categoryId));
       if (!selectedCategory) throw new Error('Invalid category selected');
 
       // Basic fields
@@ -166,9 +166,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Send both category name and ID
-      submitData.append('category', selectedCategory.name);
+      // Fix: Ensure both category ID and name are properly sent
       submitData.append('categoryId', selectedCategory.id.toString());
+      submitData.append('category', selectedCategory.name);
       
       // Tags
       if (formData.tags?.length > 0) {
