@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
-import { useAuth } from '../contexts/AuthContext';
+import { getCurrentUser, getToken } from '../services/AuthService';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
@@ -11,49 +11,23 @@ import BookingCard from '../components/BookingCard';
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, getToken } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
-  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
-  const [isInWishlist, setIsInWishlist] = useState(false); // Just for UI state
-  const [currentUser, setCurrentUser] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
-  const RETRY_DELAY = 2000; // 2 seconds
+  const [isInWishlist, setIsInWishlist] = useState(false);
 
-  // Create memoized API instance
   const api = useMemo(() => {
-    const instance = axios.create({
+    return axios.create({
       baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
       }
     });
-
-    instance.interceptors.request.use(
-      (config) => {
-        const token = getToken();
-        if (token) {
-          config.headers['Authorization'] = `Bearer ${token}`;
-        }
-        return {
-          ...config,
-          headers: {
-            ...config.headers,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        };
-      },
-      (error) => Promise.reject(error)
-    );
-
-    return instance;
-  }, [getToken]);
+  }, []);
 
   const generateFakeReviews = useCallback((count) => {
     const reviews = [];
@@ -76,7 +50,6 @@ const ExperienceDetails = () => {
     return reviews;
   }, []);
 
-  // Fetch experience details
   useEffect(() => {
     let isMounted = true;
 
@@ -129,48 +102,32 @@ const ExperienceDetails = () => {
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
-    setIsVideoPlaying(false);
   }, []);
 
   const handleVideoClick = useCallback(() => {
-    setIsVideoPlaying(prev => !prev);
+    // No need to handle video play/pause in this simplified version
   }, []);
 
-  // Mock wishlist toggle function
   const handleWishlistToggle = async () => {
-    if (!isAuthenticated) {
-      navigate('/signin', { state: { from: `/experience/${id}` } });
-      return;
-    }
-    // Just toggle the UI state
     setIsInWishlist(prev => !prev);
   };
 
-  const handleBooking = useCallback(() => {
-    if (!isAuthenticated) {
-      navigate('/signin', { state: { from: `/experience/${id}` } });
-      return;
-    }
-    navigate(`/booking/${id}`);
-  }, [id, isAuthenticated, navigate]);
+  const handleQuery = useCallback(() => {
+    const user = getCurrentUser();
+    const username = user?.username || 'Guest';
+    alert(`Hello ${username}! Your query has been received.`);
+  }, []);
 
-  // Render loading state
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-red-600 mb-4"></div>
-          {retryCount > 0 && (
-            <p className="text-white">
-              Retrying... Attempt {retryCount} of {MAX_RETRIES}
-            </p>
-          )}
         </div>
       </div>
     );
   }
 
-  // Render error state
   if (error) {
     return (
       <div className="text-center mt-8">
@@ -186,7 +143,6 @@ const ExperienceDetails = () => {
     );
   }
 
-  // Render not found state
   if (!experience) {
     return (
       <div className="text-center mt-8">
@@ -208,7 +164,6 @@ const ExperienceDetails = () => {
         activeMedia={activeMedia}
         onMediaChange={handleMediaChange}
         onVideoClick={handleVideoClick}
-        isVideoPlaying={isVideoPlaying}
         onBack={() => navigate(-1)}
       />
 
@@ -251,10 +206,10 @@ const ExperienceDetails = () => {
           <div className="lg:w-1/3">
             <BookingCard
               experience={experience}
-              isAuthenticated={isAuthenticated}
-              currentUser={currentUser}
+              isAuthenticated={true}
+              currentUser={getCurrentUser()}
               isInWishlist={isInWishlist}
-              onBooking={handleBooking}
+              onBooking={handleQuery}
               onWishlistToggle={handleWishlistToggle}
             />
           </div>
