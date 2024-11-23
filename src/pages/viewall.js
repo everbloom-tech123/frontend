@@ -44,6 +44,12 @@ const ViewAllExperiencesPage = () => {
     }
   });
 
+  const getImageUrl = (filename) => {
+    if (!filename) return '/placeholder-image.jpg';
+    if (filename.startsWith('http')) return filename;
+    return `${config.API_BASE_URL}/public/api/products/files/${filename}`;
+  };
+
   useEffect(() => {
     const fetchExperiences = async () => {
       try {
@@ -59,9 +65,10 @@ const ViewAllExperiencesPage = () => {
             viewCount: Math.floor(Math.random() * 10000) + 1000,
             rating: (Math.random() * 2 + 3).toFixed(1),
             reviews: generateFakeReviews(),
-            imageUrls: exp.imageUrls ? exp.imageUrls.map(url => 
-              `${config.API_BASE_URL}/public/api/products/files/${url}`
-            ) : []
+            imageUrls: exp.imageUrls ? exp.imageUrls.map(url => {
+              if (url.startsWith('http')) return url;
+              return `${config.API_BASE_URL}/public/api/products/files/${url}`;
+            }) : []
           }));
           setExperiences(enhancedExperiences);
         } else {
@@ -100,24 +107,32 @@ const ViewAllExperiencesPage = () => {
     ? experiences 
     : experiences.filter(exp => exp.category === filter);
 
-  const getImageUrl = (filename) => {
-    if (!filename) return '/placeholder-image.jpg';
-    return `${config.API_BASE_URL}/public/api/products/files/${filename}`;
-  };
-
   const ImageWithFallback = ({ src, alt, ...props }) => {
     const [imgSrc, setImgSrc] = useState(src);
+    const [hasError, setHasError] = useState(false);
 
     const onError = () => {
-      console.warn(`Error loading image: ${imgSrc}`);
-      setImgSrc('/placeholder-image.jpg');
+      if (!hasError) {
+        console.warn(`Error loading image: ${imgSrc}`);
+        setImgSrc('/images/placeholder.jpg');
+        setHasError(true);
+      }
     };
 
     useEffect(() => {
       setImgSrc(src);
+      setHasError(false);
     }, [src]);
 
-    return <img src={imgSrc} alt={alt} onError={onError} {...props} />;
+    return (
+      <img 
+        src={imgSrc} 
+        alt={alt} 
+        onError={onError} 
+        {...props} 
+        className={`${props.className || ''} object-cover`}
+      />
+    );
   };
 
   const toggleReviews = (experienceId) => {
@@ -191,12 +206,14 @@ const ViewAllExperiencesPage = () => {
                 <div className="relative">
                   {experience.imageUrls && experience.imageUrls.length > 0 ? (
                     <ImageWithFallback 
-                      src={getImageUrl(experience.imageUrls[0])} 
+                      src={experience.imageUrls[0]} 
                       alt={experience.title} 
                       className="w-full h-56 object-cover"
                     />
                   ) : (
-                    <div className="w-full h-56 bg-gray-200 flex items-center justify-center">No Image</div>
+                    <div className="w-full h-56 bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-500">No Image Available</span>
+                    </div>
                   )}
                   {experience.discount > 0 && (
                     <div className="absolute top-0 right-0 bg-red-600 text-white px-3 py-2 m-2 rounded-md text-sm font-bold transform rotate-3">
