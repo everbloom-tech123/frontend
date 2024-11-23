@@ -5,6 +5,7 @@ import ExperienceGrid from '../components/ExperienceGrid.jsx';
 import CategoryGrid from '../components/CategoryGrid.jsx'
 import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
+import PlayfulCategories from '../components/PlayfulCategories';
 
 const HomePage = () => {
   const [featuredExperiences, setFeaturedExperiences] = useState([]);
@@ -63,10 +64,11 @@ const HomePage = () => {
     }
   };
 
-  const handleCategoryClick = (category) => {
-    if (category?.id) {
-      console.log('Filtering by category:', category.id);
-      navigate(`/experience?category=${category.id}`);
+  const handleCategorySelect = (categoryName) => {
+    if (categoryName === 'All') {
+      navigate('/viewall');
+    } else {
+      navigate(`/viewall?category=${categoryName}`);
     }
   };
 
@@ -126,7 +128,7 @@ const HomePage = () => {
             transition={{ duration: 0.5, delay: 1 }}
           >
             <button 
-              onClick={() => navigate('/experience')}
+              onClick={() => navigate('/viewall')}
               className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full text-lg transition duration-300"
             >
               Explore Experiences
@@ -136,13 +138,10 @@ const HomePage = () => {
       </motion.section>
 
       <div className="container mx-auto px-4 py-12">
-        {/* Categories Grid */}
         {categories.length > 0 && (
-          <CategoryGrid
-            title="Explore by Category"
+          <PlayfulCategories
             categories={categories}
-            columns={4}
-            onCategoryClick={handleCategoryClick}
+            onCategorySelect={handleCategorySelect}
           />
         )}
 

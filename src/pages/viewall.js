@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
 import ExperienceGrid from '../components/ExperienceGrid';
+import PlayfulCategories from '../components/PlayfulCategories';
 
 const ViewAllExperiencesPage = () => {
   const [filter, setFilter] = useState('All');
   const [experiences, setExperiences] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -20,35 +22,31 @@ const ViewAllExperiencesPage = () => {
   });
 
   useEffect(() => {
-    const fetchExperiences = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await api.get('/public/api/products');
-        
-        if (response.data && Array.isArray(response.data)) {
-          setExperiences(response.data);
+        const [experiencesResponse, categoriesResponse] = await Promise.all([
+          api.get('/public/api/products'),
+          api.get('/public/api/categories')
+        ]);
+
+        if (experiencesResponse.data && Array.isArray(experiencesResponse.data)) {
+          setExperiences(experiencesResponse.data);
+        }
+
+        if (categoriesResponse.data && Array.isArray(categoriesResponse.data)) {
+          setCategories(categoriesResponse.data);
         }
       } catch (err) {
-        console.error('Error fetching experiences:', err);
+        console.error('Error fetching data:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExperiences();
+    fetchData();
   }, []);
-
-  const filterOptions = [
-    { label: 'All', value: 'All' },
-    { label: 'Cultural', value: 'Cultural' },
-    { label: 'Adventure', value: 'Adventure' },
-    { label: 'Culinary', value: 'Culinary' },
-    { label: 'Wildlife', value: 'Wildlife' }
-  ].map(option => ({
-    ...option,
-    onClick: () => setFilter(option.value)
-  }));
 
   const filteredExperiences = filter === 'All' 
     ? experiences 
@@ -72,12 +70,16 @@ const ViewAllExperiencesPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen mt-16">
       <div className="container mx-auto px-4 py-12">
+        <PlayfulCategories
+          categories={categories}
+          onCategorySelect={setFilter}
+          activeCategory={filter}
+        />
         <ExperienceGrid
           title="Discover Unforgettable Experiences"
           subtitle="Embark on a journey of a lifetime..."
           experiences={filteredExperiences}
           isLoading={loading}
-          filterOptions={filterOptions}
           columns={3}
           showPrice={true}
           showViewDetails={true}
