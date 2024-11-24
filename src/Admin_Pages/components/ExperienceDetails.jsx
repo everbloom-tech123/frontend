@@ -17,7 +17,7 @@ import ExperienceService from '../ExperienceService';
 import { useAuth } from '../../contexts/AuthContext';
 
 const ExperienceDetails = ({ experience, open, onClose }) => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   if (!experience) return null;
@@ -87,8 +87,6 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
             </Box>
             <Button
               variant="contained"
-              color="primary"
-              size="large"
               onClick={handleBookingClick}
               sx={{
                 borderRadius: 2,
