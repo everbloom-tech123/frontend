@@ -68,13 +68,17 @@ const HomePage = () => {
     if (categoryName === 'All') {
       navigate('/viewall');
     } else {
-      navigate(`/viewall?category=${categoryName}`);
+      navigate(`/viewall?category=${encodeURIComponent(categoryName)}`);
     }
   };
 
   const handlePriceRangeClick = (range) => {
     console.log('Filtering by price range:', range);
     navigate(`/experience?priceRange=${range}`);
+  };
+
+  const filterExperiencesByCategory = (categoryName) => {
+    return experiences.filter(exp => exp.categoryName === categoryName);
   };
 
   if (loading) {
@@ -142,6 +146,7 @@ const HomePage = () => {
           <PlayfulCategories
             categories={categories}
             onCategorySelect={handleCategorySelect}
+            activeCategory="All"
           />
         )}
 

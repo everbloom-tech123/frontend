@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
 import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulCategories from '../components/PlayfulCategories';
 
 const ViewAllExperiencesPage = () => {
-  const [filter, setFilter] = useState('All');
+  const [searchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+  const [filter, setFilter] = useState(categoryParam || 'All');
   const [experiences, setExperiences] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,9 +50,13 @@ const ViewAllExperiencesPage = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    setFilter(categoryParam || 'All');
+  }, [categoryParam]);
+
   const filteredExperiences = filter === 'All' 
     ? experiences 
-    : experiences.filter(exp => exp.category === filter);
+    : experiences.filter(exp => exp.categoryName === filter);
 
   if (error) {
     return (

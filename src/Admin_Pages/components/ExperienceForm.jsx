@@ -25,7 +25,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     additionalInfo: '',
     price: '',
     discount: '0',
-    categoryId: '',
+    categoryName: '',
     tags: [],
     images: [],
     video: null,
@@ -45,7 +45,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     if (experience) {
       setFormData({
         ...experience,
-        categoryId: experience.category?.id || experience.categoryId || '',
+        categoryName: experience.categoryName || '',
         images: [],
         video: null,
         imageUrls: experience.imageUrls || [],
@@ -153,11 +153,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       if (!formData.title.trim()) throw new Error('Title is required');
       if (!formData.description.trim()) throw new Error('Description is required');
       if (!formData.price) throw new Error('Price is required');
-      if (!formData.categoryId) throw new Error('Category is required');
-
-      // Find the selected category
-      const selectedCategory = categories.find(c => c.id === parseInt(formData.categoryId));
-      if (!selectedCategory) throw new Error('Invalid category selected');
+      if (!formData.categoryName) throw new Error('Category is required');
 
       // Basic fields
       submitData.append('title', formData.title.trim());
@@ -166,44 +162,25 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Fix: Ensure both category ID and name are properly sent
-      submitData.append('categoryId', selectedCategory.id.toString());
-      submitData.append('category', selectedCategory.name);
-      
-      // Tags
+      // Fix: Send categoryName instead of categoryId
+      submitData.append('categoryName', formData.categoryName);
+
+      // Handle tags
       if (formData.tags?.length > 0) {
-        formData.tags.forEach(tag => {
-          submitData.append('tags', tag.trim());
+        formData.tags.forEach((tag, index) => {
+          submitData.append(`tags[${index}]`, tag);
         });
       }
 
-      // Images
-      if (formData.images?.length > 0) {
-        Array.from(formData.images).forEach(image => {
+      // Handle files
+      if (formData.images) {
+        Array.from(formData.images).forEach((image) => {
           submitData.append('images', image);
         });
       }
 
-      // Existing images for updates
-      if (experience && formData.imageUrls?.length > 0) {
-        formData.imageUrls.forEach(url => {
-          submitData.append('existingImages', url);
-        });
-      }
-
-      // Video
       if (formData.video) {
         submitData.append('video', formData.video);
-      }
-
-      // Log FormData contents for debugging
-      console.log('Submitting form data:');
-      for (let pair of submitData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(pair[0], ':', pair[1].name, '(File)');
-        } else {
-          console.log(pair[0], ':', pair[1]);
-        }
       }
 
       await onSubmit(submitData);
@@ -287,13 +264,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         <FormControl fullWidth required error={submitError.includes('Category')}>
           <InputLabel>Category</InputLabel>
           <Select
-            name="categoryId"
-            value={formData.categoryId}
+            name="categoryName"
+            value={formData.categoryName}
             onChange={handleChange}
             label="Category"
           >
             {categories.map(category => (
-              <MenuItem key={category.id} value={category.id}>
+              <MenuItem key={category.id} value={category.name}>
                 {category.name}
               </MenuItem>
             ))}
