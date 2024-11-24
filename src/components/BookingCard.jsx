@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaHeart, FaShare } from 'react-icons/fa';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,6 +10,22 @@ const BookingCard = ({
   onWishlistToggle
 }) => {
   const { isAuthenticated, user } = useAuth();
+  const [authState, setAuthState] = useState({ isAuthenticated, user });
+
+  // Update local state when auth changes
+  useEffect(() => {
+    setAuthState({ isAuthenticated, user });
+  }, [isAuthenticated, user]);
+
+  // Listen for auth changes
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setAuthState({ isAuthenticated, user });
+    };
+
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
+  }, [isAuthenticated, user]);
 
   if (!experience) {
     return null;
@@ -66,7 +82,7 @@ const BookingCard = ({
         onClick={onBooking}
         className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full text-lg transition duration-300"
       >
-        {isAuthenticated ? 'Book Now' : 'Login to Book'}
+        {authState.isAuthenticated ? 'Book Now' : 'Login to Book'}
       </motion.button>
 
       <motion.button
@@ -82,17 +98,17 @@ const BookingCard = ({
         <FaHeart 
           className={`mr-2 ${isInWishlist ? 'text-red-600' : 'text-gray-400'}`} 
         />
-        {isAuthenticated 
+        {authState.isAuthenticated 
           ? (isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist')
           : 'Login to Save'
         }
       </motion.button>
 
-      {isAuthenticated && user && (
+      {authState.isAuthenticated && authState.user && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600">Logged in as:</p>
-          <p className="font-semibold">{user.username || user.email}</p>
-          <p className="text-gray-500 text-sm">{user.email}</p>
+          <p className="font-semibold">{authState.user.username || authState.user.email}</p>
+          <p className="text-gray-500 text-sm">{authState.user.email}</p>
         </div>
       )}
 

@@ -24,6 +24,8 @@ export const AuthProvider = ({ children }) => {
         if (AuthService.isAuthenticated()) {
           const userProfile = await AuthService.getUserProfile();
           setUser(userProfile);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -37,19 +39,6 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  // Clear error after 5 seconds
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
-
-  const handleError = (error) => {
-    setError(error.message || 'An error occurred');
-    setLoading(false);
-  };
-
   const login = async (email, password) => {
     setLoading(true);
     setError(null);
@@ -58,146 +47,45 @@ export const AuthProvider = ({ children }) => {
       setUser(AuthService.getCurrentUser());
       return response;
     } catch (err) {
-      handleError(err);
+      setError(err.message || 'Login failed');
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (username, email, password) => {
-    setLoading(true);
-    setError(null);
+  const logout = async () => {
     try {
-      const response = await AuthService.register(username, email, password);
-      return response;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setLoading(true);
-    try {
-      AuthService.logout();
+      await AuthService.logout();
       setUser(null);
+      // Force update isAuthenticated
+      window.dispatchEvent(new Event('auth-change'));
     } catch (err) {
-      handleError(err);
-    } finally {
-      setLoading(false);
+      console.error('Logout error:', err);
     }
   };
 
-  const verifyEmail = async (email, verificationCode) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await AuthService.verifyEmail(email, verificationCode);
-      return response;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resendVerificationCode = async (email) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await AuthService.resendVerificationCode(email);
-      return response;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateProfile = async (profileData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const updatedProfile = await AuthService.updateUserProfile(profileData);
-      setUser(updatedProfile);
-      return updatedProfile;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const requestPasswordReset = async (email) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await AuthService.requestPasswordReset(email);
-      return response;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (token, newPassword) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await AuthService.resetPassword(token, newPassword);
-      return response;
-    } catch (err) {
-      handleError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Automatically refresh token before it expires
+  // Listen for auth changes
   useEffect(() => {
-    if (!user) return;
+    const handleAuthChange = () => {
+      setUser(AuthService.getCurrentUser());
+    };
 
-    const refreshTokenInterval = setInterval(async () => {
-      try {
-        await AuthService.refreshToken();
-      } catch (error) {
-        console.error('Token refresh failed:', error);
-        logout();
-      }
-    }, 14 * 60 * 1000); // Refresh every 14 minutes (assuming 15-minute token lifetime)
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
+  }, []);
 
-    return () => clearInterval(refreshTokenInterval);
-  }, [user]);
-
-  // Create the auth value object
   const value = {
     user,
     loading,
     error,
-    isAuthenticated: AuthService.isAuthenticated(),
+    isAuthenticated: !!user,
     isAdmin: user?.role === 'ROLE_ADMIN',
     login,
-    register,
     logout,
-    verifyEmail,
-    resendVerificationCode,
-    updateProfile,
-    requestPasswordReset,
-    resetPassword,
-    getToken: AuthService.getToken,
     clearError: () => setError(null)
   };
 
-  // Wait for initial authentication check
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
