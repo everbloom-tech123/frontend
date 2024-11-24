@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
-import { getCurrentUser, getToken } from '../services/AuthService';
+import { useAuth } from '../contexts/AuthContext';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
@@ -11,6 +11,7 @@ import BookingCard from '../components/BookingCard';
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -23,7 +24,8 @@ const ExperienceDetails = () => {
       baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
       }
     });
   }, []);
@@ -59,46 +61,31 @@ const ExperienceDetails = () => {
         setLoading(true);
         setError(null);
 
-        const response = await api.get(`/public/api/products/${id}`).catch(error => {
-          if (error.response?.status === 404) {
-            throw new Error('Experience not found');
-          }
-          throw error;
-        });
+        const response = await api.get(`/public/api/products/${id}`);
         
         if (!isMounted) return;
 
-        if (!response?.data) {
+        if (!response.data) {
           throw new Error('No data received from server');
         }
 
         const enhancedExperience = {
           ...response.data,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
-          imageUrl: response.data.imageUrl ? 
-            `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
-          imageUrls: response.data.imageUrls ? 
-            response.data.imageUrls.map(url => 
-              `${config.API_BASE_URL}/public/api/products/files/${url}`
-            ) : [],
-          videoUrl: response.data.videoUrl ? 
-            `${config.API_BASE_URL}/public/api/products/files/${response.data.videoUrl}` : null
+          reviews: generateFakeReviews(5),
+          imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
+          imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
+            `${config.API_BASE_URL}/public/api/products/files/${url}`
+          ) : [],
+          videoUrl: response.data.videoUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.videoUrl}` : null
         };
 
         setExperience(enhancedExperience);
 
       } catch (err) {
         if (isMounted) {
-          const errorMessage = err.response?.status === 404 
-            ? 'Experience not found' 
-            : err.response?.data?.message || err.message || 'Failed to load experience details';
-          
-          setError(errorMessage);
-          console.error('Error fetching experience details:', {
-            status: err.response?.status,
-            message: errorMessage,
-            error: err
-          });
+          setError(err.response?.data?.message || err.message || 'Failed to load experience details');
+          console.error('Error fetching experience details:', err);
         }
       } finally {
         if (isMounted) {
@@ -112,7 +99,7 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api]);
+  }, [id, api, generateFakeReviews]);
 
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
@@ -122,15 +109,25 @@ const ExperienceDetails = () => {
     // No need to handle video play/pause in this simplified version
   }, []);
 
-  const handleWishlistToggle = async () => {
-    setIsInWishlist(prev => !prev);
+  const handleBooking = () => {
+    if (!isAuthenticated) {
+      navigate('/signin', { 
+        state: { from: `/experience/${id}` }
+      });
+    } else {
+      navigate(`/booking/${id}`);
+    }
   };
 
-  const handleQuery = useCallback(() => {
-    const user = getCurrentUser();
-    const username = user?.username || 'Guest';
-    alert(`Hello ${username}! Your query has been received.`);
-  }, []);
+  const handleWishlistToggle = async () => {
+    if (!isAuthenticated) {
+      navigate('/signin', { 
+        state: { from: `/experience/${id}` }
+      });
+    } else {
+      setIsInWishlist(prev => !prev);
+    }
+  };
 
   if (loading) {
     return (
@@ -220,10 +217,10 @@ const ExperienceDetails = () => {
           <div className="lg:w-1/3">
             <BookingCard
               experience={experience}
-              isAuthenticated={true}
-              currentUser={getCurrentUser()}
+              isAuthenticated={isAuthenticated}
+              currentUser={user}
               isInWishlist={isInWishlist}
-              onBooking={handleQuery}
+              onBooking={handleBooking}
               onWishlistToggle={handleWishlistToggle}
             />
           </div>
