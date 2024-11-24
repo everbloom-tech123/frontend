@@ -77,11 +77,13 @@ const HomePage = () => {
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Banner */}
       <div className="relative h-screen">
-        {/* Background Image */}
+        {/* Background Image - Updated with a working image URL */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: "url('/images/hero-banner.jpg')",
+            backgroundImage: "url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3')", // Using Unsplash image as fallback
+            // Or use your own image from public folder:
+            // backgroundImage: "url('/images/hero.jpg')",
             filter: 'brightness(0.7)'
           }}
         />
