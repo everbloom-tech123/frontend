@@ -24,8 +24,7 @@ const ExperienceDetails = () => {
       baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${getToken()}`
+        'Accept': 'application/json'
       }
     });
   }, []);
