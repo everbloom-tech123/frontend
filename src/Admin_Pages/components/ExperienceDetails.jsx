@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -14,10 +14,10 @@ import {
   Divider
 } from '@mui/material';
 import ExperienceService from '../ExperienceService';
-import { AuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ExperienceDetails = ({ experience, open, onClose }) => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   if (!experience) return null;
@@ -25,7 +25,9 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
   const handleBookingClick = () => {
     if (!isAuthenticated) {
       onClose();
-      navigate('/signin');
+      navigate('/signin', { 
+        state: { from: `/experience/${experience.id}` }
+      });
     } else {
       navigate(`/booking/${experience.id}`);
     }
