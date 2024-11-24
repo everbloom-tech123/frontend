@@ -5,7 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 // Import components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import { ProtectedRoute } from './components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
 // Import pages
 import HomePage from './pages/HomePage';
@@ -69,7 +69,14 @@ const App = () => {
         <div className="flex flex-col min-h-screen">
           <Routes>
             <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/admin/*" element={<AdminLayout />} />
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminLayout />
+                </AdminRoute>
+              }
+            />
             <Route path="/*" element={<PublicLayout />} />
           </Routes>
         </div>

@@ -32,43 +32,49 @@ export const login = async (email, password) => {
     const response = await axios.post(`${API_URL}/api/auth/signin`, {
       email,
       password,
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
     });
 
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data));
       
-      // Dispatch auth change event
-      window.dispatchEvent(new CustomEvent('auth-change', {
-        detail: { type: 'login', user: response.data }
-      }));
-
+      // Set the token for future requests
+      axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+      
       return response.data;
     }
+    throw new Error('Invalid response from server');
   } catch (error) {
-    console.error('Login error:', error);
-    throw error;
+    console.error('Login error details:', error.response || error);
+    if (error.response?.status === 403) {
+      throw new Error('Invalid email or password');
+    }
+    throw new Error(error.response?.data?.message || 'Login failed. Please try again.');
   }
 };
 
 export const logout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  
-  // Dispatch auth change event
-  window.dispatchEvent(new CustomEvent('auth-change', {
-    detail: { type: 'logout' }
-  }));
+  delete axios.defaults.headers.common['Authorization'];
 };
 
 export const getCurrentUser = () => {
-  try {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    try {
+      return JSON.parse(userStr);
+    } catch (e) {
+      logout(); // Clear invalid data
+      return null;
+    }
   }
+  return null;
 };
 
 export const getUserRole = () => {
@@ -81,14 +87,8 @@ export const getUserRole = () => {
 };
 
 export const isAuthenticated = () => {
-  try {
-    const token = localStorage.getItem('token');
-    const user = getCurrentUser();
-    return !!(token && user);
-  } catch (error) {
-    console.error('Error checking authentication:', error);
-    return false;
-  }
+  const user = getCurrentUser();
+  return !!user && !!user.token;
 };
 
 export const getToken = () => {
