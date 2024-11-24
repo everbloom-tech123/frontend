@@ -1,6 +1,9 @@
 // src/services/AuthService.js
 
-const API_URL = (process.env.REACT_APP_API_URL || 'https://3.83.93.102.nip.io') + '/auth';
+import axios from 'axios';
+import config from '../config';
+
+const API_URL = config.API_BASE_URL || 'https://3.83.93.102.nip.io';
 
 export const register = async (username, email, password) => {
   try {
@@ -26,46 +29,22 @@ export const register = async (username, email, password) => {
 
 export const login = async (email, password) => {
   try {
-    console.log('Attempting login with:', { email, password });
-    
-    const response = await fetch(`${API_URL}/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
+    const response = await axios.post(`${API_URL}/api/auth/signin`, {
+      email,
+      password,
     });
 
-    console.log('Login response status:', response.status);
+    if (response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data));
+      
+      // Dispatch auth change event
+      window.dispatchEvent(new CustomEvent('auth-change', {
+        detail: { type: 'login', user: response.data }
+      }));
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'An error occurred during login');
+      return response.data;
     }
-
-    const data = await response.json();
-    console.log('Login response data:', data);
-
-    // Store token
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-    }
-
-    // Store user data
-    const userData = {
-      id: data.id,
-      username: data.username,
-      email: data.email,
-      role: data.role
-    };
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Store role
-    if (data.role) {
-      localStorage.setItem('userRole', data.role);
-    }
-
-    return data;
   } catch (error) {
     console.error('Login error:', error);
     throw error;
@@ -73,14 +52,13 @@ export const login = async (email, password) => {
 };
 
 export const logout = () => {
-  try {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('userRole');
-    console.log('Logout successful');
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+  
+  // Dispatch auth change event
+  window.dispatchEvent(new CustomEvent('auth-change', {
+    detail: { type: 'logout' }
+  }));
 };
 
 export const getCurrentUser = () => {

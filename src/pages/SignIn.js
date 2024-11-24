@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import * as authService from '../services/AuthService';
+import { useAuth } from '../contexts/AuthContext';
 
 const InputField = ({ label, type, name, value, onChange, error, icon: Icon }) => (
   <div className="mb-4 relative">
@@ -71,6 +72,7 @@ const SignIn = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { login } = useAuth();
 
   // Check if user is already logged in
   useEffect(() => {
@@ -129,24 +131,20 @@ const SignIn = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      setIsLoading(true);
-      try {
-        const response = await authService.login(formData.email, formData.password);
-        if (response && response.role) {
-          // Store user role in localStorage if needed
-          localStorage.setItem('userRole', response.role);
-          handleRoleBasedRedirect(response.role);
-        } else {
-          setApiError('Invalid response from server');
-        }
-      } catch (error) {
-        setApiError(error.message || 'Login failed. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
+    try {
+      const response = await login(formData.email, formData.password);
+      
+      // Force a page reload to ensure all components update
+      window.location.reload();
+      
+      // After reload, redirect to the appropriate page
+      const from = location.state?.from || '/';
+      navigate(from, { replace: true });
+    } catch (error) {
+      console.error('Login error:', error);
+      setApiError(error.message);
     }
   };
 
@@ -158,7 +156,7 @@ const SignIn = () => {
             Sign in to your account
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <InputField
             label="Email address"
             type="email"
