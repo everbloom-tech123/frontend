@@ -75,47 +75,97 @@ const HomePage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Section */}
-      <motion.section 
-        className="relative h-[80vh] bg-cover bg-center flex items-center"
-        style={{
-          backgroundImage: 'url("/hero-image.jpg")', // Make sure this image exists in your public folder
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 1 }}
-      >
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black opacity-50"></div>
-        
+      {/* Hero Banner */}
+      <div className="relative h-screen">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: "url('/images/hero-banner.jpg')",
+            filter: 'brightness(0.7)'
+          }}
+        />
+
+        {/* Content Overlay */}
+        <div className="absolute inset-0 bg-black opacity-40" />
+
         {/* Hero Content */}
-        <div className="container mx-auto px-4 relative z-10">
+        <div className="relative h-full flex flex-col justify-center items-center text-white px-4">
           <motion.div
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.8 }}
-            className="text-center text-white"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-4xl mx-auto"
           >
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Discover Amazing Experiences
+              Your Journey Begins Here
             </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
-              Explore unique adventures and create unforgettable memories with our curated experiences
+            <p className="text-xl md:text-2xl mb-8">
+              Discover extraordinary experiences and create unforgettable memories
             </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-red-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-red-700 transition duration-300"
-              onClick={() => navigate('/viewall')}
+            
+            {/* Search Bar */}
+            <div className="flex justify-center mb-8">
+              <div className="relative w-full max-w-2xl">
+                <input
+                  type="text"
+                  placeholder="Search for experiences..."
+                  className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <button 
+                  className="absolute right-2 top-2 bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition duration-300"
+                  onClick={() => navigate('/viewall')}
+                >
+                  Search
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Action Buttons */}
+            <div className="flex flex-wrap justify-center gap-4">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-red-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-red-700 transition duration-300"
+                onClick={() => navigate('/viewall')}
+              >
+                Explore All
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-white text-red-600 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition duration-300"
+                onClick={() => navigate('/categories')}
+              >
+                View Categories
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Scroll Indicator */}
+          <motion.div
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >
+            <svg 
+              className="w-6 h-6 text-white"
+              fill="none" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth="2" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
             >
-              Start Exploring
-            </motion.button>
+              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+            </svg>
           </motion.div>
         </div>
-      </motion.section>
+      </div>
 
-      {/* Rest of the content */}
+      {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
+        {/* Categories Section */}
         {categories.length > 0 && (
           <PlayfulCategories
             categories={categories}
@@ -132,6 +182,7 @@ const HomePage = () => {
             experiences={featuredExperiences}
             columns={3}
             onExperienceClick={handleExperienceClick}
+            isLoading={loading}
           />
         )}
 
