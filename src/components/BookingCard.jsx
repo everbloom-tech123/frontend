@@ -5,12 +5,12 @@ import { useAuth } from '../contexts/AuthContext';
 
 const BookingCard = ({
   experience,
-  isAuthenticated,
-  currentUser,
   isInWishlist,
   onBooking,
   onWishlistToggle
 }) => {
+  const { isAuthenticated, user } = useAuth();
+
   if (!experience) {
     return null;
   }
@@ -35,6 +35,8 @@ const BookingCard = ({
       console.error('Error sharing:', error);
     }
   };
+
+  console.log('Auth State:', { isAuthenticated, user });
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
@@ -86,11 +88,11 @@ const BookingCard = ({
         }
       </motion.button>
 
-      {isAuthenticated && currentUser && (
+      {isAuthenticated && user && (
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-sm text-gray-600">Logged in as:</p>
-          <p className="font-semibold">{currentUser.username || currentUser.email}</p>
-          <p className="text-gray-500 text-sm">{currentUser.email}</p>
+          <p className="font-semibold">{user.username || user.email}</p>
+          <p className="text-gray-500 text-sm">{user.email}</p>
         </div>
       )}
 
