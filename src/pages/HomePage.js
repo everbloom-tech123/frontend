@@ -75,6 +75,46 @@ const HomePage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+      {/* Hero Section */}
+      <motion.section 
+        className="relative h-[80vh] bg-cover bg-center flex items-center"
+        style={{
+          backgroundImage: 'url("/hero-image.jpg")', // Make sure this image exists in your public folder
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black opacity-50"></div>
+        
+        {/* Hero Content */}
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="text-center text-white"
+          >
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">
+              Discover Amazing Experiences
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 max-w-2xl mx-auto">
+              Explore unique adventures and create unforgettable memories with our curated experiences
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-red-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-red-700 transition duration-300"
+              onClick={() => navigate('/viewall')}
+            >
+              Start Exploring
+            </motion.button>
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Rest of the content */}
       <div className="container mx-auto px-4 py-12">
         {categories.length > 0 && (
           <PlayfulCategories
@@ -103,7 +143,9 @@ const HomePage = () => {
           transition={{ duration: 0.5 }}
         >
           <h2 className="text-3xl font-bold mb-4 text-center">Stay Updated</h2>
-          <p className="text-center mb-6">Subscribe to our newsletter for exclusive offers and travel tips</p>
+          <p className="text-center mb-6">
+            Subscribe to our newsletter for exclusive offers and travel tips
+          </p>
           <form className="flex justify-center">
             <input 
               type="email" 

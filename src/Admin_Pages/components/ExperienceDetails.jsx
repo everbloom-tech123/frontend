@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogTitle,
@@ -13,9 +14,22 @@ import {
   Divider
 } from '@mui/material';
 import ExperienceService from '../ExperienceService';
+import { AuthContext } from '../../contexts/AuthContext';
 
 const ExperienceDetails = ({ experience, open, onClose }) => {
+  const { isAuthenticated } = useContext(AuthContext);
+  const navigate = useNavigate();
+
   if (!experience) return null;
+
+  const handleBookingClick = () => {
+    if (!isAuthenticated) {
+      onClose();
+      navigate('/signin');
+    } else {
+      navigate(`/booking/${experience.id}`);
+    }
+  };
 
   return (
     <Dialog 
@@ -29,7 +43,7 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
           {experience.title}
         </Typography>
         <Typography variant="subtitle1" color="text.secondary">
-          Category: {experience.category?.name}
+          Category: {experience.categoryName}
         </Typography>
       </DialogTitle>
 
@@ -55,18 +69,36 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
             </ImageList>
           )}
 
-          {/* Price and Discount */}
-          <Box sx={{ mt: 2, display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Typography variant="h6">
-              Price: ${experience.price}
-            </Typography>
-            {experience.discount > 0 && (
-              <Chip 
-                label={`${experience.discount}% OFF`}
-                color="error"
-                size="small"
-              />
-            )}
+          {/* Price and Booking Section */}
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Typography variant="h6">
+                Price: ${experience.price}
+              </Typography>
+              {experience.discount > 0 && (
+                <Chip 
+                  label={`${experience.discount}% OFF`}
+                  color="error"
+                  size="small"
+                />
+              )}
+            </Box>
+            <Button
+              variant="contained"
+              color="primary"
+              size="large"
+              onClick={handleBookingClick}
+              sx={{
+                borderRadius: 2,
+                px: 4,
+                backgroundColor: 'red',
+                '&:hover': {
+                  backgroundColor: '#d32f2f'
+                }
+              }}
+            >
+              {isAuthenticated ? 'Book Now' : 'Login to Book'}
+            </Button>
           </Box>
 
           <Divider sx={{ my: 2 }} />
