@@ -65,10 +65,15 @@ const PasswordInput = ({ label, name, value, onChange, error }) => {
 };
 
 const SignUp = () => {
-  const [formData, setFormData] = useState({ username: '', email: '', password: '' });
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: ''
+  });
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
