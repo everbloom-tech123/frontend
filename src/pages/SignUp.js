@@ -102,10 +102,12 @@ const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
+      setIsLoading(true);
+      setApiError('');
       try {
         const response = await authService.register(
-          formData.username, 
-          formData.email, 
+          formData.username,
+          formData.email,
           formData.password
         );
         
@@ -118,7 +120,10 @@ const SignUp = () => {
           });
         }
       } catch (error) {
+        console.error('Registration error:', error);
         setApiError(error.message || 'Registration failed. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     }
   };

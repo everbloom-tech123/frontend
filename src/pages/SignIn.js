@@ -136,7 +136,7 @@ const SignIn = () => {
       setApiError('');
       try {
         const response = await authService.login(formData.email, formData.password);
-        if (response && response.token) {
+        if (response && response.role) {
           handleRoleBasedRedirect(response.role);
         }
       } catch (error) {
