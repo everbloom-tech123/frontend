@@ -77,11 +77,24 @@ const SignUp = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.username) newErrors.username = 'Username is required';
-    if (!formData.email) newErrors.email = 'Email is required';
-    if (!formData.password) newErrors.password = 'Password is required';
-    else if (formData.password.length < 8)
-      newErrors.password = 'Password must be at least 8 characters long';
+    if (!formData.username) {
+      newErrors.username = 'Username is required';
+    } else if (formData.username.length < 3) {
+      newErrors.username = 'Username must be at least 3 characters';
+    }
+    
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -90,10 +103,22 @@ const SignUp = () => {
     e.preventDefault();
     if (validateForm()) {
       try {
-        await authService.register(formData.username, formData.email, formData.password);
-        navigate('/verify-email', { state: { email: formData.email } });
+        const response = await authService.register(
+          formData.username, 
+          formData.email, 
+          formData.password
+        );
+        
+        if (response) {
+          navigate('/verify-email', { 
+            state: { 
+              email: formData.email,
+              message: 'Please check your email for verification code'
+            } 
+          });
+        }
       } catch (error) {
-        setApiError(error.message);
+        setApiError(error.message || 'Registration failed. Please try again.');
       }
     }
   };

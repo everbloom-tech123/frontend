@@ -1,8 +1,10 @@
-const API_URL = (process.env.REACT_APP_API_URL || 'https://3.83.93.102.nip.io') + '/auth';
+import config from '../config';
+
+const API_URL = config.API_BASE_URL;
 
 export const register = async (username, email, password) => {
   try {
-    const response = await fetch(`${API_URL}/signup`, {
+    const response = await fetch(`${API_URL}/auth/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -24,28 +26,35 @@ export const register = async (username, email, password) => {
 
 export const login = async (email, password) => {
   try {
-    const response = await fetch(`${API_URL}/signin`, {
+    const response = await fetch(`${API_URL}/auth/signin`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      body: JSON.stringify({ email, password }),
-      credentials: 'include'
+      body: JSON.stringify({ 
+        email: email,
+        password: password 
+      })
     });
-
-    const data = await response.json();
 
     if (!response.ok) {
       if (response.status === 403) {
         throw new Error('Invalid email or password');
       }
-      throw new Error(data.message || 'Login failed');
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.message || 'Login failed. Please try again.');
     }
 
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data));
+    const data = await response.json();
+    
+    if (!data || !data.token) {
+      throw new Error('Invalid response from server');
     }
+
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('user', JSON.stringify(data));
+    localStorage.setItem('userRole', data.role);
 
     return data;
   } catch (error) {
@@ -122,7 +131,7 @@ export const removeToken = () => {
 
 export const verifyEmail = async (email, verificationCode) => {
   try {
-    const response = await fetch(`${API_URL}/verify`, {
+    const response = await fetch(`${API_URL}/auth/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -146,7 +155,7 @@ export const verifyEmail = async (email, verificationCode) => {
 
 export const resendVerificationCode = async (email) => {
   try {
-    const response = await fetch(`${API_URL}/resend`, {
+    const response = await fetch(`${API_URL}/auth/resend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -168,7 +177,7 @@ export const resendVerificationCode = async (email) => {
 
 export const refreshToken = async () => {
   try {
-    const response = await fetch(`${API_URL}/refresh-token`, {
+    const response = await fetch(`${API_URL}/auth/refresh-token`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -197,7 +206,7 @@ export const getUserProfile = async () => {
       return storedUser;
     }
 
-    const response = await fetch(`${API_URL}/profile`, {
+    const response = await fetch(`${API_URL}/auth/profile`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${getToken()}`
@@ -219,7 +228,7 @@ export const getUserProfile = async () => {
 
 export const updateUserProfile = async (profileData) => {
   try {
-    const response = await fetch(`${API_URL}/profile`, {
+    const response = await fetch(`${API_URL}/auth/profile`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -243,7 +252,7 @@ export const updateUserProfile = async (profileData) => {
 
 export const requestPasswordReset = async (email) => {
   try {
-    const response = await fetch(`${API_URL}/reset-password-request`, {
+    const response = await fetch(`${API_URL}/auth/reset-password-request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -265,7 +274,7 @@ export const requestPasswordReset = async (email) => {
 
 export const resetPassword = async (token, newPassword) => {
   try {
-    const response = await fetch(`${API_URL}/reset-password`, {
+    const response = await fetch(`${API_URL}/auth/reset-password`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

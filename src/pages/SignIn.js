@@ -133,25 +133,15 @@ const SignIn = () => {
     e.preventDefault();
     if (validateForm()) {
       setIsLoading(true);
-      setApiError(''); // Clear any previous errors
+      setApiError('');
       try {
         const response = await authService.login(formData.email, formData.password);
-        if (response && response.role) {
-          localStorage.setItem('userRole', response.role);
+        if (response && response.token) {
           handleRoleBasedRedirect(response.role);
-        } else {
-          setApiError('Invalid response from server. Please try again.');
         }
       } catch (error) {
-        // More specific error handling
-        if (error.response?.status === 403) {
-          setApiError('Invalid email or password. Please check your credentials and try again.');
-        } else if (error.response?.data?.message) {
-          setApiError(error.response.data.message);
-        } else {
-          setApiError('Unable to connect to the server. Please try again later.');
-        }
         console.error('Login error:', error);
+        setApiError(error.message || 'An error occurred during login');
       } finally {
         setIsLoading(false);
       }
