@@ -25,6 +25,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     additionalInfo: '',
     price: '',
     discount: '0',
+    categoryId: '',
     categoryName: '',
     tags: [],
     images: [],
@@ -43,8 +44,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   useEffect(() => {
     fetchCategories();
     if (experience) {
+      const categoryId = categories.find(cat => cat.name === experience.categoryName)?.id || '';
+      
       setFormData({
         ...experience,
+        categoryId: categoryId,
         categoryName: experience.categoryName || '',
         images: [],
         video: null,
@@ -58,7 +62,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         ));
       }
     }
-  }, [experience]);
+  }, [experience, categories]);
 
   const fetchCategories = async () => {
     try {
@@ -153,7 +157,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       if (!formData.title.trim()) throw new Error('Title is required');
       if (!formData.description.trim()) throw new Error('Description is required');
       if (!formData.price) throw new Error('Price is required');
-      if (!formData.categoryName) throw new Error('Category is required');
+      if (!formData.categoryId) throw new Error('Category is required');
 
       // Basic fields
       submitData.append('title', formData.title.trim());
@@ -162,8 +166,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Send category name as 'category'
-      submitData.append('category', formData.categoryName);
+      // Send category ID instead of name
+      submitData.append('category', formData.categoryId.toString());
 
       // Handle tags
       if (formData.tags?.length > 0) {
@@ -264,13 +268,20 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         <FormControl fullWidth required error={submitError.includes('Category')}>
           <InputLabel>Category</InputLabel>
           <Select
-            name="categoryName"
-            value={formData.categoryName}
-            onChange={handleChange}
+            name="categoryId"
+            value={formData.categoryId}
+            onChange={(e) => {
+              const selectedCategory = categories.find(cat => cat.id === e.target.value);
+              setFormData(prev => ({
+                ...prev,
+                categoryId: e.target.value,
+                categoryName: selectedCategory?.name || ''
+              }));
+            }}
             label="Category"
           >
             {categories.map(category => (
-              <MenuItem key={category.id} value={category.name}>
+              <MenuItem key={category.id} value={category.id}>
                 {category.name}
               </MenuItem>
             ))}
