@@ -43,7 +43,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
   useEffect(() => {
     fetchCategories();
-    if (experience) {
+  }, []);
+
+  useEffect(() => {
+    if (experience && categories.length > 0) {
       const categoryId = categories.find(cat => cat.name === experience.categoryName)?.id || '';
       
       setFormData({
@@ -166,7 +169,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Send category ID instead of name
+      // Send categoryId as 'category' parameter
       submitData.append('category', formData.categoryId.toString());
 
       // Handle tags
