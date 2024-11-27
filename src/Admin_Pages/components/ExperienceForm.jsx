@@ -162,8 +162,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Fix: Send categoryName instead of categoryId
-      submitData.append('categoryName', formData.categoryName);
+      // Send category name as 'category'
+      submitData.append('category', formData.categoryName);
 
       // Handle tags
       if (formData.tags?.length > 0) {
