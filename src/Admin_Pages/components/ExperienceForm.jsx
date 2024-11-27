@@ -26,7 +26,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     price: '',
     discount: '0',
     categoryId: '',
-    categoryName: '',
     tags: [],
     images: [],
     video: null,
@@ -43,16 +42,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
   useEffect(() => {
     fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (experience && categories.length > 0) {
-      const categoryId = categories.find(cat => cat.name === experience.categoryName)?.id || '';
-      
+    if (experience) {
       setFormData({
         ...experience,
-        categoryId: categoryId,
-        categoryName: experience.categoryName || '',
+        categoryId: experience.category?.id || '',
         images: [],
         video: null,
         imageUrls: experience.imageUrls || [],
@@ -65,7 +58,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         ));
       }
     }
-  }, [experience, categories]);
+  }, [experience]);
 
   const fetchCategories = async () => {
     try {
@@ -162,6 +155,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       if (!formData.price) throw new Error('Price is required');
       if (!formData.categoryId) throw new Error('Category is required');
 
+      // Find the selected category
+      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+      if (!selectedCategory) throw new Error('Invalid category selected');
+
       // Basic fields
       submitData.append('title', formData.title.trim());
       submitData.append('description', formData.description.trim());
@@ -169,25 +166,44 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Send categoryId as 'category' parameter
-      submitData.append('category', formData.categoryId.toString());
-
-      // Handle tags
+      // Send both category name and ID
+      submitData.append('category', selectedCategory.name);
+      submitData.append('categoryId', selectedCategory.id.toString());
+      
+      // Tags
       if (formData.tags?.length > 0) {
-        formData.tags.forEach((tag, index) => {
-          submitData.append(`tags[${index}]`, tag);
+        formData.tags.forEach(tag => {
+          submitData.append('tags', tag.trim());
         });
       }
 
-      // Handle files
-      if (formData.images) {
-        Array.from(formData.images).forEach((image) => {
+      // Images
+      if (formData.images?.length > 0) {
+        Array.from(formData.images).forEach(image => {
           submitData.append('images', image);
         });
       }
 
+      // Existing images for updates
+      if (experience && formData.imageUrls?.length > 0) {
+        formData.imageUrls.forEach(url => {
+          submitData.append('existingImages', url);
+        });
+      }
+
+      // Video
       if (formData.video) {
         submitData.append('video', formData.video);
+      }
+
+      // Log FormData contents for debugging
+      console.log('Submitting form data:');
+      for (let pair of submitData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0], ':', pair[1].name, '(File)');
+        } else {
+          console.log(pair[0], ':', pair[1]);
+        }
       }
 
       await onSubmit(submitData);
@@ -273,14 +289,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           <Select
             name="categoryId"
             value={formData.categoryId}
-            onChange={(e) => {
-              const selectedCategory = categories.find(cat => cat.id === e.target.value);
-              setFormData(prev => ({
-                ...prev,
-                categoryId: e.target.value,
-                categoryName: selectedCategory?.name || ''
-              }));
-            }}
+            onChange={handleChange}
             label="Category"
           >
             {categories.map(category => (
