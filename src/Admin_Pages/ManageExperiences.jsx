@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import {
-  Box, Tab, Tabs, Button, Container, Typography, Paper, Alert, Snackbar
+  Box, 
+  Tab, 
+  Tabs, 
+  Button, 
+  Container, 
+  Typography, 
+  Paper, 
+  Alert, 
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import ExperienceList from './components/ExperienceList';
@@ -29,9 +38,36 @@ const ManageExperience = () => {
   const [refreshList, setRefreshList] = useState(false);
   const [notification, setNotification] = useState({ open: false, message: '', type: 'success' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
+  const validateFormData = (formData) => {
+    const requiredFields = ['title', 'description', 'price', 'category'];
+    const missing = requiredFields.filter(field => !formData.get(field));
+    
+    if (missing.length > 0) {
+      throw new Error(`Missing required fields: ${missing.join(', ')}`);
+    }
+
+    const price = parseFloat(formData.get('price'));
+    const discount = parseFloat(formData.get('discount') || '0');
+
+    if (isNaN(price) || price < 0) {
+      throw new Error('Invalid price value');
+    }
+
+    if (isNaN(discount) || discount < 0 || discount > 100) {
+      throw new Error('Discount must be between 0 and 100');
+    }
+
+    const images = formData.getAll('images');
+    if (images.length === 0 && !formData.get('existingImages')) {
+      throw new Error('At least one image is required');
+    }
+  };
 
   const handleCreateExperience = async (formData) => {
     setIsSubmitting(true);
+    setError(null);
     try {
       // Log FormData contents
       console.log('Creating experience with data:');
@@ -42,6 +78,8 @@ const ManageExperience = () => {
           console.log(pair[0], ':', pair[1]);
         }
       }
+
+      validateFormData(formData);
 
       const response = await ExperienceService.createExperience(formData);
       console.log('Creation response:', response);
@@ -57,9 +95,11 @@ const ManageExperience = () => {
       console.error('Error creating experience:', error);
       console.error('Error details:', error.response?.data);
       
+      const errorMessage = error.response?.data?.message || error.message || 'Error creating experience. Please try again.';
+      setError(errorMessage);
       setNotification({
         open: true,
-        message: error.response?.data?.message || 'Error creating experience. Please try again.',
+        message: errorMessage,
         type: 'error'
       });
     } finally {
@@ -69,6 +109,7 @@ const ManageExperience = () => {
 
   const handleUpdateExperience = async (formData) => {
     setIsSubmitting(true);
+    setError(null);
     try {
       // Log FormData contents
       console.log('Updating experience with data:');
@@ -79,6 +120,8 @@ const ManageExperience = () => {
           console.log(pair[0], ':', pair[1]);
         }
       }
+
+      validateFormData(formData);
 
       const response = await ExperienceService.updateExperience(editingExperience.id, formData);
       console.log('Update response:', response);
@@ -95,9 +138,11 @@ const ManageExperience = () => {
       console.error('Error updating experience:', error);
       console.error('Error details:', error.response?.data);
       
+      const errorMessage = error.response?.data?.message || error.message || 'Error updating experience. Please try again.';
+      setError(errorMessage);
       setNotification({
         open: true,
-        message: error.response?.data?.message || 'Error updating experience. Please try again.',
+        message: errorMessage,
         type: 'error'
       });
     } finally {
@@ -106,6 +151,7 @@ const ManageExperience = () => {
   };
 
   const handleEdit = (experience) => {
+    setError(null);
     setEditingExperience(experience);
     setShowForm(true);
   };
@@ -118,6 +164,7 @@ const ManageExperience = () => {
   const handleCancel = () => {
     setShowForm(false);
     setEditingExperience(null);
+    setError(null);
   };
 
   const handleCloseNotification = () => {
@@ -146,7 +193,10 @@ const ManageExperience = () => {
                   <Button
                     variant="contained"
                     startIcon={<AddIcon />}
-                    onClick={() => setShowForm(true)}
+                    onClick={() => {
+                      setError(null);
+                      setShowForm(true);
+                    }}
                   >
                     Add Experience
                   </Button>
@@ -154,6 +204,12 @@ const ManageExperience = () => {
               )}
               
               <TabPanel value={activeTab} index={0}>
+                {error && (
+                  <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+                    {error}
+                  </Alert>
+                )}
+                
                 {showForm ? (
                   <Box sx={{ maxWidth: 800, margin: '0 auto' }}>
                     <Typography variant="h6" gutterBottom>
@@ -167,11 +223,29 @@ const ManageExperience = () => {
                     />
                   </Box>
                 ) : (
-                  <ExperienceList
-                    onEdit={handleEdit}
-                    onView={handleView}
-                    refreshList={refreshList}
-                  />
+                  <Box sx={{ position: 'relative' }}>
+                    {isSubmitting && (
+                      <Box sx={{ 
+                        position: 'absolute', 
+                        top: 0, 
+                        left: 0, 
+                        right: 0, 
+                        bottom: 0, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                        zIndex: 1
+                      }}>
+                        <CircularProgress />
+                      </Box>
+                    )}
+                    <ExperienceList
+                      onEdit={handleEdit}
+                      onView={handleView}
+                      refreshList={refreshList}
+                    />
+                  </Box>
                 )}
               </TabPanel>
             </Box>
@@ -186,6 +260,7 @@ const ManageExperience = () => {
           open={notification.open} 
           autoHideDuration={6000} 
           onClose={handleCloseNotification}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
           <Alert 
             onClose={handleCloseNotification} 

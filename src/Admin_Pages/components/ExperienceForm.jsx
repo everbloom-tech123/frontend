@@ -12,7 +12,9 @@ import {
   Typography, 
   Alert,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import CategoryService from '../CategoryService';
@@ -30,12 +32,14 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     images: [],
     video: null,
     imageUrls: [],
-    videoUrl: ''
+    videoUrl: '',
+    special: false
   });
   
   const [categories, setCategories] = useState([]);
   const [newTag, setNewTag] = useState('');
   const [imageError, setImageError] = useState('');
+  const [videoError, setVideoError] = useState('');
   const [previewUrls, setPreviewUrls] = useState([]);
   const [submitError, setSubmitError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +53,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         images: [],
         video: null,
         imageUrls: experience.imageUrls || [],
-        videoUrl: experience.videoUrl || ''
+        videoUrl: experience.videoUrl || '',
+        special: experience.special || false
       });
       
       if (experience.imageUrls) {
@@ -71,16 +76,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
-    // Clear any previous errors
     setSubmitError('');
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const { name, files } = e.target;
     if (name === 'images') {
       if (files.length > 5) {
@@ -97,15 +101,25 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         images: files
       }));
     } else if (name === 'video') {
-      setFormData(prev => ({
-        ...prev,
-        video: files[0]
-      }));
+      try {
+        if (files[0]) {
+          await ExperienceService.validateFile(files[0], 'video');
+          setFormData(prev => ({
+            ...prev,
+            video: files[0]
+          }));
+          setVideoError('');
+        }
+      } catch (error) {
+        setVideoError(error.message);
+        e.target.value = ''; // Reset file input
+      }
     }
   };
 
   useEffect(() => {
     return () => {
+      // Cleanup preview URLs
       previewUrls.forEach(url => {
         if (url.startsWith('blob:')) {
           URL.revokeObjectURL(url);
@@ -154,6 +168,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       if (!formData.description.trim()) throw new Error('Description is required');
       if (!formData.price) throw new Error('Price is required');
       if (!formData.categoryId) throw new Error('Category is required');
+      if (parseFloat(formData.price) < 0) throw new Error('Price cannot be negative');
+      if (parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100) {
+        throw new Error('Discount must be between 0 and 100');
+      }
 
       // Find the selected category
       const selectedCategory = categories.find(c => c.id === formData.categoryId);
@@ -165,8 +183,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
+      submitData.append('special', formData.special.toString());
       
-      // Send both category name and ID
+      // Category
       submitData.append('category', selectedCategory.name);
       submitData.append('categoryId', selectedCategory.id.toString());
       
@@ -194,16 +213,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       // Video
       if (formData.video) {
         submitData.append('video', formData.video);
-      }
-
-      // Log FormData contents for debugging
-      console.log('Submitting form data:');
-      for (let pair of submitData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(pair[0], ':', pair[1].name, '(File)');
-        } else {
-          console.log(pair[0], ':', pair[1]);
-        }
       }
 
       await onSubmit(submitData);
@@ -256,7 +265,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           fullWidth
         />
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <TextField
             label="Price"
             name="price"
@@ -272,7 +281,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           />
 
           <TextField
-            label="Discount"
+            label="Discount %"
             name="discount"
             type="number"
             value={formData.discount}
@@ -281,6 +290,17 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             InputProps={{
               inputProps: { min: 0, max: 100, step: "0.1" }
             }}
+          />
+          
+          <FormControlLabel
+            control={
+              <Switch
+                checked={formData.special}
+                onChange={handleChange}
+                name="special"
+              />
+            }
+            label="Special"
           />
         </Box>
 
@@ -404,6 +424,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               hidden
             />
           </Button>
+          {videoError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {videoError}
+            </Alert>
+          )}
           {formData.video && (
             <Typography variant="body2" sx={{ mt: 1 }}>
               Selected video: {formData.video.name}
@@ -414,7 +439,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
               <video
                 controls
                 style={{ maxWidth: '100%', maxHeight: '200px' }}
-                src={ExperienceService.getImageUrl(formData.videoUrl)}
+                src={ExperienceService.getVideoUrl(formData.videoUrl)}
+                onError={(e) => {
+                  console.error('Error loading video:', e);
+                  e.target.style.display = 'none';
+                }}
               />
             </Box>
           )}

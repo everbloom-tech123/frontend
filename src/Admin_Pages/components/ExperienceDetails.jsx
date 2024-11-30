@@ -20,6 +20,9 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
 
   if (!experience) return null;
 
+  // Calculate the final price after discount
+  const finalPrice = experience.price - (experience.price * (experience.discount / 100));
+
   return (
     <Dialog 
       open={open} 
@@ -28,9 +31,19 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
       fullWidth
     >
       <DialogTitle>
-        <Typography variant="h5" component="div">
-          {experience.title}
-        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" component="div">
+            {experience.title}
+          </Typography>
+          {experience.special && (
+            <Chip 
+              label="Special"
+              color="secondary"
+              size="small"
+              sx={{ ml: 1 }}
+            />
+          )}
+        </Box>
         <Typography variant="subtitle1" color="text.secondary">
           Category: {experience.categoryName}
         </Typography>
@@ -61,15 +74,24 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
           {/* Price and Booking Section */}
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Typography variant="h6">
-                Price: ${experience.price}
-              </Typography>
-              {experience.discount > 0 && (
-                <Chip 
-                  label={`${experience.discount}% OFF`}
-                  color="error"
-                  size="small"
-                />
+              {experience.discount > 0 ? (
+                <>
+                  <Typography variant="h6" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                    ${experience.price}
+                  </Typography>
+                  <Typography variant="h6" color="primary">
+                    ${finalPrice.toFixed(2)}
+                  </Typography>
+                  <Chip 
+                    label={`${experience.discount}% OFF`}
+                    color="error"
+                    size="small"
+                  />
+                </>
+              ) : (
+                <Typography variant="h6">
+                  ${experience.price}
+                </Typography>
               )}
             </Box>
           </Box>
@@ -123,7 +145,11 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
               <video
                 controls
                 style={{ maxWidth: '100%', maxHeight: '300px' }}
-                src={ExperienceService.getImageUrl(experience.videoUrl)}
+                src={ExperienceService.getVideoUrl(experience.videoUrl)}
+                onError={(e) => {
+                  console.error('Error loading video:', e);
+                  e.target.style.display = 'none';
+                }}
               />
             </Box>
           )}
@@ -139,4 +165,4 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
   );
 };
 
-export default ExperienceDetails; 
+export default ExperienceDetails;
