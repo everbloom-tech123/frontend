@@ -34,17 +34,6 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
     setIsVideoLoading(false);
   };
 
-  const handleBookNow = () => {
-    navigate('/booking', {
-      state: {
-        userId: experience.userId,  // Make sure you have access to the user ID
-        userEmail: experience.userEmail,  // Make sure you have access to the user email
-        experienceId: experience.id
-      }
-    });
-    onClose();
-  };
-
   return (
     <Dialog 
       open={open} 
@@ -221,9 +210,6 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
       <DialogActions>
         <Button onClick={onClose} color="primary">
           Close
-        </Button>
-        <Button onClick={handleBookNow} color="primary" variant="contained">
-          Book Now
         </Button>
       </DialogActions>
     </Dialog>

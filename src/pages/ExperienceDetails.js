@@ -113,20 +113,21 @@ const ExperienceDetails = () => {
       navigate('/signin', { 
         state: { from: `/experience/${id}` }
       });
-    } else {
-      navigate('/booking', {
-        state: {
-          userId: user.id,
-          userEmail: user.email,
-          experienceId: id,
-          experienceDetails: {
-            title: experience.title,
-            price: experience.price,
-            imageUrl: experience.imageUrl,
-          }
-        }
-      });
+      return;
     }
+
+    navigate('/booking', {
+      state: {
+        userId: user.id,
+        userEmail: user.email,
+        experienceId: id,
+        experienceDetails: {
+          title: experience.title,
+          price: experience.price,
+          imageUrl: experience.imageUrl,
+        }
+      }
+    });
   };
 
   const handleWishlistToggle = async () => {
