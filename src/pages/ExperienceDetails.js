@@ -140,6 +140,14 @@ const ExperienceDetails = () => {
     }
   };
 
+  useEffect(() => {
+    console.group('User Authentication Status');
+    console.log('Is Authenticated:', isAuthenticated);
+    console.log('User Data:', user);
+    console.log('Current Experience ID:', id);
+    console.groupEnd();
+  }, [isAuthenticated, user, id]);
+
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
