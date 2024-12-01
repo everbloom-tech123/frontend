@@ -7,11 +7,12 @@ import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
 import BookingCard from '../components/BookingCard';
+import AuthService from '../services/AuthService';
 
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user, getUserData } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -109,8 +110,8 @@ const ExperienceDetails = () => {
   }, []);
 
   const handleBooking = () => {
-    const userData = getUserData();
-    if (!userData) {
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
       navigate('/signin', { 
         state: { from: `/experience/${id}` }
       });
@@ -119,8 +120,8 @@ const ExperienceDetails = () => {
 
     navigate('/booking', {
       state: {
-        userId: userData.id,
-        userEmail: userData.email,
+        userId: currentUser.id,
+        userEmail: currentUser.email,
         experienceId: id,
         experienceDetails: {
           title: experience.title,
@@ -132,7 +133,8 @@ const ExperienceDetails = () => {
   };
 
   const handleWishlistToggle = async () => {
-    if (!user) {
+    const currentUser = AuthService.getCurrentUser();
+    if (!currentUser) {
       navigate('/signin', { 
         state: { from: `/experience/${id}` }
       });
@@ -144,17 +146,17 @@ const ExperienceDetails = () => {
   useEffect(() => {
     console.group('Experience Details - User Data Validation');
     console.log('Is Authenticated:', isAuthenticated);
-    console.log('Raw User Data:', user);
-    console.log('Formatted User Data:', getUserData());
+    console.log('Raw User Data:', AuthService.getCurrentUser());
+    console.log('Formatted User Data:', AuthService.getCurrentUser());
     console.log('Current Experience ID:', id);
     console.table({
-      userId: user?.id,
-      userEmail: user?.email,
-      userRole: user?.role,
+      userId: AuthService.getCurrentUser()?.id,
+      userEmail: AuthService.getCurrentUser()?.email,
+      userRole: AuthService.getCurrentUser()?.role,
       isAuthenticated: isAuthenticated
     });
     console.groupEnd();
-  }, [isAuthenticated, user, getUserData, id]);
+  }, [isAuthenticated, AuthService.getCurrentUser(), id]);
 
   if (loading) {
     return (
@@ -245,7 +247,7 @@ const ExperienceDetails = () => {
             <BookingCard
               experience={experience}
               isAuthenticated={isAuthenticated}
-              currentUser={user}
+              currentUser={AuthService.getCurrentUser()}
               isInWishlist={isInWishlist}
               onBooking={handleBooking}
               onWishlistToggle={handleWishlistToggle}
