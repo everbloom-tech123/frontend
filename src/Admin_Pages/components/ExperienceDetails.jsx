@@ -35,7 +35,6 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
   const handleVideoLoaded = () => {
     setIsVideoLoading(false);
     setVideoError(false);
-    console.log('Video loaded successfully');
   };
 
   return (
@@ -152,61 +151,49 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
           )}
 
           {/* Video Section */}
-{experience.videoUrl && (
-    <Box sx={{ mt: 3 }}>
-        <Typography variant="h6" gutterBottom>
-            Video Preview
-        </Typography>
-        <Box sx={{ 
-            width: '100%', 
-            position: 'relative',
-            backgroundColor: '#000',
-            minHeight: '200px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: '8px',
-            overflow: 'hidden'
-        }}>
-            {isVideoLoading && (
-                <CircularProgress sx={{ position: 'absolute' }} />
-            )}
-            {!videoError ? (
+          {experience.videoUrl && (
+            <Box sx={{ mt: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Video Preview
+              </Typography>
+              <Box sx={{ 
+                width: '100%', 
+                position: 'relative',
+                backgroundColor: '#000',
+                minHeight: '200px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
+                {isVideoLoading && (
+                  <CircularProgress sx={{ position: 'absolute' }} />
+                )}
                 <video
-                    controls
-                    width="100%"
-                    preload="metadata"
-                    onLoadedData={handleVideoLoaded}
-                    onError={(e) => {
-                        console.log('Video URL:', ExperienceService.getVideoUrl(experience.videoUrl));
-                        console.log('Video object:', experience.videoUrl);
-                        handleVideoError(e);
-                    }}
-                    style={{ 
-                        maxHeight: '400px',
-                        width: '100%',
-                        display: isVideoLoading ? 'none' : 'block'
-                    }}
+                  key={ExperienceService.getVideoUrl(experience.videoUrl)}
+                  controls
+                  width="100%"
+                  height="auto"
+                  preload="auto"
+                  playsInline
+                  onLoadedData={handleVideoLoaded}
+                  onError={handleVideoError}
+                  style={{ 
+                    maxHeight: '400px',
+                    width: '100%',
+                    display: isVideoLoading ? 'none' : 'block'
+                  }}
+                  controlsList="nodownload"
                 >
-                    <source 
-                        src={ExperienceService.getVideoUrl(experience.videoUrl)} 
-                        type="video/mp4"
-                        onError={(e) => console.log('Source error:', e)}
-                    />
-                    Your browser does not support the video tag.
+                  <source 
+                    src={ExperienceService.getVideoUrl(experience.videoUrl)} 
+                    type="video/mp4"
+                  />
+                  Your browser doesn't support video playback.
                 </video>
-            ) : (
-                <Box sx={{ textAlign: 'center', p: 2 }}>
-                    <Typography color="error" gutterBottom>
-                        Error loading video
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        URL: {ExperienceService.getVideoUrl(experience.videoUrl)}
-                    </Typography>
-                </Box>
-            )}
+              </Box>
             </Box>
-           </Box>
           )}
         </Box>
       </DialogContent>
