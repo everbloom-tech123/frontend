@@ -152,51 +152,61 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
           )}
 
           {/* Video Section */}
-          {experience.videoUrl && (
-            <Box sx={{ mt: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Video Preview
-              </Typography>
-              <Box sx={{ 
-                width: '100%', 
-                position: 'relative',
-                backgroundColor: '#000',
-                minHeight: '200px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: '8px',
-                overflow: 'hidden'
-              }}>
-                {isVideoLoading && (
-                  <CircularProgress sx={{ position: 'absolute' }} />
-                )}
-                {!videoError ? (
-                  <video
+{experience.videoUrl && (
+    <Box sx={{ mt: 3 }}>
+        <Typography variant="h6" gutterBottom>
+            Video Preview
+        </Typography>
+        <Box sx={{ 
+            width: '100%', 
+            position: 'relative',
+            backgroundColor: '#000',
+            minHeight: '200px',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: '8px',
+            overflow: 'hidden'
+        }}>
+            {isVideoLoading && (
+                <CircularProgress sx={{ position: 'absolute' }} />
+            )}
+            {!videoError ? (
+                <video
                     controls
                     width="100%"
                     preload="metadata"
                     onLoadedData={handleVideoLoaded}
-                    onError={handleVideoError}
-                    style={{ 
-                      maxHeight: '400px',
-                      width: '100%',
-                      display: isVideoLoading ? 'none' : 'block'
+                    onError={(e) => {
+                        console.log('Video URL:', ExperienceService.getVideoUrl(experience.videoUrl));
+                        console.log('Video object:', experience.videoUrl);
+                        handleVideoError(e);
                     }}
-                  >
+                    style={{ 
+                        maxHeight: '400px',
+                        width: '100%',
+                        display: isVideoLoading ? 'none' : 'block'
+                    }}
+                >
                     <source 
-                      src={ExperienceService.getVideoUrl(experience.videoUrl)} 
-                      type="video/mp4"
+                        src={ExperienceService.getVideoUrl(experience.videoUrl)} 
+                        type="video/mp4"
+                        onError={(e) => console.log('Source error:', e)}
                     />
                     Your browser does not support the video tag.
-                  </video>
-                ) : (
-                  <Typography color="error" sx={{ p: 2 }}>
-                    Error loading video. Please try again later.
-                  </Typography>
-                )}
-              </Box>
+                </video>
+            ) : (
+                <Box sx={{ textAlign: 'center', p: 2 }}>
+                    <Typography color="error" gutterBottom>
+                        Error loading video
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        URL: {ExperienceService.getVideoUrl(experience.videoUrl)}
+                    </Typography>
+                </Box>
+            )}
             </Box>
+           </Box>
           )}
         </Box>
       </DialogContent>

@@ -252,15 +252,22 @@ class ExperienceService {
   } */
 
     static getVideoUrl(videoPath) {
-      if (!videoPath) return '';
+      if (!videoPath) {
+          console.log('No video path provided');
+          return '';
+      }
+      
       // Handle both full URLs and relative paths
       if (videoPath.startsWith('http')) {
+          console.log('Using full URL:', videoPath);
           return videoPath;
       }
-      // Clean up the path to ensure proper formatting
+      
+      // Clean up the path
       const cleanPath = videoPath.startsWith('/') ? videoPath.substring(1) : videoPath;
       const fullUrl = `${config.API_BASE_URL}/public/api/products/files/${cleanPath}`;
-      console.log('Video URL:', fullUrl); // For debugging
+      console.log('Constructed video URL:', fullUrl);
+      
       return fullUrl;
   }
 
