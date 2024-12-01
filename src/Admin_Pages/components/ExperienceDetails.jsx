@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactPlayer from 'react-player';
+import Plyr from 'plyr-react';
+import 'plyr-react/plyr.css';
 import {
   Dialog,
   DialogTitle,
@@ -27,8 +28,8 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
   // Calculate the final price after discount
   const finalPrice = experience.price - (experience.price * (experience.discount / 100));
 
-  const handleVideoError = (e) => {
-    console.error('ReactPlayer error:', e);
+  const handleVideoError = (error) => {
+    console.error('Plyr error:', error);
     setVideoError(true);
     setIsVideoLoading(false);
   };
@@ -156,7 +157,6 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
                 width: '100%', 
                 position: 'relative',
                 backgroundColor: '#000',
-                paddingTop: '56.25%', // 16:9 Aspect Ratio
                 borderRadius: '8px',
                 overflow: 'hidden'
               }}>
@@ -167,31 +167,26 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
                       top: '50%',
                       left: '50%',
                       marginTop: '-20px',
-                      marginLeft: '-20px'
+                      marginLeft: '-20px',
+                      zIndex: 1
                     }} 
                   />
                 )}
-                <ReactPlayer
-                  url={ExperienceService.getVideoUrl(experience.videoUrl)}
-                  width="100%"
-                  height="100%"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
+                <Plyr
+                  source={{
+                    type: 'video',
+                    sources: [
+                      {
+                        src: ExperienceService.getVideoUrl(experience.videoUrl),
+                        type: 'video/mp4',
+                      }
+                    ]
                   }}
-                  controls={true}
-                  playing={false}
+                  options={{
+                    controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                  }}
                   onReady={() => setIsVideoLoading(false)}
                   onError={handleVideoError}
-                  config={{
-                    file: {
-                      attributes: {
-                        controlsList: 'nodownload'
-                      },
-                      forceVideo: true
-                    }
-                  }}
                 />
                 {videoError && (
                   <Box sx={{ 
@@ -200,7 +195,8 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
                     left: '50%', 
                     transform: 'translate(-50%, -50%)',
                     textAlign: 'center',
-                    color: 'white'
+                    color: 'white',
+                    zIndex: 2
                   }}>
                     <Typography>Error loading video</Typography>
                   </Box>
