@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ReactPlayer from 'react-player';
 import {
   Dialog,
   DialogTitle,
@@ -27,14 +28,9 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
   const finalPrice = experience.price - (experience.price * (experience.discount / 100));
 
   const handleVideoError = (e) => {
-    console.error('Error loading video:', e);
+    console.error('ReactPlayer error:', e);
     setVideoError(true);
     setIsVideoLoading(false);
-  };
-
-  const handleVideoLoaded = () => {
-    setIsVideoLoading(false);
-    setVideoError(false);
   };
 
   return (
@@ -160,38 +156,55 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
                 width: '100%', 
                 position: 'relative',
                 backgroundColor: '#000',
-                minHeight: '200px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
+                paddingTop: '56.25%', // 16:9 Aspect Ratio
                 borderRadius: '8px',
                 overflow: 'hidden'
               }}>
                 {isVideoLoading && (
-                  <CircularProgress sx={{ position: 'absolute' }} />
-                )}
-                <video
-                  key={ExperienceService.getVideoUrl(experience.videoUrl)}
-                  controls
-                  width="100%"
-                  height="auto"
-                  preload="auto"
-                  playsInline
-                  onLoadedData={handleVideoLoaded}
-                  onError={handleVideoError}
-                  style={{ 
-                    maxHeight: '400px',
-                    width: '100%',
-                    display: isVideoLoading ? 'none' : 'block'
-                  }}
-                  controlsList="nodownload"
-                >
-                  <source 
-                    src={ExperienceService.getVideoUrl(experience.videoUrl)} 
-                    type="video/mp4"
+                  <CircularProgress 
+                    sx={{ 
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      marginTop: '-20px',
+                      marginLeft: '-20px'
+                    }} 
                   />
-                  Your browser doesn't support video playback.
-                </video>
+                )}
+                <ReactPlayer
+                  url={ExperienceService.getVideoUrl(experience.videoUrl)}
+                  width="100%"
+                  height="100%"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                  }}
+                  controls={true}
+                  playing={false}
+                  onReady={() => setIsVideoLoading(false)}
+                  onError={handleVideoError}
+                  config={{
+                    file: {
+                      attributes: {
+                        controlsList: 'nodownload'
+                      },
+                      forceVideo: true
+                    }
+                  }}
+                />
+                {videoError && (
+                  <Box sx={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    left: '50%', 
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center',
+                    color: 'white'
+                  }}>
+                    <Typography>Error loading video</Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
           )}
