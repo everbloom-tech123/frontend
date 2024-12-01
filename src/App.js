@@ -16,6 +16,7 @@ import ViewAllExperiencesPage from './pages/viewall';
 import ManageExperience from './Admin_Pages/ManageExperiences';
 import WishlistPage from './pages/WishlistPage';
 import ExperienceDetails from './pages/ExperienceDetails';
+import BookingPage from './pages/BookingPage';
 
 const AdminLayout = () => {
   return (
@@ -51,6 +52,14 @@ const PublicLayout = () => {
             element={
               <ProtectedRoute>
                 <WishlistPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/booking" 
+            element={
+              <ProtectedRoute>
+                <BookingPage />
               </ProtectedRoute>
             } 
           />
