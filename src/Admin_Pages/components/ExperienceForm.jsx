@@ -183,7 +183,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
-      submitData.append('special', formData.special.toString());
+      submitData.append('special', formData.special ? 'true' : 'false');
       
       // Category
       submitData.append('category', selectedCategory.name);

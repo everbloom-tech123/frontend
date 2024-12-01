@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
@@ -11,17 +11,32 @@ import {
   Chip,
   ImageList,
   ImageListItem,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import ExperienceService from '../ExperienceService';
 
 const ExperienceDetails = ({ experience, open, onClose }) => {
   const navigate = useNavigate();
+  const [videoError, setVideoError] = useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   if (!experience) return null;
 
   // Calculate the final price after discount
   const finalPrice = experience.price - (experience.price * (experience.discount / 100));
+
+  const handleVideoError = (e) => {
+    console.error('Error loading video:', e);
+    setVideoError(true);
+    setIsVideoLoading(false);
+  };
+
+  const handleVideoLoaded = () => {
+    setIsVideoLoading(false);
+    setVideoError(false);
+    console.log('Video loaded successfully');
+  };
 
   return (
     <Dialog 
@@ -136,21 +151,51 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
             </Box>
           )}
 
-          {/* Video if available */}
+          {/* Video Section */}
           {experience.videoUrl && (
             <Box sx={{ mt: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Video
+                Video Preview
               </Typography>
-              <video
-                controls
-                style={{ maxWidth: '100%', maxHeight: '300px' }}
-                src={ExperienceService.getVideoUrl(experience.videoUrl)}
-                onError={(e) => {
-                  console.error('Error loading video:', e);
-                  e.target.style.display = 'none';
-                }}
-              />
+              <Box sx={{ 
+                width: '100%', 
+                position: 'relative',
+                backgroundColor: '#000',
+                minHeight: '200px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
+                {isVideoLoading && (
+                  <CircularProgress sx={{ position: 'absolute' }} />
+                )}
+                {!videoError ? (
+                  <video
+                    controls
+                    width="100%"
+                    preload="metadata"
+                    onLoadedData={handleVideoLoaded}
+                    onError={handleVideoError}
+                    style={{ 
+                      maxHeight: '400px',
+                      width: '100%',
+                      display: isVideoLoading ? 'none' : 'block'
+                    }}
+                  >
+                    <source 
+                      src={ExperienceService.getVideoUrl(experience.videoUrl)} 
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
+                ) : (
+                  <Typography color="error" sx={{ p: 2 }}>
+                    Error loading video. Please try again later.
+                  </Typography>
+                )}
+              </Box>
             </Box>
           )}
         </Box>

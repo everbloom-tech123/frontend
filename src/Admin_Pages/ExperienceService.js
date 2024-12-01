@@ -242,13 +242,26 @@ class ExperienceService {
     return `${config.API_BASE_URL}/public/api/products/files/${cleanPath}`;
   }
 
-  static getVideoUrl(videoPath) {
+  /* static getVideoUrl(videoPath) {
     if (!videoPath) return '';
     if (videoPath.startsWith('http')) {
       return videoPath;
     }
     const cleanPath = videoPath.startsWith('/') ? videoPath.substring(1) : videoPath;
     return `${config.API_BASE_URL}/public/api/products/files/${cleanPath}`;
+  } */
+
+    static getVideoUrl(videoPath) {
+      if (!videoPath) return '';
+      // Handle both full URLs and relative paths
+      if (videoPath.startsWith('http')) {
+          return videoPath;
+      }
+      // Clean up the path to ensure proper formatting
+      const cleanPath = videoPath.startsWith('/') ? videoPath.substring(1) : videoPath;
+      const fullUrl = `${config.API_BASE_URL}/public/api/products/files/${cleanPath}`;
+      console.log('Video URL:', fullUrl); // For debugging
+      return fullUrl;
   }
 
   static async uploadFile(file, type = 'image') {
