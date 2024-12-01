@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
+import * as AuthService from '../services/AuthService';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
 import BookingCard from '../components/BookingCard';
-import AuthService from '../services/AuthService';
 
 const ExperienceDetails = () => {
   const { id } = useParams();
