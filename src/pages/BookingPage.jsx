@@ -23,7 +23,7 @@ const BookingPage = () => {
   useEffect(() => {
     // Redirect if no user data is present
     if (!userId || !userEmail || !experienceId) {
-      navigate('/experiences');
+      navigate('/viewall');
     }
   }, [userId, userEmail, experienceId, navigate]);
 
