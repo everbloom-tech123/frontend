@@ -12,8 +12,23 @@ export const useAuth = () => {
   return context;
 };
 
+const formatUserData = (userData) => {
+  if (!userData) return null;
+  
+  return {
+    id: userData.id,
+    email: userData.email,
+    role: userData.role,
+    username: userData.username,
+    // Add any other necessary user fields
+  };
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(AuthService.getCurrentUser());
+  const [user, setUser] = useState(() => {
+    const storedUser = AuthService.getCurrentUser();
+    return formatUserData(storedUser);
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,9 +38,18 @@ export const AuthProvider = ({ children }) => {
       try {
         if (AuthService.isAuthenticated()) {
           const userProfile = await AuthService.getUserProfile();
-          setUser(userProfile);
+          const formattedUser = formatUserData(userProfile);
+          setUser(formattedUser);
+          
+          // Add validation logging
+          console.group('Auth Initialization');
+          console.log('Formatted User Data:', formattedUser);
+          console.log('Auth Token:', AuthService.getToken());
+          console.log('User Role:', formattedUser?.role);
+          console.groupEnd();
         } else {
           setUser(null);
+          console.log('No authenticated user found');
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -44,7 +68,15 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await AuthService.login(email, password);
-      setUser(AuthService.getCurrentUser());
+      const formattedUser = formatUserData(response);
+      setUser(formattedUser);
+      
+      // Add validation logging
+      console.group('Login Success');
+      console.log('Formatted User Data:', formattedUser);
+      console.log('Auth Token:', AuthService.getToken());
+      console.groupEnd();
+      
       return response;
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -83,7 +115,9 @@ export const AuthProvider = ({ children }) => {
     isAdmin: user?.role === 'ROLE_ADMIN',
     login,
     logout,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
+    // Add a new method to get formatted user data
+    getUserData: () => formatUserData(user)
   };
 
   if (loading) {

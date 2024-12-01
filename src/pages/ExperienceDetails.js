@@ -11,7 +11,7 @@ import BookingCard from '../components/BookingCard';
 const ExperienceDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, getUserData } = useAuth();
   const [experience, setExperience] = useState(null);
   const [activeMedia, setActiveMedia] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -109,7 +109,8 @@ const ExperienceDetails = () => {
   }, []);
 
   const handleBooking = () => {
-    if (!user) {
+    const userData = getUserData();
+    if (!userData) {
       navigate('/signin', { 
         state: { from: `/experience/${id}` }
       });
@@ -118,8 +119,8 @@ const ExperienceDetails = () => {
 
     navigate('/booking', {
       state: {
-        userId: user.id,
-        userEmail: user.email,
+        userId: userData.id,
+        userEmail: userData.email,
         experienceId: id,
         experienceDetails: {
           title: experience.title,
@@ -141,12 +142,19 @@ const ExperienceDetails = () => {
   };
 
   useEffect(() => {
-    console.group('User Authentication Status');
+    console.group('Experience Details - User Data Validation');
     console.log('Is Authenticated:', isAuthenticated);
-    console.log('User Data:', user);
+    console.log('Raw User Data:', user);
+    console.log('Formatted User Data:', getUserData());
     console.log('Current Experience ID:', id);
+    console.table({
+      userId: user?.id,
+      userEmail: user?.email,
+      userRole: user?.role,
+      isAuthenticated: isAuthenticated
+    });
     console.groupEnd();
-  }, [isAuthenticated, user, id]);
+  }, [isAuthenticated, user, getUserData, id]);
 
   if (loading) {
     return (
