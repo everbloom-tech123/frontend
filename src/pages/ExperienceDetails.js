@@ -4,6 +4,7 @@ import axios from 'axios';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import * as AuthService from '../services/AuthService';
+import * as userService from '../services/userService';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
 import TabContent from '../components/TabContent';
@@ -19,6 +20,7 @@ const ExperienceDetails = () => {
   const [error, setError] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
   const [isInWishlist, setIsInWishlist] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const api = useMemo(() => {
     return axios.create({
@@ -101,6 +103,19 @@ const ExperienceDetails = () => {
     };
   }, [id, api, generateFakeReviews]);
 
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const userDetails = await userService.getCurrentUserDetails();
+        setCurrentUser(userDetails);
+      } catch (error) {
+        console.error('Error fetching current user details:', error);
+      }
+    };
+
+    fetchCurrentUser();
+  }, []);
+
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
   }, []);
@@ -110,7 +125,6 @@ const ExperienceDetails = () => {
   }, []);
 
   const handleBooking = () => {
-    const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       navigate('/signin', { 
         state: { from: `/experience/${id}` }
@@ -133,7 +147,6 @@ const ExperienceDetails = () => {
   };
 
   const handleWishlistToggle = async () => {
-    const currentUser = AuthService.getCurrentUser();
     if (!currentUser) {
       navigate('/signin', { 
         state: { from: `/experience/${id}` }
@@ -146,17 +159,10 @@ const ExperienceDetails = () => {
   useEffect(() => {
     console.group('Experience Details - User Data Validation');
     console.log('Is Authenticated:', isAuthenticated);
-    console.log('Raw User Data:', AuthService.getCurrentUser());
-    console.log('Formatted User Data:', AuthService.getCurrentUser());
+    console.log('Current User Data:', currentUser);
     console.log('Current Experience ID:', id);
-    console.table({
-      userId: AuthService.getCurrentUser()?.id,
-      userEmail: AuthService.getCurrentUser()?.email,
-      userRole: AuthService.getCurrentUser()?.role,
-      isAuthenticated: isAuthenticated
-    });
     console.groupEnd();
-  }, [isAuthenticated, AuthService.getCurrentUser(), id]);
+  }, [isAuthenticated, currentUser, id]);
 
   if (loading) {
     return (
@@ -247,7 +253,7 @@ const ExperienceDetails = () => {
             <BookingCard
               experience={experience}
               isAuthenticated={isAuthenticated}
-              currentUser={AuthService.getCurrentUser()}
+              currentUser={currentUser}
               isInWishlist={isInWishlist}
               onBooking={handleBooking}
               onWishlistToggle={handleWishlistToggle}
