@@ -107,7 +107,15 @@ const ExperienceDetails = () => {
     const fetchCurrentUser = async () => {
       try {
         const userDetails = await userService.getCurrentUserProfile();
-        setCurrentUser(userDetails);
+        setCurrentUser({
+          id: userDetails.id,
+          username: userDetails.username,
+          email: userDetails.email,
+          roles: userDetails.roles,
+          enabled: userDetails.enabled,
+          createdAt: userDetails.createdAt,
+          updatedAt: userDetails.updatedAt
+        });
       } catch (error) {
         console.error('Error fetching current user details:', error);
       }
