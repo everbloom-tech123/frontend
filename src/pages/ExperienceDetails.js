@@ -106,7 +106,7 @@ const ExperienceDetails = () => {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const userDetails = await userService.getCurrentUserDetails();
+        const userDetails = await userService.getCurrentUserProfile();
         setCurrentUser(userDetails);
       } catch (error) {
         console.error('Error fetching current user details:', error);
