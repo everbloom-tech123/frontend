@@ -124,18 +124,20 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }
   };
 
+  const handleRemoveTag = (tagToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
     setIsLoading(true);
     
-    const handleRemoveTag = (tagToRemove) => {
-      setFormData(prev => ({
-        ...prev,
-        tags: prev.tags.filter(tag => tag !== tagToRemove)
-      }));
-    };
-    
+   
+
     try {
       const submitData = new FormData();
       
