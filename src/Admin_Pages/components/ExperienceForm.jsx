@@ -28,6 +28,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     price: '',
     discount: '0',
     categoryId: '',
+    subcategory: '',
     tags: [],
     images: [],
     video: null,
@@ -37,6 +38,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   });
   
   const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [newTag, setNewTag] = useState('');
   const [imageError, setImageError] = useState('');
   const [videoError, setVideoError] = useState('');
@@ -50,6 +52,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       setFormData({
         ...experience,
         categoryId: experience.category?.id || '',
+        subcategory: experience.subcategory || '',
         images: [],
         video: null,
         imageUrls: experience.imageUrls || [],
@@ -64,6 +67,18 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       }
     }
   }, [experience]);
+
+  useEffect(() => {
+    if (formData.categoryId) {
+      const category = categories.find(c => c.id === formData.categoryId);
+      setSelectedCategory(category);
+      if (!category?.sub?.includes(formData.subcategory)) {
+        setFormData(prev => ({ ...prev, subcategory: '' }));
+      }
+    } else {
+      setSelectedCategory(null);
+    }
+  }, [formData.categoryId, categories]);
 
   const fetchCategories = async () => {
     try {
@@ -112,14 +127,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         }
       } catch (error) {
         setVideoError(error.message);
-        e.target.value = ''; // Reset file input
+        e.target.value = '';
       }
     }
   };
 
   useEffect(() => {
     return () => {
-      // Cleanup preview URLs
       previewUrls.forEach(url => {
         if (url.startsWith('blob:')) {
           URL.revokeObjectURL(url);
@@ -163,21 +177,19 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     try {
       const submitData = new FormData();
       
-      // Validate required fields
       if (!formData.title.trim()) throw new Error('Title is required');
       if (!formData.description.trim()) throw new Error('Description is required');
       if (!formData.price) throw new Error('Price is required');
       if (!formData.categoryId) throw new Error('Category is required');
+      if (!formData.subcategory) throw new Error('Subcategory is required');
       if (parseFloat(formData.price) < 0) throw new Error('Price cannot be negative');
       if (parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100) {
         throw new Error('Discount must be between 0 and 100');
       }
 
-      // Find the selected category
       const selectedCategory = categories.find(c => c.id === formData.categoryId);
       if (!selectedCategory) throw new Error('Invalid category selected');
 
-      // Basic fields
       submitData.append('title', formData.title.trim());
       submitData.append('description', formData.description.trim());
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
@@ -185,32 +197,28 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('discount', (formData.discount || '0').toString());
       submitData.append('special', formData.special ? 'true' : 'false');
       
-      // Category
       submitData.append('category', selectedCategory.name);
       submitData.append('categoryId', selectedCategory.id.toString());
+      submitData.append('subcategory', formData.subcategory);
       
-      // Tags
       if (formData.tags?.length > 0) {
         formData.tags.forEach(tag => {
           submitData.append('tags', tag.trim());
         });
       }
 
-      // Images
       if (formData.images?.length > 0) {
         Array.from(formData.images).forEach(image => {
           submitData.append('images', image);
         });
       }
 
-      // Existing images for updates
       if (experience && formData.imageUrls?.length > 0) {
         formData.imageUrls.forEach(url => {
           submitData.append('existingImages', url);
         });
       }
 
-      // Video
       if (formData.video) {
         submitData.append('video', formData.video);
       }
@@ -304,21 +312,41 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           />
         </Box>
 
-        <FormControl fullWidth required error={submitError.includes('Category')}>
-          <InputLabel>Category</InputLabel>
-          <Select
-            name="categoryId"
-            value={formData.categoryId}
-            onChange={handleChange}
-            label="Category"
-          >
-            {categories.map(category => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <FormControl fullWidth required error={submitError.includes('Category')}>
+            <InputLabel>Category</InputLabel>
+            <Select
+              name="categoryId"
+              value={formData.categoryId}
+              onChange={handleChange}
+              label="Category"
+            >
+              {categories.map(category => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {selectedCategory && selectedCategory.sub && selectedCategory.sub.length > 0 && (
+            <FormControl fullWidth required error={submitError.includes('Subcategory')}>
+              <InputLabel>Subcategory</InputLabel>
+              <Select
+                name="subcategory"
+                value={formData.subcategory}
+                onChange={handleChange}
+                label="Subcategory"
+              >
+                {selectedCategory.sub.map((subcat, index) => (
+                  <MenuItem key={index} value={subcat}>
+                    {subcat}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+        </Box>
 
         <Box>
           <Typography variant="subtitle1" gutterBottom>

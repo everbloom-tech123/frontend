@@ -47,6 +47,26 @@ class CategoryService {
     }
   }
 
+  static async addSubcategory(categoryId, subCategory) {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/${categoryId}/subcategories`, subCategory);
+      return response.data;
+    } catch (error) {
+      console.error('Error adding subcategory:', error.response?.data || error);
+      throw error;
+    }
+  }
+
+  static async removeSubcategory(categoryId, subCategoryName) {
+    try {
+      await axios.delete(`${API_BASE_URL}/${categoryId}/subcategories/${subCategoryName}`);
+    } catch (error) {
+      console.error('Error removing subcategory:', error.response?.data || error);
+      throw error;
+    }
+  }
+
+
   static async getCategoryById(id) {
     try {
       const response = await axios.get(`${API_BASE_URL}/${id}`);
@@ -57,5 +77,7 @@ class CategoryService {
     }
   }
 }
+
+
 
 export default CategoryService;
