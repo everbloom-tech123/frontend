@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TextField, 
-  Button, 
-  FormControl, 
-  InputLabel, 
-  Select, 
-  MenuItem,
-  Box, 
-  Chip, 
-  Stack, 
-  Typography, 
-  Alert,
-  IconButton,
-  CircularProgress,
-  FormControlLabel,
-  Switch
+  TextField, Button, FormControl, InputLabel, Select, MenuItem,
+  Box, Chip, Stack, Typography, Alert, IconButton, CircularProgress,
+  FormControlLabel, Switch
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
 import CategoryService from '../CategoryService';
@@ -34,10 +22,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     video: null,
     imageUrls: [],
     videoUrl: '',
-    special: false
+    special: false,
+    cityId: '',
+    address: '',
+    latitude: '',
+    longitude: ''
   });
   
   const [categories, setCategories] = useState([]);
+  const [cities, setCities] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [newTag, setNewTag] = useState('');
   const [imageError, setImageError] = useState('');
@@ -53,17 +46,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         ...experience,
         categoryId: experience.category?.id || '',
         subcategory: experience.subcategory || '',
+        cityId: experience.city?.id || '',
         images: [],
         video: null,
         imageUrls: experience.imageUrls || [],
         videoUrl: experience.videoUrl || '',
         special: experience.special || false
       });
-      
       if (experience.imageUrls) {
-        setPreviewUrls(experience.imageUrls.map(url => 
-          ExperienceService.getImageUrl(url)
-        ));
+        setPreviewUrls(experience.imageUrls.map(url => ExperienceService.getImageUrl(url)));
       }
     }
   }, [experience]);
@@ -86,7 +77,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      setSubmitError('Failed to load categories. Please refresh the page.');
+      setSubmitError('Failed to load categories');
     }
   };
 
@@ -107,40 +98,20 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         return;
       }
       setImageError('');
-      
       const newPreviewUrls = Array.from(files).map(file => URL.createObjectURL(file));
       setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-      
-      setFormData(prev => ({
-        ...prev,
-        images: files
-      }));
+      setFormData(prev => ({ ...prev, images: files }));
     } else if (name === 'video') {
       try {
-        if (files[0]) {
-          await ExperienceService.validateFile(files[0], 'video');
-          setFormData(prev => ({
-            ...prev,
-            video: files[0]
-          }));
-          setVideoError('');
-        }
+        await ExperienceService.validateFile(files[0], 'video');
+        setFormData(prev => ({ ...prev, video: files[0] }));
+        setVideoError('');
       } catch (error) {
         setVideoError(error.message);
         e.target.value = '';
       }
     }
   };
-
-  useEffect(() => {
-    return () => {
-      previewUrls.forEach(url => {
-        if (url.startsWith('blob:')) {
-          URL.revokeObjectURL(url);
-        }
-      });
-    };
-  }, [previewUrls]);
 
   const handleAddTag = (e) => {
     e.preventDefault();
@@ -153,22 +124,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }
   };
 
-  const handleRemoveTag = (tagToRemove) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }));
-  };
-
-  const handleRemoveImage = (index) => {
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-    setFormData(prev => ({
-      ...prev,
-      images: Array.from(prev.images).filter((_, i) => i !== index),
-      imageUrls: prev.imageUrls?.filter((_, i) => i !== index)
-    }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -177,46 +132,32 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     try {
       const submitData = new FormData();
       
-      if (!formData.title.trim()) throw new Error('Title is required');
-      if (!formData.description.trim()) throw new Error('Description is required');
-      if (!formData.price) throw new Error('Price is required');
-      if (!formData.categoryId) throw new Error('Category is required');
-      if (!formData.subcategory) throw new Error('Subcategory is required');
-      if (parseFloat(formData.price) < 0) throw new Error('Price cannot be negative');
-      if (parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100) {
-        throw new Error('Discount must be between 0 and 100');
-      }
-
-      const selectedCategory = categories.find(c => c.id === formData.categoryId);
-      if (!selectedCategory) throw new Error('Invalid category selected');
-
       submitData.append('title', formData.title.trim());
       submitData.append('description', formData.description.trim());
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       submitData.append('special', formData.special ? 'true' : 'false');
-      
+      submitData.append('cityId', formData.cityId.toString());
+      submitData.append('address', formData.address.trim());
+      submitData.append('latitude', formData.latitude.toString());
+      submitData.append('longitude', formData.longitude.toString());
+
+      const selectedCategory = categories.find(c => c.id === formData.categoryId);
       submitData.append('category', selectedCategory.name);
       submitData.append('categoryId', selectedCategory.id.toString());
       submitData.append('subcategory', formData.subcategory);
       
       if (formData.tags?.length > 0) {
-        formData.tags.forEach(tag => {
-          submitData.append('tags', tag.trim());
-        });
+        formData.tags.forEach(tag => submitData.append('tags', tag.trim()));
       }
 
       if (formData.images?.length > 0) {
-        Array.from(formData.images).forEach(image => {
-          submitData.append('images', image);
-        });
+        Array.from(formData.images).forEach(image => submitData.append('images', image));
       }
 
       if (experience && formData.imageUrls?.length > 0) {
-        formData.imageUrls.forEach(url => {
-          submitData.append('existingImages', url);
-        });
+        formData.imageUrls.forEach(url => submitData.append('existingImages', url));
       }
 
       if (formData.video) {
@@ -226,7 +167,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       await onSubmit(submitData);
     } catch (error) {
       console.error('Form submission error:', error);
-      setSubmitError(error.message || 'Error submitting form. Please try again.');
+      setSubmitError(error.message || 'Error submitting form');
     } finally {
       setIsLoading(false);
     }
@@ -235,262 +176,92 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   return (
     <form onSubmit={handleSubmit}>
       <Stack spacing={3}>
-        {submitError && (
-          <Alert severity="error" onClose={() => setSubmitError('')}>
-            {submitError}
-          </Alert>
-        )}
+        {submitError && <Alert severity="error">{submitError}</Alert>}
 
-        <TextField
-          label="Title"
-          name="title"
-          value={formData.title}
-          onChange={handleChange}
-          required
-          fullWidth
-          error={submitError.includes('Title')}
-        />
-
-        <TextField
-          label="Description"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          multiline
-          rows={4}
-          fullWidth
-          error={submitError.includes('Description')}
-        />
-
-        <TextField
-          label="Additional Information"
-          name="additionalInfo"
-          value={formData.additionalInfo}
-          onChange={handleChange}
-          multiline
-          rows={3}
-          fullWidth
-        />
-
-        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <TextField
-            label="Price"
-            name="price"
-            type="number"
-            value={formData.price}
-            onChange={handleChange}
-            required
-            fullWidth
-            error={submitError.includes('Price')}
-            InputProps={{
-              inputProps: { min: 0, step: "0.01" }
-            }}
-          />
-
-          <TextField
-            label="Discount %"
-            name="discount"
-            type="number"
-            value={formData.discount}
-            onChange={handleChange}
-            fullWidth
-            InputProps={{
-              inputProps: { min: 0, max: 100, step: "0.1" }
-            }}
-          />
-          
-          <FormControlLabel
-            control={
-              <Switch
-                checked={formData.special}
-                onChange={handleChange}
-                name="special"
-              />
-            }
-            label="Special"
-          />
+        <TextField label="Title" name="title" value={formData.title} onChange={handleChange} required />
+        <TextField label="Description" name="description" value={formData.description} onChange={handleChange} required multiline rows={4} />
+        <TextField label="Additional Information" name="additionalInfo" value={formData.additionalInfo} onChange={handleChange} multiline rows={3} />
+        
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField label="Price" name="price" type="number" value={formData.price} onChange={handleChange} required />
+          <TextField label="Discount %" name="discount" type="number" value={formData.discount} onChange={handleChange} />
+          <FormControlLabel control={<Switch checked={formData.special} onChange={handleChange} name="special" />} label="Special" />
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <FormControl fullWidth required error={submitError.includes('Category')}>
-            <InputLabel>Category</InputLabel>
-            <Select
-              name="categoryId"
-              value={formData.categoryId}
-              onChange={handleChange}
-              label="Category"
-            >
-              {categories.map(category => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
-                </MenuItem>
+        <FormControl required>
+          <InputLabel>Category</InputLabel>
+          <Select name="categoryId" value={formData.categoryId} onChange={handleChange}>
+            {categories.map(category => (
+              <MenuItem key={category.id} value={category.id}>{category.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {selectedCategory?.sub && (
+          <FormControl required>
+            <InputLabel>Subcategory</InputLabel>
+            <Select name="subcategory" value={formData.subcategory} onChange={handleChange}>
+              {selectedCategory.sub.map((subcat, index) => (
+                <MenuItem key={index} value={subcat}>{subcat}</MenuItem>
               ))}
             </Select>
           </FormControl>
+        )}
 
-          {selectedCategory && selectedCategory.sub && selectedCategory.sub.length > 0 && (
-            <FormControl fullWidth required error={submitError.includes('Subcategory')}>
-              <InputLabel>Subcategory</InputLabel>
-              <Select
-                name="subcategory"
-                value={formData.subcategory}
-                onChange={handleChange}
-                label="Subcategory"
-              >
-                {selectedCategory.sub.map((subcat, index) => (
-                  <MenuItem key={index} value={subcat}>
-                    {subcat}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle1" gutterBottom>
-            Tags
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-            <TextField
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              placeholder="Add a tag"
-              size="small"
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddTag(e);
-                }
-              }}
-            />
-            <Button variant="contained" onClick={handleAddTag}>
-              Add
-            </Button>
-          </Box>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {formData.tags?.map((tag, index) => (
-              <Chip
-                key={index}
-                label={tag}
-                onDelete={() => handleRemoveTag(tag)}
-                color="primary"
-                variant="outlined"
-              />
+        <FormControl required>
+          <InputLabel>City</InputLabel>
+          <Select name="cityId" value={formData.cityId} onChange={handleChange}>
+            {cities.map(city => (
+              <MenuItem key={city.id} value={city.id}>{city.name}</MenuItem>
             ))}
-          </Box>
+          </Select>
+        </FormControl>
+
+        <TextField label="Address" name="address" value={formData.address} onChange={handleChange} required multiline rows={2} />
+        
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <TextField 
+            label="Latitude" 
+            name="latitude" 
+            type="number" 
+            value={formData.latitude} 
+            onChange={handleChange} 
+            required 
+            inputProps={{ min: 5.0, max: 10.0, step: "0.000001" }}
+          />
+          <TextField 
+            label="Longitude" 
+            name="longitude" 
+            type="number" 
+            value={formData.longitude} 
+            onChange={handleChange} 
+            required 
+            inputProps={{ min: 79.0, max: 82.0, step: "0.000001" }}
+          />
         </Box>
 
         <Box>
-          <Typography variant="subtitle1" gutterBottom>
-            Images (Maximum 5)
-          </Typography>
-          <Button variant="contained" component="label">
-            Upload Images
-            <input
-              type="file"
-              name="images"
-              onChange={handleFileChange}
-              multiple
-              accept="image/*"
-              hidden
-            />
-          </Button>
-          {imageError && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              {imageError}
-            </Alert>
-          )}
-          
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
-            {previewUrls.map((url, index) => (
-              <Box key={index} sx={{ position: 'relative' }}>
-                <img
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  style={{ 
-                    width: 100, 
-                    height: 100, 
-                    objectFit: 'cover',
-                    borderRadius: '4px'
-                  }}
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = 'https://via.placeholder.com/100';
-                  }}
-                />
-                <IconButton
-                  sx={{
-                    position: 'absolute',
-                    top: -8,
-                    right: -8,
-                    backgroundColor: 'white',
-                    '&:hover': { backgroundColor: 'white' }
-                  }}
-                  size="small"
-                  onClick={() => handleRemoveImage(index)}
-                >
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            ))}
-          </Box>
+          <input type="file" name="images" onChange={handleFileChange} multiple accept="image/*" />
+          {imageError && <Alert severity="error">{imageError}</Alert>}
         </Box>
 
         <Box>
-          <Typography variant="subtitle1" gutterBottom>
-            Video
-          </Typography>
-          <Button variant="contained" component="label">
-            Upload Video
-            <input
-              type="file"
-              name="video"
-              onChange={handleFileChange}
-              accept="video/*"
-              hidden
-            />
-          </Button>
-          {videoError && (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              {videoError}
-            </Alert>
-          )}
-          {formData.video && (
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              Selected video: {formData.video.name}
-            </Typography>
-          )}
-          {formData.videoUrl && (
-            <Box sx={{ mt: 1 }}>
-              <video
-                controls
-                style={{ maxWidth: '100%', maxHeight: '200px' }}
-                src={ExperienceService.getVideoUrl(formData.videoUrl)}
-                onError={(e) => {
-                  console.error('Error loading video:', e);
-                  e.target.style.display = 'none';
-                }}
-              />
-            </Box>
-          )}
+          <input type="file" name="video" onChange={handleFileChange} accept="video/*" />
+          {videoError && <Alert severity="error">{videoError}</Alert>}
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button 
-            variant="outlined" 
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained"
-            disabled={isLoading}
-            startIcon={isLoading ? <CircularProgress size={20} /> : null}
-          >
+        <Box>
+          <TextField value={newTag} onChange={(e) => setNewTag(e.target.value)} placeholder="Add a tag" />
+          <Button onClick={handleAddTag}>Add Tag</Button>
+          {formData.tags?.map((tag, index) => (
+            <Chip key={index} label={tag} onDelete={() => handleRemoveTag(tag)} />
+          ))}
+        </Box>
+
+        <Box>
+          <Button variant="outlined" onClick={onCancel} disabled={isLoading}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={isLoading}>
+            {isLoading ? <CircularProgress size={20} /> : null}
             {experience ? 'Update Experience' : 'Create Experience'}
           </Button>
         </Box>
