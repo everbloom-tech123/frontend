@@ -7,8 +7,9 @@ import * as AuthService from '../services/AuthService';
 import * as userService from '../services/userService';
 import MediaGallery from '../components/MediaGallery';
 import RatingInfo from '../components/RatingInfo';
-import TabContent from '../components/TabContent';
+import ExperienceContent from '../components/ExperienceContent';
 import BookingCard from '../components/BookingCard';
+import ExperienceService from '../services/ExperienceService';
 
 const ExperienceDetails = () => {
   const { id } = useParams();
@@ -18,7 +19,6 @@ const ExperienceDetails = () => {
   const [activeMedia, setActiveMedia] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedTab, setSelectedTab] = useState('description');
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -63,23 +63,23 @@ const ExperienceDetails = () => {
         setLoading(true);
         setError(null);
 
-        const response = await api.get(`/public/api/products/${id}`);
+        const response = await ExperienceService.getExperience(id);
         
         if (!isMounted) return;
 
-        if (!response.data) {
+        if (!response) {
           throw new Error('No data received from server');
         }
 
         const enhancedExperience = {
-          ...response.data,
+          ...response,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
           reviews: generateFakeReviews(5),
-          imageUrl: response.data.imageUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.imageUrl}` : null,
-          imageUrls: response.data.imageUrls ? response.data.imageUrls.map(url => 
-            `${config.API_BASE_URL}/public/api/products/files/${url}`
+          imageUrl: response.imageUrl ? ExperienceService.getImageUrl(response.imageUrl) : null,
+          imageUrls: response.imageUrls ? response.imageUrls.map(url => 
+            ExperienceService.getImageUrl(url)
           ) : [],
-          videoUrl: response.data.videoUrl ? `${config.API_BASE_URL}/public/api/products/files/${response.data.videoUrl}` : null
+          videoUrl: response.videoUrl ? ExperienceService.getVideoUrl(response.videoUrl) : null
         };
 
         setExperience(enhancedExperience);
@@ -129,7 +129,7 @@ const ExperienceDetails = () => {
   }, []);
 
   const handleVideoClick = useCallback(() => {
-    // No need to handle video play/pause in this simplified version
+    // Video playback handling remains unchanged
   }, []);
 
   const handleBooking = () => {
@@ -163,14 +163,6 @@ const ExperienceDetails = () => {
       setIsInWishlist(prev => !prev);
     }
   };
-
-  useEffect(() => {
-    console.group('Experience Details - User Data Validation');
-    console.log('Is Authenticated:', isAuthenticated);
-    console.log('Current User Data:', currentUser);
-    console.log('Current Experience ID:', id);
-    console.groupEnd();
-  }, [isAuthenticated, currentUser, id]);
 
   if (loading) {
     return (
@@ -212,7 +204,7 @@ const ExperienceDetails = () => {
   }
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-gray-50 min-h-screen">
       <MediaGallery
         media={experience}
         activeMedia={activeMedia}
@@ -222,50 +214,35 @@ const ExperienceDetails = () => {
       />
 
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">{experience.title}</h1>
         <div className="flex flex-col lg:flex-row lg:space-x-8">
-          <div className="lg:w-2/3">
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-              <RatingInfo
-                rating={experience.rating}
-                reviewCount={experience.reviews?.length}
-                viewCount={experience.viewCount}
-              />
-
-              <div className="mb-6">
-                <div className="flex border-b">
-                  {['description', 'additional info', 'reviews'].map((tab) => (
-                    <button
-                      key={tab}
-                      className={`px-4 py-2 font-semibold ${
-                        selectedTab === tab
-                          ? 'text-red-600 border-b-2 border-red-600'
-                          : 'text-gray-600 hover:text-red-600'
-                      }`}
-                      onClick={() => setSelectedTab(tab)}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  ))}
-                </div>
-
-                <TabContent
-                  selectedTab={selectedTab}
+          <div className="lg:w-3/4">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <div className="p-6">
+                <h1 className="text-3xl font-bold text-gray-800 mb-4">{experience.title}</h1>
+                <RatingInfo
+                  rating={experience.rating}
+                  reviewCount={experience.reviews?.length}
+                  viewCount={experience.viewCount}
+                  className="mb-6"
+                />
+                <ExperienceContent 
                   experience={experience}
                 />
               </div>
             </div>
           </div>
 
-          <div className="lg:w-1/3">
-            <BookingCard
-              experience={experience}
-              isAuthenticated={isAuthenticated}
-              currentUser={currentUser}
-              isInWishlist={isInWishlist}
-              onBooking={handleBooking}
-              onWishlistToggle={handleWishlistToggle}
-            />
+          <div className="lg:w-1/4 mt-6 lg:mt-0">
+            <div className="sticky top-6">
+              <BookingCard
+                experience={experience}
+                isAuthenticated={isAuthenticated}
+                currentUser={currentUser}
+                isInWishlist={isInWishlist}
+                onBooking={handleBooking}
+                onWishlistToggle={handleWishlistToggle}
+              />
+            </div>
           </div>
         </div>
       </div>
