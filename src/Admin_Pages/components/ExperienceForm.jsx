@@ -10,7 +10,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import CategoryService from '../CategoryService';
 import ExperienceService from '../ExperienceService';
-import districtService from '../services/districtService';
+import districtService from '../../services/districtService';
 
 // Fix for default marker icon in react-leaflet
 delete L.Icon.Default.prototype._getIconUrl;
