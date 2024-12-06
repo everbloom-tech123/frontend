@@ -2,12 +2,36 @@ import React, { useState, useEffect } from 'react';
 import {
   TextField, Button, FormControl, InputLabel, Select, MenuItem,
   Box, Chip, Stack, Typography, Alert, IconButton, CircularProgress,
-  FormControlLabel, Switch
+  FormControlLabel, Switch, Paper
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import CategoryService from '../CategoryService';
 import ExperienceService from '../ExperienceService';
-import districtService from '../../services/districtService';
+import districtService from '../services/districtService';
+
+// Fix for default marker icon in react-leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
+// Map marker component
+const LocationMarker = ({ position, onLocationChange }) => {
+  const map = useMapEvents({
+    click(e) {
+      onLocationChange(e.latlng);
+    },
+  });
+
+  return position ? (
+    <Marker position={position} />
+  ) : null;
+};
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
@@ -41,6 +65,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [submitError, setSubmitError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [mapPosition, setMapPosition] = useState(null);
+
+  // Sri Lanka center position
+  const defaultCenter = { lat: 7.8731, lng: 80.7718 };
 
   useEffect(() => {
     fetchCategories();
@@ -60,6 +89,12 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       });
       if (experience.imageUrls) {
         setPreviewUrls(experience.imageUrls.map(url => ExperienceService.getImageUrl(url)));
+      }
+      if (experience.latitude && experience.longitude) {
+        setMapPosition({
+          lat: parseFloat(experience.latitude),
+          lng: parseFloat(experience.longitude)
+        });
       }
     }
   }, [experience]);
@@ -124,6 +159,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     setSubmitError('');
   };
 
+  const handleLocationChange = (latlng) => {
+    setMapPosition(latlng);
+    setFormData(prev => ({
+      ...prev,
+      latitude: latlng.lat.toFixed(6),
+      longitude: latlng.lng.toFixed(6)
+    }));
+  };
+
   const handleFileChange = async (e) => {
     const { name, files } = e.target;
     if (name === 'images') {
@@ -162,6 +206,14 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     setFormData(prev => ({
       ...prev,
       tags: prev.tags.filter(tag => tag !== tagToRemove)
+    }));
+  };
+
+  const handleRemoveImage = (index) => {
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+    setFormData(prev => ({
+      ...prev,
+      images: Array.from(prev.images).filter((_, i) => i !== index)
     }));
   };
 
@@ -213,14 +265,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleRemoveImage = (index) => {
-    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
-    setFormData(prev => ({
-      ...prev,
-      images: Array.from(prev.images).filter((_, i) => i !== index)
-    }));
   };
 
   return (
@@ -330,28 +374,70 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           rows={2}
           fullWidth
         />
-        
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <TextField 
-            label="Latitude" 
-            name="latitude" 
-            type="number" 
-            value={formData.latitude} 
-            onChange={handleChange} 
-            required 
-            fullWidth
-            inputProps={{ min: 5.0, max: 10.0, step: "0.000001" }}
-          />
-          <TextField 
-            label="Longitude" 
-            name="longitude" 
-            type="number" 
-            value={formData.longitude} 
-            onChange={handleChange} 
-            required 
-            fullWidth
-            inputProps={{ min: 79.0, max: 82.0, step: "0.000001" }}
-          />
+
+        <Box>
+          <Typography variant="subtitle1" gutterBottom>Location</Typography>
+          <Button 
+            variant="outlined" 
+            onClick={() => setShowMap(!showMap)} 
+            sx={{ mb: 2 }}
+          >
+            {showMap ? 'Hide Map' : 'Select Location on Map'}
+          </Button>
+          
+          {showMap && (
+            <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+              <Typography variant="body2" gutterBottom>
+                Click on the map to select location
+              </Typography>
+              <Box sx={{ height: 400, width: '100%', mb: 2 }}>
+                <MapContainer
+                  center={mapPosition || defaultCenter}
+                  zoom={8}
+                  style={{ height: '100%', width: '100%' }}
+                >
+                  <TileLayer
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  />
+                  <LocationMarker
+                    position={mapPosition}
+                    onLocationChange={handleLocationChange}
+                  />
+                </MapContainer>
+              </Box>
+              {mapPosition && (
+                <Typography variant="body2">
+                  Selected Location: {mapPosition.lat.toFixed(6)}, {mapPosition.lng.toFixed(6)}
+                </Typography>
+              )}
+            </Paper>
+          )}
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField 
+              label="Latitude" 
+              name="latitude" 
+              type="number" 
+              value={formData.latitude} 
+              required 
+              fullWidth
+              InputProps={{
+                readOnly: true,
+              }}
+            />
+            <TextField 
+              label="Longitude" 
+              name="longitude" 
+              type="number" 
+              value={formData.longitude} 
+              required 
+              fullWidth
+              InputProps={{
+                readOnly: true,
+              }}
+            />
+          </Box>
         </Box>
 
         <Box>
@@ -365,8 +451,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           />
           {imageError && <Alert severity="error">{imageError}</Alert>}
           <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-            {previewUrls.map((url, index) => (
-              <Box key={index} sx={{ position: 'relative' }}>
+            {previewUrls.map((url, index) => (<Box key={index} sx={{ position: 'relative' }}>
                 <img
                   src={url}
                   alt={`Preview ${index + 1}`}
