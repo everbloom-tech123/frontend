@@ -7,7 +7,7 @@ import {
 import { Close as CloseIcon } from '@mui/icons-material';
 import CategoryService from '../CategoryService';
 import ExperienceService from '../ExperienceService';
-import districtService from '../services/districtService';
+import districtService from '../../services/districtService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
