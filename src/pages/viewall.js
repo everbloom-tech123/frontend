@@ -76,11 +76,11 @@ const ViewAllExperiencesPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen mt-16">
       <div className="container mx-auto px-4 py-12">
-        <PlayfulCategories
+        {/* <PlayfulCategories
           categories={categories}
           onCategorySelect={setFilter}
           activeCategory={filter}
-        />
+        /> */}
         <ExperienceGrid
           title="Discover Unforgettable Experiences"
           subtitle="Embark on a journey of a lifetime..."
