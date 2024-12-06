@@ -5,7 +5,7 @@ import {
   FormControlLabel, Switch, Paper
 } from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, Polygon } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import CategoryService from '../CategoryService';
@@ -20,17 +20,83 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Map marker component
-const LocationMarker = ({ position, onLocationChange }) => {
+// Function to fetch city boundaries from Nominatim
+const fetchCityBoundaries = async (cityName, countryCode = 'LK') => {
+  try {
+    const searchUrl = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(cityName)}&country=${countryCode}&format=json`;
+    const searchResponse = await fetch(searchUrl);
+    const searchResults = await searchResponse.json();
+    
+    if (!searchResults.length) {
+      throw new Error('City not found');
+    }
+
+    const osmId = searchResults[0].osm_id;
+    const boundaryUrl = `https://nominatim.openstreetmap.org/details.php?osmtype=R&osmid=${osmId}&class=boundary&format=json&polygon_geojson=1`;
+    const boundaryResponse = await fetch(boundaryUrl);
+    const boundaryData = await boundaryResponse.json();
+    
+    if (boundaryData.geometry && boundaryData.geometry.coordinates) {
+      return {
+        bounds: boundaryData.geometry.coordinates[0],
+        center: [searchResults[0].lat, searchResults[0].lon],
+      };
+    }
+    
+    // Fallback: Create approximate boundary using bounding box
+    const bbox = searchResults[0].boundingbox;
+    return {
+      bounds: [
+        [bbox[0], bbox[2]], // SW
+        [bbox[0], bbox[3]], // SE
+        [bbox[1], bbox[3]], // NE
+        [bbox[1], bbox[2]], // NW
+      ],
+      center: [searchResults[0].lat, searchResults[0].lon],
+    };
+  } catch (error) {
+    console.error('Error fetching city boundaries:', error);
+    return null;
+  }
+};
+
+// Helper function to check if a point is inside a polygon
+const isPointInPolygon = (point, polygon) => {
+  const x = point[0], y = point[1];
+  let inside = false;
+  
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i][0], yi = polygon[i][1];
+    const xj = polygon[j][0], yj = polygon[j][1];
+    
+    const intersect = ((yi > y) !== (yj > y))
+        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  
+  return inside;
+};
+
+// LocationMarker component with boundary checking
+const LocationMarker = ({ position, onLocationChange, cityBounds }) => {
   const map = useMapEvents({
     click(e) {
-      onLocationChange(e.latlng);
+      const { lat, lng } = e.latlng;
+      
+      if (cityBounds) {
+        const isInside = isPointInPolygon([lat, lng], cityBounds);
+        if (isInside) {
+          onLocationChange(e.latlng);
+        } else {
+          alert('Please select a location within the selected city boundaries');
+        }
+      } else {
+        onLocationChange(e.latlng);
+      }
     },
   });
 
-  return position ? (
-    <Marker position={position} />
-  ) : null;
+  return position ? <Marker position={position} /> : null;
 };
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
@@ -67,9 +133,10 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showMap, setShowMap] = useState(false);
   const [mapPosition, setMapPosition] = useState(null);
-
-  // Sri Lanka center position
-  const defaultCenter = { lat: 7.8731, lng: 80.7718 };
+  const [cityBounds, setCityBounds] = useState(null);
+  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Sri Lanka center
+  const [mapZoom, setMapZoom] = useState(8);
+  const [mapRef, setMapRef] = useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -119,6 +186,32 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       setFormData(prev => ({ ...prev, cityId: '' }));
     }
   }, [formData.districtId]);
+
+  useEffect(() => {
+    const loadCityBoundaries = async () => {
+      if (formData.cityId) {
+        const selectedCity = cities.find(city => city.id === formData.cityId);
+        if (selectedCity) {
+          const boundaries = await fetchCityBoundaries(selectedCity.name);
+          if (boundaries) {
+            setCityBounds(boundaries.bounds);
+            setMapCenter(boundaries.center);
+            setMapZoom(13);
+            
+            if (mapRef) {
+              mapRef.flyTo(boundaries.center, 13);
+            }
+          }
+        }
+      } else {
+        setCityBounds(null);
+        setMapCenter([7.8731, 80.7718]);
+        setMapZoom(8);
+      }
+    };
+
+    loadCityBoundaries();
+  }, [formData.cityId, cities]);
 
   const fetchCategories = async () => {
     try {
@@ -331,206 +424,219 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           <Select name="categoryId" value={formData.categoryId} onChange={handleChange}>
             {categories.map(category => (
               <MenuItem key={category.id} value={category.id}>{category.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        {selectedCategory?.sub && (
-          <FormControl required fullWidth>
-            <InputLabel>Subcategory</InputLabel>
-            <Select name="subcategory" value={formData.subcategory} onChange={handleChange}>
-              {selectedCategory.sub.map((subcat, index) => (
-                <MenuItem key={index} value={subcat}>{subcat}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
-
-        <FormControl required fullWidth>
-          <InputLabel>District</InputLabel>
-          <Select name="districtId" value={formData.districtId} onChange={handleChange}>
-            {districts.map(district => (
-              <MenuItem key={district.id} value={district.id}>{district.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl required fullWidth disabled={!formData.districtId}>
-          <InputLabel>City</InputLabel>
-          <Select name="cityId" value={formData.cityId} onChange={handleChange}>
-            {cities.map(city => (
-              <MenuItem key={city.id} value={city.id}>{city.name}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <TextField
-          label="Address"
-          name="address"
-          value={formData.address}
-          onChange={handleChange}
-          required
-          multiline
-          rows={2}
-          fullWidth
-        />
-
-        <Box>
-          <Typography variant="subtitle1" gutterBottom>Location</Typography>
-          <Button 
-            variant="outlined" 
-            onClick={() => setShowMap(!showMap)} 
-            sx={{ mb: 2 }}
-          >
-            {showMap ? 'Hide Map' : 'Select Location on Map'}
-          </Button>
-          
-          {showMap && (
-            <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
-              <Typography variant="body2" gutterBottom>
-                Click on the map to select location
-              </Typography>
-              <Box sx={{ height: 400, width: '100%', mb: 2 }}>
-                <MapContainer
-                  center={mapPosition || defaultCenter}
-                  zoom={8}
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <LocationMarker
-                    position={mapPosition}
-                    onLocationChange={handleLocationChange}
-                  />
-                </MapContainer>
+            ))}</Select>
+            </FormControl>
+    
+            {selectedCategory?.sub && (
+              <FormControl required fullWidth>
+                <InputLabel>Subcategory</InputLabel>
+                <Select name="subcategory" value={formData.subcategory} onChange={handleChange}>
+                  {selectedCategory.sub.map((subcat, index) => (
+                    <MenuItem key={index} value={subcat}>{subcat}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+    
+            <FormControl required fullWidth>
+              <InputLabel>District</InputLabel>
+              <Select name="districtId" value={formData.districtId} onChange={handleChange}>
+                {districts.map(district => (
+                  <MenuItem key={district.id} value={district.id}>{district.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+    
+            <FormControl required fullWidth disabled={!formData.districtId}>
+              <InputLabel>City</InputLabel>
+              <Select name="cityId" value={formData.cityId} onChange={handleChange}>
+                {cities.map(city => (
+                  <MenuItem key={city.id} value={city.id}>{city.name}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+    
+            <TextField
+              label="Address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              required
+              multiline
+              rows={2}
+              fullWidth
+            />
+    
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>Location</Typography>
+              <Button 
+                variant="outlined" 
+                onClick={() => setShowMap(!showMap)} 
+                sx={{ mb: 2 }}
+              >
+                {showMap ? 'Hide Map' : 'Select Location on Map'}
+              </Button>
+              
+              {showMap && (
+                <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+                  <Typography variant="body2" gutterBottom>
+                    Click on the map to select location within city boundaries
+                  </Typography>
+                  <Box sx={{ height: 400, width: '100%', mb: 2 }}>
+                    <MapContainer
+                      center={mapCenter}
+                      zoom={mapZoom}
+                      style={{ height: '100%', width: '100%' }}
+                      ref={setMapRef}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <LocationMarker
+                        position={mapPosition}
+                        onLocationChange={handleLocationChange}
+                        cityBounds={cityBounds}
+                      />
+                      {cityBounds && (
+                        <Polygon
+                          positions={cityBounds}
+                          pathOptions={{
+                            color: '#0000FF',
+                            fillColor: '#0000FF',
+                            fillOpacity: 0.1,
+                            weight: 2
+                          }}
+                        />
+                      )}
+                    </MapContainer>
+                  </Box>
+                  {mapPosition && (
+                    <Typography variant="body2">
+                      Selected Location: {mapPosition.lat.toFixed(6)}, {mapPosition.lng.toFixed(6)}
+                    </Typography>
+                  )}
+                </Paper>
+              )}
+    
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField 
+                  label="Latitude" 
+                  name="latitude" 
+                  type="number" 
+                  value={formData.latitude} 
+                  required 
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
+                <TextField 
+                  label="Longitude" 
+                  name="longitude" 
+                  type="number" 
+                  value={formData.longitude} 
+                  required 
+                  fullWidth
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                />
               </Box>
-              {mapPosition && (
-                <Typography variant="body2">
-                  Selected Location: {mapPosition.lat.toFixed(6)}, {mapPosition.lng.toFixed(6)}
+            </Box>
+    
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>Images (Maximum 5)</Typography>
+              <input
+                type="file"
+                name="images"
+                onChange={handleFileChange}
+                multiple
+                accept="image/*"
+              />
+              {imageError && <Alert severity="error">{imageError}</Alert>}
+              <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                {previewUrls.map((url, index) => (
+                  <Box key={index} sx={{ position: 'relative' }}>
+                    <img
+                      src={url}
+                      alt={`Preview ${index + 1}`}
+                      style={{ width: 100, height: 100, objectFit: 'cover' }}
+                    />
+                    <IconButton
+                      size="small"
+                      sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'background.paper' }}
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+    
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>Video</Typography>
+              <input
+                type="file"
+                name="video"
+                onChange={handleFileChange}
+                accept="video/*"
+              />
+              {videoError && <Alert severity="error">{videoError}</Alert>}
+              {formData.video && (
+                <Typography variant="body2" sx={{ mt: 1 }}>
+                  Selected video: {formData.video.name}
                 </Typography>
               )}
-            </Paper>
-          )}
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField 
-              label="Latitude" 
-              name="latitude" 
-              type="number" 
-              value={formData.latitude} 
-              required 
-              fullWidth
-              InputProps={{
-                readOnly: true,
-              }}
-            />
-            <TextField 
-              label="Longitude" 
-              name="longitude" 
-              type="number" 
-              value={formData.longitude} 
-              required 
-              fullWidth
-              InputProps={{
-                readOnly: true,
-              }}
-            />
-          </Box>
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle1" gutterBottom>Images (Maximum 5)</Typography>
-          <input
-            type="file"
-            name="images"
-            onChange={handleFileChange}
-            multiple
-            accept="image/*"
-          />
-          {imageError && <Alert severity="error">{imageError}</Alert>}
-          <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-            {previewUrls.map((url, index) => (<Box key={index} sx={{ position: 'relative' }}>
-                <img
-                  src={url}
-                  alt={`Preview ${index + 1}`}
-                  style={{ width: 100, height: 100, objectFit: 'cover' }}
-                />
-                <IconButton
+            </Box>
+    
+            <Box>
+              <Typography variant="subtitle1" gutterBottom>Tags</Typography>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
+                <TextField 
+                  value={newTag} 
+                  onChange={(e) => setNewTag(e.target.value)} 
+                  placeholder="Add a tag" 
                   size="small"
-                  sx={{ position: 'absolute', top: 0, right: 0, bgcolor: 'background.paper' }}
-                  onClick={() => handleRemoveImage(index)}
-                >
-                  <CloseIcon />
-                </IconButton>
+                  fullWidth
+                />
+                <Button variant="outlined" onClick={handleAddTag}>Add Tag</Button>
               </Box>
-            ))}
-          </Box>
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle1" gutterBottom>Video</Typography>
-          <input
-            type="file"
-            name="video"
-            onChange={handleFileChange}
-            accept="video/*"
-          />
-          {videoError && <Alert severity="error">{videoError}</Alert>}
-          {formData.video && (
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              Selected video: {formData.video.name}
-            </Typography>
-          )}
-        </Box>
-
-        <Box>
-          <Typography variant="subtitle1" gutterBottom>Tags</Typography>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mb: 1 }}>
-            <TextField 
-              value={newTag} 
-              onChange={(e) => setNewTag(e.target.value)} 
-              placeholder="Add a tag" 
-              size="small"
-              fullWidth
-            />
-            <Button variant="outlined" onClick={handleAddTag}>Add Tag</Button>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            {formData.tags?.map((tag, index) => (
-              <Chip 
-                key={index} 
-                label={tag} 
-                onDelete={() => handleRemoveTag(tag)} 
-                color="primary" 
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {formData.tags?.map((tag, index) => (
+                  <Chip 
+                    key={index} 
+                    label={tag} 
+                    onDelete={() => handleRemoveTag(tag)} 
+                    color="primary" 
+                    variant="outlined"
+                  />
+                ))}
+              </Box>
+            </Box>
+    
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+              <Button
                 variant="outlined"
-              />
-            ))}
-          </Box>
-        </Box>
-
-        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-          <Button
-            variant="outlined"
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disabled={isLoading}
-            sx={{ minWidth: 120 }}
-          >
-            {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
-            {experience ? 'Update' : 'Create'}
-          </Button>
-        </Box>
-      </Stack>
-    </form>
-  );
-};
-
-export default ExperienceForm;
+                onClick={onCancel}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                disabled={isLoading}
+                sx={{ minWidth: 120 }}
+              >
+                {isLoading && <CircularProgress size={20} sx={{ mr: 1 }} />}
+                {experience ? 'Update' : 'Create'}
+              </Button>
+            </Box>
+          </Stack>
+        </form>
+      );
+    };
+    
+    export default ExperienceForm;
