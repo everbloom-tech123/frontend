@@ -69,13 +69,19 @@ const Navbar = () => {
     }
   };
 
-  const handleCategoriesEnter = () => {
+  const handleExperiencesEnter = () => {
     setCategoriesOpen(true);
+  };
+
+  const handleExperiencesLeave = () => {
+    setCategoriesOpen(false);
+  };
+
+  const handleLocationEnter = () => {
     setDistrictOpen(true);
   };
 
-  const handleCategoriesLeave = () => {
-    setCategoriesOpen(false);
+  const handleLocationLeave = () => {
     setDistrictOpen(false);
   };
 
@@ -194,10 +200,11 @@ const Navbar = () => {
           <div className="hidden lg:block border-t border-gray-200/50">
             <div className="flex items-center justify-between h-12">
               <div className="flex items-center space-x-24">
+                {/* Experiences Dropdown */}
                 <div 
                   className="relative"
-                  onMouseEnter={handleCategoriesEnter}
-                  onMouseLeave={handleCategoriesLeave}
+                  onMouseEnter={handleExperiencesEnter}
+                  onMouseLeave={handleExperiencesLeave}
                 >
                   <Link to="/experiences" className="text-gray-700 hover:text-red-600 transition-colors">
                     Experiences
@@ -217,11 +224,11 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
 
-                {/* Added Location dropdown */}
+                {/* Location Dropdown */}
                 <div 
                   className="relative"
-                  onMouseEnter={handleCategoriesEnter}
-                  onMouseLeave={handleCategoriesLeave}
+                  onMouseEnter={handleLocationEnter}
+                  onMouseLeave={handleLocationLeave}
                 >
                   <Link to="/locations" className="text-gray-700 hover:text-red-600 transition-colors">
                     Location
@@ -241,7 +248,6 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
 
-                
                 <Link to="/about" className="text-gray-700 hover:text-red-600 transition-colors">
                   About Us
                 </Link>
