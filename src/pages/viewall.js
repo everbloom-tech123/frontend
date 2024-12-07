@@ -5,6 +5,7 @@ import config from '../config';
 import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulCategories from '../components/PlayfulCategories';
 import SubcategoryFilter from '../components/SubcategoryFilter';
+import CategoryService from '../Admin_Pages/CategoryService';
 
 const ViewAllExperiencesPage = () => {
   const [searchParams] = useSearchParams();
@@ -15,6 +16,7 @@ const ViewAllExperiencesPage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [subcategories, setSubcategories] = useState([]);
   const navigate = useNavigate();
 
   const api = axios.create({
@@ -54,7 +56,23 @@ const ViewAllExperiencesPage = () => {
 
   useEffect(() => {
     setFilter(categoryParam || 'All');
+    if (categoryParam) {
+      fetchSubcategories(categoryParam);
+    }
   }, [categoryParam]);
+
+  const fetchSubcategories = async (categoryName) => {
+    try {
+      const category = categories.find(cat => cat.name === categoryName);
+      if (category) {
+        const response = await CategoryService.getCategoryById(category.id);
+        setSubcategories(response.subcategories || []);
+      }
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setError('Failed to load subcategories');
+    }
+  };
 
   const filteredExperiences = experiences.filter(exp => {
     const matchesCategory = filter === 'All' || exp.categoryName === filter;
