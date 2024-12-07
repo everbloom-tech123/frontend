@@ -4,11 +4,13 @@ import axios from 'axios';
 import config from '../config';
 import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulCategories from '../components/PlayfulCategories';
+import SubcategoryFilter from '../components/SubcategoryFilter';
 
 const ViewAllExperiencesPage = () => {
   const [searchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   const [filter, setFilter] = useState(categoryParam || 'All');
+  const [subcategoryFilter, setSubcategoryFilter] = useState('');
   const [experiences, setExperiences] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +56,11 @@ const ViewAllExperiencesPage = () => {
     setFilter(categoryParam || 'All');
   }, [categoryParam]);
 
-  const filteredExperiences = filter === 'All' 
-    ? experiences 
-    : experiences.filter(exp => exp.categoryName === filter);
+  const filteredExperiences = experiences.filter(exp => {
+    const matchesCategory = filter === 'All' || exp.categoryName === filter;
+    const matchesSubcategory = !subcategoryFilter || exp.subcategory === subcategoryFilter;
+    return matchesCategory && matchesSubcategory;
+  });
 
   if (error) {
     return (
@@ -76,11 +80,15 @@ const ViewAllExperiencesPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen mt-16">
       <div className="container mx-auto px-4 py-12">
-        {/* <PlayfulCategories
+        <PlayfulCategories
           categories={categories}
           onCategorySelect={setFilter}
           activeCategory={filter}
-        /> */}
+        />
+        <SubcategoryFilter
+          categoryId={categories.find(cat => cat.name === filter)?.id}
+          onSubcategorySelect={setSubcategoryFilter}
+        />
         <ExperienceGrid
           title="Discover Unforgettable Experiences"
           subtitle="Embark on a journey of a lifetime..."
@@ -97,3 +105,4 @@ const ViewAllExperiencesPage = () => {
 };
 
 export default ViewAllExperiencesPage;
+
