@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import CategoryService from './CategoryService';
+import CategoryService from '../Admin_Pages/CategoryService';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
