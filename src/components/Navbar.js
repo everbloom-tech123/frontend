@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaUser, FaShoppingCart } from 'react-icons/fa';
 import * as AuthService from '../services/AuthService';
 import Categories from './CategoryList';
+import District from './DistrictList';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [districtOpen, setDistrictOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
@@ -25,6 +27,7 @@ const Navbar = () => {
     setIsMenuOpen(false);
     setDropdownOpen(false);
     setCategoriesOpen(false);
+    setDistrictOpen(false);
   }, [location]);
 
   const setupScrollListener = () => {
@@ -68,10 +71,12 @@ const Navbar = () => {
 
   const handleCategoriesEnter = () => {
     setCategoriesOpen(true);
+    setDistrictOpen(true);
   };
 
   const handleCategoriesLeave = () => {
     setCategoriesOpen(false);
+    setDistrictOpen(false);
   };
 
   return (
@@ -211,6 +216,32 @@ const Navbar = () => {
                     )}
                   </AnimatePresence>
                 </div>
+
+                {/* Added Location dropdown */}
+                <div 
+                  className="relative"
+                  onMouseEnter={handleCategoriesEnter}
+                  onMouseLeave={handleCategoriesLeave}
+                >
+                  <Link to="/locations" className="text-gray-700 hover:text-red-600 transition-colors">
+                    Location
+                  </Link>
+                  <AnimatePresence>
+                    {districtOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute left-0 w-80 mt-3 z-50"
+                      >
+                        <District />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                
                 <Link to="/about" className="text-gray-700 hover:text-red-600 transition-colors">
                   About Us
                 </Link>
