@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaUser, FaShoppingCart, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaSearch, FaUser, FaShoppingCart } from 'react-icons/fa';
 import * as AuthService from '../services/AuthService';
-
-const NavLink = ({ to, children }) => (
-  <Link 
-    to={to} 
-    className="text-gray-700 hover:text-red-800 relative group px-3 py-2"
-  >
-    <span className="relative">
-      {children}
-      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-800 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200" />
-    </span>
-  </Link>
-);
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -75,92 +63,61 @@ const Navbar = () => {
     }
   };
 
-  const userRole = AuthService.getUserRole();
-
   return (
     <div className="w-full">
-      {/* Main Navbar */}
+      {/* Top Navigation Bar */}
       <nav className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-white shadow-md' 
-          : 'bg-white/70 backdrop-blur-sm'
+        scrolled ? 'bg-white shadow-md' : 'bg-white/70 backdrop-blur-sm'
       }`}>
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+          {/* Upper Section */}
+          <div className="flex items-center h-16">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              <motion.span 
-                className="text-2xl font-bold text-red-600"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
+              <span className="text-2xl font-bold italic text-red-600 font-serif tracking-wide hover:text-red-700 transition-colors">
                 Ceylon Bucket
-              </motion.span>
+              </span>
             </Link>
 
-            {/* Search Bar */}
-            <div className="hidden lg:flex flex-1 max-w-xl mx-8">
+            {/* Search Bar - Center */}
+            <div className="hidden lg:flex flex-1 justify-center max-w-2xl mx-8">
               <form onSubmit={handleSearch} className="w-full">
-                <div className="relative">
+                <div className="relative group">
                   <input
                     type="text"
                     placeholder="Search locations & experiences..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className={`w-full pl-4 pr-10 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors ${
-                      scrolled 
-                        ? 'bg-gray-100' 
-                        : 'bg-white/90 backdrop-blur-sm'
-                    }`}
+                    className={`w-full pl-5 pr-12 py-2.5 rounded-full transition-all duration-300
+                      ${scrolled 
+                        ? 'bg-gray-100 focus:bg-white' 
+                        : 'bg-white/90 focus:bg-white'}
+                      border border-transparent focus:border-red-300 focus:ring-2 focus:ring-red-200 focus:outline-none`}
                   />
                   <button 
                     type="submit" 
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
                   >
-                    <FaSearch className="text-gray-400 hover:text-red-800" />
+                    <FaSearch className="h-4 w-4" />
                   </button>
                 </div>
               </form>
             </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-6">
-              <NavLink to="/viewall">
-                Experiences
-              </NavLink>
-              
-              <NavLink to="/locations">
-                <div className="flex items-center space-x-1">
-                  <FaMapMarkerAlt />
-                  <span>Locations</span>
-                </div>
-              </NavLink>
-
-              {userRole === 'ROLE_ADMIN' && (
-                <NavLink to="/admin/manage-experiences">
-                  Admin
-                </NavLink>
-              )}
-
-              <Link to={user ? '/cart' : '/signin'}>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-gray-700 hover:text-red-800"
-                >
-                  <FaShoppingCart className="h-5 w-5" />
-                </motion.button>
+            {/* Right Navigation Items */}
+            <div className="hidden lg:flex items-center ml-auto space-x-8">
+              <Link to="/viewall" className="text-gray-700 hover:text-red-600 transition-colors">
+                View All
               </Link>
 
+              {/* User Account */}
               <div className="relative">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="text-gray-700 hover:text-red-800"
+                  className="text-gray-700 hover:text-red-600 transition-colors"
                 >
                   <FaUser className="h-5 w-5" />
-                </motion.button>
+                </button>
 
                 <AnimatePresence>
                   {dropdownOpen && (
@@ -175,21 +132,29 @@ const Navbar = () => {
                           <div className="px-4 py-2 text-sm text-gray-500">
                             {user.username}
                           </div>
+                          {AuthService.getUserRole() === 'ROLE_ADMIN' && (
+                            <Link
+                              to="/admin/manage-experiences"
+                              className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                            >
+                              Admin
+                            </Link>
+                          )}
                           <Link
                             to="/profile"
-                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-800"
+                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
                           >
                             Profile
                           </Link>
                           <Link
                             to="/wishlist"
-                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-800"
+                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
                           >
                             Wishlist
                           </Link>
                           <button
                             onClick={handleLogout}
-                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-800"
+                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
                           >
                             Sign Out
                           </button>
@@ -197,7 +162,7 @@ const Navbar = () => {
                       ) : (
                         <Link
                           to="/signin"
-                          className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-800"
+                          className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
                         >
                           Sign In
                         </Link>
@@ -209,71 +174,41 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Menu Button */}
-            <div className="lg:hidden">
+            <div className="lg:hidden ml-auto">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-600 hover:text-red-800 focus:outline-none"
+                className="text-gray-600 hover:text-red-600"
               >
-                <svg
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   {isMenuOpen ? (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   ) : (
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 6h16M4 12h16M4 18h16"
-                    />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   )}
                 </svg>
               </button>
             </div>
           </div>
-        </div>
-      </nav>
 
-      {/* Secondary Navigation */}
-      <div className={`w-full border-t border-gray-200 mt-16 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-white' 
-          : 'bg-white/70 backdrop-blur-sm'
-      }`}>
-        <div className="container mx-auto px-4">
-          <div className="flex items-center space-x-6 h-12 text-sm overflow-x-auto">
-            <NavLink to="/holiday-gifts">
-              Holiday Gifts
-            </NavLink>
-            <NavLink to="/locations">
-              Locations
-            </NavLink>
-            <NavLink to="/experiences">
-              Experiences
-            </NavLink>
-            <NavLink to="/gifts">
-              Gifts
-            </NavLink>
-            <NavLink to="/egift-cards">
-              eGift Cards
-            </NavLink>
-            <NavLink to="/gift-finder">
-              Gift Finder
-            </NavLink>
-            <NavLink to="/for-business">
-              For Business
-            </NavLink>
+          {/* Lower Navigation Bar */}
+          <div className="hidden lg:flex items-center justify-between h-12 border-t border-gray-200/50">
+            <div className="flex items-center space-x-8">
+              <Link to="/experiences" className="text-gray-700 hover:text-red-600 transition-colors">
+                Experiences
+              </Link>
+              <Link to="/about" className="text-gray-700 hover:text-red-600 transition-colors">
+                About Us
+              </Link>
+            </div>
+            <Link 
+              to={user ? '/cart' : '/signin'} 
+              className="text-gray-700 hover:text-red-600 transition-colors"
+            >
+              <FaShoppingCart className="h-5 w-5" />
+            </Link>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Mobile Menu */}
       <AnimatePresence>
@@ -292,64 +227,68 @@ const Navbar = () => {
                     placeholder="Search locations & experiences..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-4 pr-10 py-2 bg-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full pl-4 pr-10 py-2 bg-gray-50 rounded-full focus:outline-none focus:ring-2 focus:ring-red-200"
                   />
                   <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <FaSearch className="text-gray-400 hover:text-red-800" />
+                    <FaSearch className="text-gray-400 hover:text-red-600" />
                   </button>
                 </div>
               </form>
 
-              <div className="space-y-1">
+              <div className="space-y-4">
                 <Link
                   to="/viewall"
-                  className="block px-3 py-2 text-gray-700 hover:text-red-800"
+                  className="block text-gray-700 hover:text-red-600"
+                >
+                  View All
+                </Link>
+                <Link
+                  to="/experiences"
+                  className="block text-gray-700 hover:text-red-600"
                 >
                   Experiences
                 </Link>
                 <Link
-                  to="/locations"
-                  className="block px-3 py-2 text-gray-700 hover:text-red-800"
+                  to="/about"
+                  className="block text-gray-700 hover:text-red-600"
                 >
-                  <div className="flex items-center space-x-1">
-                    <FaMapMarkerAlt />
-                    <span>Locations</span>
-                  </div>
+                  About Us
                 </Link>
-                {userRole === 'ROLE_ADMIN' && (
-                  <Link
-                    to="/admin/manage-experiences"
-                    className="block px-3 py-2 text-gray-700 hover:text-red-800"
-                  >
-                    Admin
-                  </Link>
-                )}
                 <Link
                   to={user ? '/cart' : '/signin'}
-                  className="block px-3 py-2 text-gray-700 hover:text-red-800"
+                  className="block text-gray-700 hover:text-red-600"
                 >
                   Cart
                 </Link>
+                
                 {user ? (
                   <>
-                    <div className="px-3 py-2 text-sm text-gray-500">
+                    <div className="text-sm text-gray-500">
                       {user.username}
                     </div>
+                    {AuthService.getUserRole() === 'ROLE_ADMIN' && (
+                      <Link
+                        to="/admin/manage-experiences"
+                        className="block text-gray-700 hover:text-red-600"
+                      >
+                        Admin
+                      </Link>
+                    )}
                     <Link
                       to="/profile"
-                      className="block px-3 py-2 text-gray-700 hover:text-red-800"
+                      className="block text-gray-700 hover:text-red-600"
                     >
                       Profile
                     </Link>
                     <Link
                       to="/wishlist"
-                      className="block px-3 py-2 text-gray-700 hover:text-red-800"
+                      className="block text-gray-700 hover:text-red-600"
                     >
                       Wishlist
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-gray-700 hover:text-red-800"
+                      className="block w-full text-left text-gray-700 hover:text-red-600"
                     >
                       Sign Out
                     </button>
@@ -357,7 +296,7 @@ const Navbar = () => {
                 ) : (
                   <Link
                     to="/signin"
-                    className="block px-3 py-2 text-gray-700 hover:text-red-800"
+                    className="block text-gray-700 hover:text-red-600"
                   >
                     Sign In
                   </Link>
