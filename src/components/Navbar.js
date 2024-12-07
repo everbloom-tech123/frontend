@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaSearch, FaUser, FaHeart, FaShoppingCart, FaSignOutAlt } from 'react-icons/fa';
+import { FaSearch, FaUser, FaShoppingCart, FaMapMarkerAlt } from 'react-icons/fa';
 import * as AuthService from '../services/AuthService';
 
 const NavLink = ({ to, children }) => (
   <Link 
     to={to} 
-    className="text-gray-600 hover:text-red-600 transition-colors relative group px-3 py-2"
+    className="text-gray-700 hover:text-red-600 transition-colors px-4 py-2 font-medium"
   >
     {children}
-    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
   </Link>
 );
 
@@ -18,7 +17,7 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,11 +27,6 @@ const Navbar = () => {
     setupScrollListener();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  useEffect(() => {
-    setIsMenuOpen(false);
-    setDropdownOpen(false);
-  }, [location]);
 
   const setupScrollListener = () => {
     window.addEventListener('scroll', handleScroll);
@@ -46,13 +40,7 @@ const Navbar = () => {
     try {
       if (AuthService.isAuthenticated()) {
         const userData = AuthService.getCurrentUser();
-        if (userData) {
-          setUser(userData);
-        } else {
-          const profile = await AuthService.getUserProfile();
-          setUser(profile);
-          localStorage.setItem('user', JSON.stringify(profile));
-        }
+        setUser(userData || await AuthService.getUserProfile());
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
@@ -66,129 +54,117 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const userRole = AuthService.getUserRole();
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <nav className={`fixed w-full z-50 transition-all duration-300 ${
-      scrolled ? 'bg-white shadow-lg' : 'bg-white/80 backdrop-blur-md'
+      scrolled ? 'bg-white shadow-lg' : 'bg-white'
     }`}>
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
-            <motion.span 
-              className="text-2xl font-bold text-red-600"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
+          <Link to="/" className="flex-shrink-0">
+            <span className="text-2xl font-bold text-red-600">
               Ceylon Bucket
-            </motion.span>
+            </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* Main Navigation */}
+          <div className="hidden lg:flex items-center space-x-8 flex-1 justify-center">
             <NavLink to="/viewall">Experiences</NavLink>
-            <NavLink to="/about">About</NavLink>
-            <NavLink to="/contact">Contact</NavLink>
-            {userRole === 'ROLE_ADMIN' && (
-              <NavLink to="/admin/manage-experiences">Admin</NavLink>
-            )}
+            <NavLink to="/locations">
+              <div className="flex items-center space-x-1">
+                <FaMapMarkerAlt className="text-red-600" />
+                <span>Locations</span>
+              </div>
+            </NavLink>
           </div>
 
-          {/* Desktop User Actions */}
-          <div className="hidden md:flex items-center space-x-6">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="text-gray-600 hover:text-red-600"
-            >
-              <FaSearch className="h-5 w-5" />
-            </motion.button>
-
-            {user ? (
+          {/* Search Bar */}
+          <div className="hidden lg:flex items-center flex-1 max-w-md">
+            <form onSubmit={handleSearch} className="w-full">
               <div className="relative">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-red-600"
-                >
-                  <FaUser className="h-5 w-5" />
-                  <span>{user.username}</span>
-                </motion.button>
-
-                <AnimatePresence>
-                  {dropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1"
-                    >
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        to="/wishlist"
-                        className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
-                      >
-                        Wishlist
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
-                      >
-                        Sign Out
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <input
+                  type="text"
+                  placeholder="Search locations & experiences..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-red-500"
+                />
+                <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <FaSearch className="text-gray-400 hover:text-red-600" />
+                </button>
               </div>
-            ) : (
-              <Link to="/signin">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-gray-600 hover:text-red-600"
-                >
-                  <FaUser className="h-5 w-5" />
-                </motion.button>
-              </Link>
-            )}
+            </form>
+          </div>
 
-            {user && (
-              <>
-                <Link to="/wishlist">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-gray-600 hover:text-red-600"
+          {/* Right Navigation */}
+          <div className="hidden lg:flex items-center space-x-6 ml-8">
+            <Link to="/cart">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-gray-600 hover:text-red-600"
+              >
+                <FaShoppingCart className="h-5 w-5" />
+              </motion.button>
+            </Link>
+
+            <div className="relative">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="text-gray-600 hover:text-red-600"
+              >
+                <FaUser className="h-5 w-5" />
+              </motion.button>
+
+              <AnimatePresence>
+                {dropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1"
                   >
-                    <FaHeart className="h-5 w-5" />
-                  </motion.button>
-                </Link>
-                <Link to="/cart">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="text-gray-600 hover:text-red-600"
-                  >
-                    <FaShoppingCart className="h-5 w-5" />
-                  </motion.button>
-                </Link>
-              </>
-            )}
+                    {user ? (
+                      <>
+                        <Link
+                          to="/profile"
+                          className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                        >
+                          Profile
+                        </Link>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                        >
+                          Sign Out
+                        </button>
+                      </>
+                    ) : (
+                      <Link
+                        to="/signin"
+                        className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                      >
+                        Sign In
+                      </Link>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
+          <div className="lg:hidden">
+            <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-gray-600 hover:text-red-600 focus:outline-none"
             >
@@ -214,7 +190,7 @@ const Navbar = () => {
                   />
                 )}
               </svg>
-            </motion.button>
+            </button>
           </div>
         </div>
 
@@ -225,79 +201,68 @@ const Navbar = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-white border-t"
+              className="lg:hidden bg-white border-t"
             >
-              <div className="px-2 pt-2 pb-3 space-y-1">
+              <div className="px-4 py-3">
+                <form onSubmit={handleSearch} className="mb-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search locations & experiences..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-red-500"
+                    />
+                    <button type="submit" className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <FaSearch className="text-gray-400 hover:text-red-600" />
+                    </button>
+                  </div>
+                </form>
                 <Link
-                  to="/"
-                  className="block px-3 py-2 text-gray-600 hover:text-red-600"
-                >
-                  Home
-                </Link>
-                <Link
-                  to="/experiences"
-                  className="block px-3 py-2 text-gray-600 hover:text-red-600"
+                  to="/viewall"
+                  className="block px-3 py-2 text-gray-700 hover:text-red-600"
                 >
                   Experiences
                 </Link>
                 <Link
-                  to="/about"
-                  className="block px-3 py-2 text-gray-600 hover:text-red-600"
+                  to="/locations"
+                  className="block px-3 py-2 text-gray-700 hover:text-red-600"
                 >
-                  About
+                  <div className="flex items-center space-x-1">
+                    <FaMapMarkerAlt className="text-red-600" />
+                    <span>Locations</span>
+                  </div>
                 </Link>
                 <Link
-                  to="/contact"
-                  className="block px-3 py-2 text-gray-600 hover:text-red-600"
+                  to="/cart"
+                  className="block px-3 py-2 text-gray-700 hover:text-red-600"
                 >
-                  Contact
+                  Cart
                 </Link>
-                {userRole === 'ROLE_ADMIN' && (
-                  <Link
-                    to="/admin/manage-experiences"
-                    className="block px-3 py-2 text-gray-600 hover:text-red-600"
-                  >
-                    Admin
-                  </Link>
-                )}
-              </div>
-
-              {user ? (
-                <div className="px-4 py-3 border-t">
-                  <div className="flex items-center mb-3">
-                    <span className="text-gray-600 font-medium">{user.username}</span>
-                  </div>
-                  <div className="space-y-1">
+                {user ? (
+                  <>
                     <Link
                       to="/profile"
-                      className="block px-3 py-2 text-gray-600 hover:text-red-600"
+                      className="block px-3 py-2 text-gray-700 hover:text-red-600"
                     >
                       Profile
                     </Link>
-                    <Link
-                      to="/wishlist"
-                      className="block px-3 py-2 text-gray-600 hover:text-red-600"
-                    >
-                      Wishlist
-                    </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-3 py-2 text-gray-600 hover:text-red-600"
+                      className="w-full text-left px-3 py-2 text-gray-700 hover:text-red-600"
                     >
                       Sign Out
                     </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="px-4 py-3 border-t">
+                  </>
+                ) : (
                   <Link
                     to="/signin"
-                    className="block px-3 py-2 text-gray-600 hover:text-red-600"
+                    className="block px-3 py-2 text-gray-700 hover:text-red-600"
                   >
                     Sign In
                   </Link>
-                </div>
-              )}
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
