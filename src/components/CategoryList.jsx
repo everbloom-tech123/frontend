@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CategoryService from '../Admin_Pages/CategoryService';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   const fetchCategories = async () => {
     try {
@@ -46,6 +48,7 @@ const Categories = () => {
             <div
               key={category.id}
               className="flex items-center p-3 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
+              onClick={() => navigate(`/viewby/${category.id}`)}
             >
               <span className="text-gray-800">
                 {category.name}

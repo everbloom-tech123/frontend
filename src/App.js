@@ -17,6 +17,7 @@ import ManageExperience from './Admin_Pages/ManageExperiences';
 import WishlistPage from './pages/WishlistPage';
 import ExperienceDetails from './pages/ExperienceDetails';
 import BookingPage from './pages/BookingPage';
+import ViewBySubPage from './pages/ViewBySubPage'; // Import the new page
 
 const AdminLayout = () => {
   return (
@@ -63,6 +64,7 @@ const PublicLayout = () => {
               </ProtectedRoute>
             } 
           />
+          <Route path="/viewby/:categoryId" element={<ViewBySubPage />} /> {/* Added route for ViewBySubPage */}
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </main>
