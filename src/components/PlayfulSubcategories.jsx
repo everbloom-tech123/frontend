@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaTag } from 'react-icons/fa';
-import CategoryService from '../services/CategoryService';
+import CategoryService from '../Admin_Pages/CategoryService';
 
 const PlayfulSubcategories = ({ categoryId, onSubcategorySelect, activeSubcategory = null }) => {
   const [subcategories, setSubcategories] = useState([]);
