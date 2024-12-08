@@ -29,7 +29,7 @@ const ViewBySubPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch category data to get subcategories
+        // Fetch category data to get sub
         const categoryData = await CategoryService.getCategoryById(categoryId);
         setCategory(categoryData);
 
@@ -108,15 +108,16 @@ const ViewBySubPage = () => {
           </h1>
         )}
 
-        {/* Subcategories Filter */}
+        {/* Sub Filter */}
         {category && (
           <PlayfulSubcategories
             categoryId={categoryId}
             onSubcategorySelect={(subcategory) => {
-              setFilter(subcategory.name);
-              navigate(`?subcategory=${subcategory.name}`);
+              setFilter(subcategory);
+              navigate(`?subcategory=${subcategory}`);
             }}
             activeSubcategory={filter}
+            subcategories={category.sub}
           />
         )}
 
