@@ -4,7 +4,7 @@ import axios from 'axios';
 import config from '../config';
 import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulSubcategories from '../components/PlayfulSubcategories';
-import CategoryService from '../services/CategoryService';
+import CategoryService from '../Admin_Pages/CategoryService';
 
 const ViewBySubPage = () => {
   const { categoryId } = useParams(); // Assuming you'll route with category ID
