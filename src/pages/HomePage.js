@@ -54,32 +54,7 @@ const HomePage = () => {
     }
   };
 
-  const sampleImages = [
-    {
-      src: 'https://thenwewalked.com/wp-content/uploads/2024/01/mirissa-beach-sri-lanka.jpg',
-      title: 'MAGIC SLIDER',
-      type: 'FLOWER',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
-    },
-    {
-      src: 'https://wayblazer.ai/wp-content/uploads/2024/05/image-2.png',
-      title: 'MAGIC SLIDER',
-      type: 'NATURE',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
-    },
-    {
-      src: 'https://travelrebels.com/wp-content/uploads/2024/03/Pidurangala-Rock-sigiriya.jpg',
-      title: 'MAGIC SLIDER',
-      type: 'PLANT',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
-    },
-    {
-      src: 'https://d2oknibonqa3h8.cloudfront.net/wp-content/uploads/2022/12/SEAREX-10-768x512.jpg.webp',
-      title: 'MAGIC SLIDER',
-      type: 'NATURE',
-      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
-    }
-  ];
+  
   
   const handleExperienceClick = (experience) => {
     navigate(`/experience/${experience.id}`);
@@ -103,7 +78,6 @@ const HomePage = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
 
-      <ImageSlider images={sampleImages} />
 
       {/* Header Component */}
       <Header />

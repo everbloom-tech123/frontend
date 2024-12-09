@@ -5,19 +5,19 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 const Header = () => {
   const images = [
     {
-      url: "https://www.holidify.com/images/bgImages/SIGIRIYA.jpg",
+      url: "https://www.travejar.com/images/uploads/customupload/Rhythm-and-Blues-Colombo.png",
       title: "Spiral viaduct Brusio",
       location: "Switzerland",
       explore: "explore →"
     },
     {
-      url: "https://media-cdn.tripadvisor.com/media/photo-s/16/7e/f8/66/temple-of-the-sacred.jpg",
+      url: "https://5.imimg.com/data5/VG/TT/VD/GLADMIN-7767282/ayurvedic-massage-500x500.jpg",
       title: "Temple of Sacred Tooth",
       location: "Kandy, Sri Lanka",
       explore: "explore →"
     },
     {
-      url: "https://srilankabasecamp.com/wp-content/uploads/2024/02/exciting_wildlife_adventure_awaits.jpg",
+      url: "https://www.passportandpixels.com/wp-content/uploads/2022/02/Bentota-244_pp.jpg",
       title: "Golden Gate Bridge",
       location: "France",
       explore: "explore →"
