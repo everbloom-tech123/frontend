@@ -56,31 +56,31 @@ const HomePage = () => {
 
   const sampleImages = [
     {
-      src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2UBJj4oZuohuUO9piiJ_knb5srQDXl8mcow&s',
+      src: 'https://thenwewalked.com/wp-content/uploads/2024/01/mirissa-beach-sri-lanka.jpg',
       title: 'MAGIC SLIDER',
       type: 'FLOWER',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     },
     {
-      src: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/ed/85/6b/um-palacio-no-topo-da.jpg?w=1200&h=1200&s=1',
+      src: 'https://wayblazer.ai/wp-content/uploads/2024/05/image-2.png',
       title: 'MAGIC SLIDER',
       type: 'NATURE',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     },
     {
-      src: 'https://www.seal-superyachts.com/wp-content/themes/seal-superyachts/images/sri-lanka-last.jpg',
+      src: 'https://travelrebels.com/wp-content/uploads/2024/03/Pidurangala-Rock-sigiriya.jpg',
       title: 'MAGIC SLIDER',
       type: 'PLANT',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     },
     {
-      src: 'https://thenwewalked.com/how-many-days-in-sri-lanka/',
+      src: 'https://d2oknibonqa3h8.cloudfront.net/wp-content/uploads/2022/12/SEAREX-10-768x512.jpg.webp',
       title: 'MAGIC SLIDER',
       type: 'NATURE',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     }
   ];
-
+  
   const handleExperienceClick = (experience) => {
     navigate(`/experience/${experience.id}`);
   };
