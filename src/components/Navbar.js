@@ -93,7 +93,7 @@ const Navbar = () => {
     <div className={`w-full bg-white shadow-sm ${scrolled ? 'shadow-md' : ''}`}>
       {/* Logo - Centered */}
       <div className="flex justify-center py-8">
-          <Link to="/" className="text-3xl font-bold italic">
+          <Link to="/" className="text-3xl font-bold ">
             Ceylon Bucket
             <div className="text-sm text-red-400 font-normal mt-1">Your Travel Guide</div>
           </Link>
