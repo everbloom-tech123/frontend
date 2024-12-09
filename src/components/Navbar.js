@@ -88,7 +88,16 @@ const Navbar = () => {
   };
 
   return (
+
+    
     <div className={`w-full bg-white shadow-sm ${scrolled ? 'shadow-md' : ''}`}>
+      {/* Logo - Centered */}
+      <div className="flex justify-center py-8">
+          <Link to="/" className="text-3xl font-bold italic">
+            Ceylon Bucket
+            <div className="text-sm text-red-400 font-normal mt-1">Your Travel Guide</div>
+          </Link>
+        </div>
       <div className="max-w-7xl mx-auto px-4">
         {/* Combined navigation bar */}
         <div className="flex justify-between items-center py-3 border-b border-gray-100">
@@ -249,13 +258,7 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Logo - Centered */}
-        <div className="flex justify-center py-8">
-          <Link to="/" className="text-3xl font-bold italic">
-            Ceylon Bucket
-            <div className="text-sm text-red-400 font-normal mt-1">Your Travel Guide</div>
-          </Link>
-        </div>
+        
 
         {/* Mobile Menu */}
         <AnimatePresence>
