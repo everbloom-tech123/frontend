@@ -6,6 +6,7 @@ import PlayfulCategories from '../components/PlayfulCategories';
 import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 import Header from '../components/Header'; // Import the Header component
+import ImageSlider from '../components/ImageSlider';
 
 const HomePage = () => {
   const [featuredExperiences, setFeaturedExperiences] = useState([]);
@@ -74,6 +75,9 @@ const HomePage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
+
+      <ImageSlider images={sampleImages} />
+      
       {/* Header Component */}
       <Header />
 
