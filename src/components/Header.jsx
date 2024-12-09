@@ -63,7 +63,7 @@ const Header = () => {
             {/* Two smaller images */}
             <div>
               <img
-                src="https://www.holidify.com/collections/beautiful-places-in-sri-lanka" // Replace with your actual image path
+                src="https://www.holidify.com/images/bgImages/SIGIRIYA.jpg" // Replace with your actual image path
                 alt="Spiral viaduct Brusio"
                 className="w-full h-48 object-cover rounded-lg"
               />
