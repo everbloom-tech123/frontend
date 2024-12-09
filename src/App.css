@@ -51,12 +51,5 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  line-clamp: 2;
 }
-
-/* body {
-  margin: 0;
-  background-color: #000;
-  color: #eee;
-  font-family: 'Poppins', sans-serif;
-  font-size: 12px;
-} */
