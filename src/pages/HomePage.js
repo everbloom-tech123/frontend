@@ -19,13 +19,11 @@ const HomePage = () => {
         setLoading(true);
         setError(null);
 
-        // Fetch experiences and categories
         const [experiencesResponse, categoriesResponse] = await Promise.all([
           ExperienceService.getAllExperiences(),
           CategoryService.getAllCategories()
         ]);
 
-        // Set featured experiences (either featured ones or first 6)
         const featured = Array.isArray(experiencesResponse) ? 
           (experiencesResponse.filter(exp => exp.featured).length > 0 ? 
             experiencesResponse.filter(exp => exp.featured) : 
@@ -75,93 +73,121 @@ const HomePage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Hero Banner */}
-      <div className="relative h-screen">
-        {/* Background Image - Updated with a working image URL */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: "url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3')", // Using Unsplash image as fallback
-            // Or use your own image from public folder:
-            // backgroundImage: "url('/images/hero.jpg')",
-            filter: 'brightness(0.7)'
-          }}
-        />
-
-        {/* Content Overlay */}
-        <div className="absolute inset-0 bg-black opacity-40" />
-
-        {/* Hero Content */}
-        <div className="relative h-full flex flex-col justify-center items-center text-white px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="text-center max-w-4xl mx-auto"
-          >
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              Your Journey Begins Here
+      {/* Custom Header Section */}
+      <div className="max-w-7xl mx-auto px-4 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Left side - Text Content */}
+          <div className="flex flex-col justify-center">
+            <h1 className="text-5xl font-bold mb-4">
+              Make Beautiful Travel
+              <br />
+              <span className="flex items-center gap-2">
+                in the <span className="italic">world!</span>
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl mb-8">
-              Discover extraordinary experiences and create unforgettable memories
-            </p>
             
-            {/* Search Bar */}
-            <div className="flex justify-center mb-8">
-              <div className="relative w-full max-w-2xl">
-                <input
-                  type="text"
-                  placeholder="Search for experiences..."
-                  className="w-full px-6 py-4 rounded-full text-gray-800 text-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
-                <button 
-                  className="absolute right-2 top-2 bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition duration-300"
-                  onClick={() => navigate('/viewall')}
+            <p className="text-gray-500 mb-8">
+              If diving has always been your dream, then you are in the right
+              place. We will help your dreams come true by opening the
+              wonderful in the world!
+            </p>
+
+            <div className="flex items-center space-x-4">
+              <button 
+                onClick={() => navigate('/explore')}
+                className="bg-gray-800 text-white px-8 py-3 uppercase text-sm tracking-wider hover:bg-gray-700 transition-all duration-300 flex items-center"
+              >
+                Explore
+              </button>
+              <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-teal-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
                 >
-                  Search
-                </button>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
               </div>
             </div>
+          </div>
 
-            {/* Quick Action Buttons */}
-            <div className="flex flex-wrap justify-center gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-red-600 text-white px-8 py-3 rounded-full text-lg font-semibold hover:bg-red-700 transition duration-300"
-                onClick={() => navigate('/viewall')}
-              >
-                Explore All
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-white text-red-600 px-8 py-3 rounded-full text-lg font-semibold hover:bg-gray-100 transition duration-300"
-                onClick={() => navigate('/categories')}
-              >
-                View Categories
-              </motion.button>
+          {/* Right side - Image Grid */}
+          <div className="relative">
+            <div className="grid grid-cols-2 gap-4">
+              {/* Main large image */}
+              <div className="col-span-2">
+                <img
+                  src="/images/building.jpg"
+                  alt="Historical Building"
+                  className="w-full h-80 object-cover rounded-lg"
+                />
+              </div>
+              
+              {/* Two smaller images */}
+              <div>
+                <img
+                  src="/images/bridge.jpg"
+                  alt="Spiral viaduct Brusio"
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <p className="mt-2 text-sm text-gray-600">
+                  Spiral viaduct Brusio
+                  <br />
+                  Switzerland
+                </p>
+              </div>
+              <div>
+                <img
+                  src="/images/golden-gate.jpg"
+                  alt="Golden Gate Bridge"
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <p className="mt-2 text-sm text-gray-600">
+                  Golden Gate Bridge
+                  <br />
+                  France
+                </p>
+              </div>
+
+              {/* Navigation arrows */}
+              <button className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-teal-400 text-white rounded-full flex items-center justify-center">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <button className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
             </div>
-          </motion.div>
-
-          {/* Scroll Indicator */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            <svg 
-              className="w-6 h-6 text-white"
-              fill="none" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth="2" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-          </motion.div>
+          </div>
         </div>
       </div>
 
