@@ -74,42 +74,42 @@ const Navbar = () => {
 
   return (
     <div className="w-full bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto px-2">
+      <div className="max-w-7xl mx-auto px-4">
         {/* Top bar with social icons */}
-        <div className="flex justify-between items-center py-2 border-b border-gray-100">
-          <div className="flex space-x-3">
-            <Twitter className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" />
-            <Facebook className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" />
-            <Instagram className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" />
-            <Rss className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" />
+        <div className="flex justify-between items-center py-4 border-b border-gray-100">
+          <div className="flex space-x-4">
+            <Twitter className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
+            <Facebook className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
+            <Instagram className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
+            <Rss className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
             {user ? (
-              <FaUser className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" onClick={() => setDropdownOpen(!dropdownOpen)} />
+              <FaUser className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" onClick={() => setDropdownOpen(!dropdownOpen)} />
             ) : (
               <Link to="/signin" className="text-gray-500 hover:text-gray-700">Sign In</Link>
             )}
             <Link to={user ? '/cart' : '/signin'}>
-              <FaShoppingCart className="w-5 h-5 text-gray-500 hover:text-gray-700 cursor-pointer" />
+              <FaShoppingCart className="w-4 h-4 text-gray-500 hover:text-gray-700 cursor-pointer" />
             </Link>
           </div>
         </div>
 
         {/* Logo */}
-        <div className="flex justify-center py-4">
-          <Link to="/" className="text-2xl font-bold italic">
+        <div className="flex justify-center py-8">
+          <Link to="/" className="text-3xl font-bold italic">
             Ceylon Bucket
-            <div className="text-xs text-red-400 font-normal">Your Travel Guide</div>
+            <div className="text-sm text-red-400 font-normal mt-1">Your Travel Guide</div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex justify-between items-center py-2">
-          <div className="flex-1 flex justify-center space-x-6">
+        <nav className="flex justify-between items-center py-4">
+          <div className="flex-1 flex justify-center space-x-8">
             <div className="relative group">
               <Link 
                 to="/experiences"
-                className="text-sm font-bold tracking-wide hover:text-red-400 transition-colors duration-200"
+                className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
                 onMouseEnter={() => setCategoriesOpen(true)}
                 onMouseLeave={() => setCategoriesOpen(false)}
               >
@@ -121,7 +121,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 w-72 mt-1 z-50"
+                    className="absolute left-0 w-80 mt-2 z-50"
                   >
                     <Categories />
                   </motion.div>
@@ -132,7 +132,7 @@ const Navbar = () => {
             <div className="relative group">
               <Link 
                 to="/locations"
-                className="text-sm font-bold tracking-wide hover:text-red-400 transition-colors duration-200"
+                className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
                 onMouseEnter={() => setDistrictOpen(true)}
                 onMouseLeave={() => setDistrictOpen(false)}
               >
@@ -144,7 +144,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 w-72 mt-1 z-50"
+                    className="absolute left-0 w-80 mt-2 z-50"
                   >
                     <District />
                   </motion.div>
@@ -154,14 +154,14 @@ const Navbar = () => {
 
             <Link 
               to="/about"
-              className="text-sm font-bold tracking-wide hover:text-red-400 transition-colors duration-200"
+              className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
             >
               About Us
             </Link>
 
             <Link 
               to="/viewall"
-              className="text-sm font-bold tracking-wide hover:text-red-400 transition-colors duration-200"
+              className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
             >
               View All
             </Link>
@@ -175,8 +175,8 @@ const Navbar = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="hidden"
             />
-            <button type="submit" className="p-1 hover:text-red-400 transition-colors duration-200">
-              <Search className="w-6 h-6" />
+            <button type="submit" className="p-2 hover:text-red-400 transition-colors duration-200">
+              <Search className="w-5 h-5" />
             </button>
           </form>
         </nav>
@@ -188,21 +188,21 @@ const Navbar = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute right-4 mt-1 w-44 bg-white rounded-md shadow-lg py-1 z-50"
+              className="absolute right-4 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
             >
-              <div className="px-3 py-1 text-sm text-gray-500">{user?.username}</div>
+              <div className="px-4 py-2 text-sm text-gray-500">{user?.username}</div>
               {AuthService.getUserRole() === 'ROLE_ADMIN' && (
-                <Link to="/admin/manage-experiences" className="block px-3 py-1 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
+                <Link to="/admin/manage-experiences" className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
                   Admin
                 </Link>
               )}
-              <Link to="/profile" className="block px-3 py-1 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
+              <Link to="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
                 Profile
               </Link>
-              <Link to="/wishlist" className="block px-3 py-1 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
+              <Link to="/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
                 Wishlist
               </Link>
-              <button onClick={handleLogout} className="block w-full text-left px-3 py-1 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
+              <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400">
                 Sign Out
               </button>
             </motion.div>
