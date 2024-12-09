@@ -82,6 +82,18 @@ const HomePage = () => {
       {/* Header Component */}
       <Header />
 
+      {/* Featured Experiences */}
+      {featuredExperiences.length > 0 && (
+          <ExperienceGrid
+            title="Featured Experiences"
+            subtitle="Discover our most popular adventures"
+            experiences={featuredExperiences}
+            columns={3}
+            onExperienceClick={handleExperienceClick}
+            isLoading={loading}
+          />
+      )}
+
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
         {/* Categories Section */}
@@ -92,9 +104,9 @@ const HomePage = () => {
             activeCategory="All"
           />
         )}
-        
-        {/* Featured Experiences */}
-        {featuredExperiences.length > 0 && (
+
+         {/* Most Visited */}
+      {featuredExperiences.length > 0 && (
           <ExperienceGrid
             title="Featured Experiences"
             subtitle="Discover our most popular adventures"
@@ -103,7 +115,8 @@ const HomePage = () => {
             onExperienceClick={handleExperienceClick}
             isLoading={loading}
           />
-        )}
+      )}
+      
 
         {/* Newsletter Section */}
         <motion.section 

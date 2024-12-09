@@ -7,7 +7,7 @@ import PlayfulSubcategories from '../components/PlayfulSubcategories';
 import CategoryService from '../Admin_Pages/CategoryService';
 
 const ViewBySubPage = () => {
-  const { categoryId } = useParams(); // Assuming you'll route with category ID
+  const { categoryId } = useParams();
   const [searchParams] = useSearchParams();
   const subcategoryParam = searchParams.get('subcategory');
   const [filter, setFilter] = useState(subcategoryParam || 'All');
@@ -29,16 +29,16 @@ const ViewBySubPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Fetch category data to get sub
+        // Fetch category data
         const categoryData = await CategoryService.getCategoryById(categoryId);
         setCategory(categoryData);
 
-        // Fetch experiences
+        // Fetch all experiences for this category
         const experiencesResponse = await api.get('/public/api/products');
         if (experiencesResponse.data && Array.isArray(experiencesResponse.data)) {
           // Filter experiences by category ID first
           const categoryExperiences = experiencesResponse.data.filter(
-            exp => exp.categoryId === parseInt(categoryId)
+            exp => exp.category?.id === parseInt(categoryId)
           );
           setExperiences(categoryExperiences);
         }
@@ -53,16 +53,21 @@ const ViewBySubPage = () => {
     if (categoryId) {
       fetchData();
     }
-  }, [categoryId]);
+  }, [categoryId]); // Remove filter from dependencies since we're filtering in render
 
   useEffect(() => {
     setFilter(subcategoryParam || 'All');
   }, [subcategoryParam]);
 
   // Filter experiences based on selected subcategory
-  const filteredExperiences = filter === 'All' 
-    ? experiences 
-    : experiences.filter(exp => exp.subcategoryName === filter);
+  const filteredExperiences = React.useMemo(() => {
+    if (!experiences.length) return [];
+    if (filter === 'All') return experiences;
+    
+    return experiences.filter(exp => 
+      exp.subcategory?.toLowerCase() === filter.toLowerCase()
+    );
+  }, [experiences, filter]);
 
   if (error) {
     return (
@@ -82,7 +87,6 @@ const ViewBySubPage = () => {
   return (
     <div className="bg-gray-50 min-h-screen mt-16">
       <div className="container mx-auto px-4 py-12">
-        {/* Back button */}
         <button
           onClick={() => navigate('/experiences')}
           className="mb-6 flex items-center text-gray-600 hover:text-red-600 transition-colors"
@@ -101,15 +105,13 @@ const ViewBySubPage = () => {
           Back to All Experiences
         </button>
 
-        {/* Category Title */}
         {category && (
           <h1 className="text-3xl font-bold text-gray-800 mb-6">
             {category.name} Experiences
           </h1>
         )}
 
-        {/* Sub Filter */}
-        {category && (
+        {category && category.sub && (
           <PlayfulSubcategories
             categoryId={categoryId}
             onSubcategorySelect={(subcategory) => {
@@ -117,11 +119,17 @@ const ViewBySubPage = () => {
               navigate(`?subcategory=${subcategory}`);
             }}
             activeSubcategory={filter}
-            subcategories={category.sub}
+            subcategories={category.sub} // Using the correct field name 'sub'
           />
         )}
 
-        {/* Experiences Grid */}
+        {/* Debug info - can be removed in production */}
+        <div className="text-sm text-gray-500 mb-4">
+          <p>Active Filter: {filter}</p>
+          <p>Total Experiences: {experiences.length}</p>
+          <p>Filtered Experiences: {filteredExperiences.length}</p>
+        </div>
+
         <ExperienceGrid
           title={`Discover ${category?.name || ''} Experiences`}
           subtitle={`Explore amazing ${filter === 'All' ? category?.name : filter} adventures...`}
