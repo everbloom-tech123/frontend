@@ -52,3 +52,11 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+body {
+  margin: 0;
+  background-color: #000;
+  color: #eee;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+}

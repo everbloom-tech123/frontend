@@ -54,6 +54,33 @@ const HomePage = () => {
     }
   };
 
+  const sampleImages = [
+    {
+      src: '/api/placeholder/800/400',
+      title: 'MAGIC SLIDER',
+      type: 'FLOWER',
+      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
+    },
+    {
+      src: '/api/placeholder/800/400',
+      title: 'MAGIC SLIDER',
+      type: 'NATURE',
+      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
+    },
+    {
+      src: '/api/placeholder/800/400',
+      title: 'MAGIC SLIDER',
+      type: 'PLANT',
+      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
+    },
+    {
+      src: '/api/placeholder/800/400',
+      title: 'MAGIC SLIDER',
+      type: 'NATURE',
+      description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
+    }
+  ];
+  
   const handleExperienceClick = (experience) => {
     navigate(`/experience/${experience.id}`);
   };
@@ -77,7 +104,7 @@ const HomePage = () => {
     <div className="bg-gray-50 min-h-screen">
 
       <ImageSlider images={sampleImages} />
-      
+
       {/* Header Component */}
       <Header />
 
