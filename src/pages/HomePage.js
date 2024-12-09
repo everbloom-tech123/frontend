@@ -56,25 +56,25 @@ const HomePage = () => {
 
   const sampleImages = [
     {
-      src: 'public/Images/beach.jpg',
+      src: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2UBJj4oZuohuUO9piiJ_knb5srQDXl8mcow&s',
       title: 'MAGIC SLIDER',
       type: 'FLOWER',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     },
     {
-      src: 'public/Images/club.png',
+      src: 'https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0f/ed/85/6b/um-palacio-no-topo-da.jpg?w=1200&h=1200&s=1',
       title: 'MAGIC SLIDER',
       type: 'NATURE',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     },
     {
-      src: 'public/Images/Sigiriya.jpg',
+      src: 'https://www.seal-superyachts.com/wp-content/themes/seal-superyachts/images/sri-lanka-last.jpg',
       title: 'MAGIC SLIDER',
       type: 'PLANT',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
     },
     {
-      src: 'public/Images/yatch.jpg',
+      src: 'https://thenwewalked.com/how-many-days-in-sri-lanka/',
       title: 'MAGIC SLIDER',
       type: 'NATURE',
       description: 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti temporibus quis eum consequuntur voluptate quae doloribus distinctio.'
