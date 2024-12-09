@@ -118,7 +118,7 @@ const Navbar = () => {
             >
               <Link 
                 to="/experiences"
-                className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+                className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
               >
                 Experiences
               </Link>
@@ -144,7 +144,7 @@ const Navbar = () => {
             >
               <Link 
                 to="/locations"
-                className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+                className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
               >
                 Location
               </Link>
@@ -165,14 +165,14 @@ const Navbar = () => {
 
             <Link 
               to="/about"
-              className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+              className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
             >
               About Us
             </Link>
 
             <Link 
               to="/viewall"
-              className="text-xs font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+              className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
             >
               View All
             </Link>
