@@ -54,7 +54,7 @@ const Header = () => {
             {/* Main large image */}
             <div className="col-span-2">
               <img
-                src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/15/33/fc/f0/sigiriya.jpg?w=1200&h=800"
+                src="https://www.holidify.com/images/bgImages/SIGIRIYA.jpg"
                 alt="Sigiriya Rock Fortress"
                 className="w-full h-80 object-cover rounded-lg"
               />
@@ -63,7 +63,7 @@ const Header = () => {
             {/* Two smaller images */}
             <div>
               <img
-                src="https://www.srilankatravelandtourism.com/places-sri-lanka/kandy/kandy-images/kandy-7-sri-lanka.jpg"
+                src="https://media-cdn.tripadvisor.com/media/photo-s/16/7e/f8/66/temple-of-the-sacred.jpg"
                 alt="Temple of the Sacred Tooth Relic"
                 className="w-full h-48 object-cover rounded-lg"
               />
@@ -75,7 +75,7 @@ const Header = () => {
             </div>
             <div>
               <img
-                src="https://www.seek-safari.com/wp-content/uploads/2023/01/yala-national-park-sri-lanka.jpg"
+                src="https://srilankabasecamp.com/wp-content/uploads/2024/02/exciting_wildlife_adventure_awaits.jpg"
                 alt="Yala National Park"
                 className="w-full h-48 object-cover rounded-lg"
               />
