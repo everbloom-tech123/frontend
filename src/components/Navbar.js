@@ -69,19 +69,13 @@ const Navbar = () => {
     }
   };
 
-  const handleExperiencesEnter = () => {
+  const handleCategoriesEnter = () => {
     setCategoriesOpen(true);
-  };
-
-  const handleExperiencesLeave = () => {
-    setCategoriesOpen(false);
-  };
-
-  const handleLocationEnter = () => {
     setDistrictOpen(true);
   };
 
-  const handleLocationLeave = () => {
+  const handleCategoriesLeave = () => {
+    setCategoriesOpen(false);
     setDistrictOpen(false);
   };
 
@@ -90,50 +84,41 @@ const Navbar = () => {
       <nav className={`fixed w-full z-50 transition-all duration-300 ${
         scrolled ? 'bg-white shadow-md' : 'bg-white/70 backdrop-blur-sm'
       }`}>
-        <div className="container mx-auto px-4">
+        <div className="max-w-7xl mx-auto px-4">
           {/* Upper Section */}
-          <div className="flex items-center h-16">
-            {/* Logo - Left */}
-            <div className="w-1/4">
-              <Link to="/" className="flex-shrink-0">
-                <span className="text-2xl font-bold italic text-red-600 font-serif tracking-wide hover:text-red-700 transition-colors">
-                  Ceylon Bucket
-                </span>
+          <div className="flex items-center justify-between py-4 border-b border-gray-100">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <Link to="/" className="text-3xl font-bold italic">
+                Ceylon Bucket
               </Link>
             </div>
 
-            {/* Search Bar - Absolute Center */}
-            <div className="flex-1 flex justify-center">
-              <div className="w-full max-w-2xl">
-                <form onSubmit={handleSearch} className="w-full">
-                  <div className="relative group">
-                    <input
-                      type="text"
-                      placeholder="Search locations & experiences..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className={`w-full pl-5 pr-12 py-2.5 rounded-full transition-all duration-300
-                        ${scrolled 
-                          ? 'bg-gray-100 focus:bg-white' 
-                          : 'bg-white/90 focus:bg-white'}
-                        border border-transparent focus:border-red-300 focus:ring-2 focus:ring-red-200 focus:outline-none`}
-                    />
-                    <button 
-                      type="submit" 
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <FaSearch className="h-4 w-4" />
-                    </button>
-                  </div>
-                </form>
-              </div>
+            {/* Search Bar - Center */}
+            <div className="flex-1 max-w-2xl mx-8">
+              <form onSubmit={handleSearch} className="relative">
+                <input
+                  type="text"
+                  placeholder="Search locations & experiences..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-5 pr-12 py-2.5 rounded-full bg-gray-50 border border-gray-200 focus:border-red-300 focus:ring-2 focus:ring-red-200 focus:outline-none transition-all duration-200"
+                />
+                <button 
+                  type="submit" 
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors"
+                >
+                  <FaSearch className="h-4 w-4" />
+                </button>
+              </form>
             </div>
 
-            {/* Right Navigation Items */}
-            <div className="w-1/4 flex items-center justify-end space-x-12">
-              <Link to="/viewall" className="text-gray-700 hover:text-red-600 transition-colors">
+            {/* Right Navigation */}
+            <div className="flex items-center space-x-8">
+              <Link to="/viewall" className="text-sm font-bold text-gray-700 hover:text-red-600 transition-colors">
                 View All
               </Link>
+              
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -157,26 +142,26 @@ const Navbar = () => {
                           {AuthService.getUserRole() === 'ROLE_ADMIN' && (
                             <Link
                               to="/admin/manage-experiences"
-                              className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
                             >
                               Admin
                             </Link>
                           )}
                           <Link
                             to="/profile"
-                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
                           >
                             Profile
                           </Link>
                           <Link
                             to="/wishlist"
-                            className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
                           >
                             Wishlist
                           </Link>
                           <button
                             onClick={handleLogout}
-                            className="w-full text-left px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
                           >
                             Sign Out
                           </button>
@@ -184,7 +169,7 @@ const Navbar = () => {
                       ) : (
                         <Link
                           to="/signin"
-                          className="block px-4 py-2 text-gray-700 hover:bg-red-50 hover:text-red-600"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
                         >
                           Sign In
                         </Link>
@@ -196,17 +181,16 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Lower Navigation Bar */}
-          <div className="hidden lg:block border-t border-gray-200/50">
-            <div className="flex items-center justify-between h-12">
-              <div className="flex items-center space-x-24">
-                {/* Experiences Dropdown */}
+          {/* Lower Navigation */}
+          <div className="hidden lg:block">
+            <div className="flex items-center justify-between py-4">
+              <div className="flex items-center space-x-12">
                 <div 
                   className="relative"
-                  onMouseEnter={handleExperiencesEnter}
-                  onMouseLeave={handleExperiencesLeave}
+                  onMouseEnter={handleCategoriesEnter}
+                  onMouseLeave={handleCategoriesLeave}
                 >
-                  <Link to="/experiences" className="text-gray-700 hover:text-red-600 transition-colors">
+                  <Link to="/experiences" className="text-sm font-bold text-gray-700 hover:text-red-600 transition-colors">
                     Experiences
                   </Link>
                   <AnimatePresence>
@@ -224,13 +208,12 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
 
-                {/* Location Dropdown */}
                 <div 
                   className="relative"
-                  onMouseEnter={handleLocationEnter}
-                  onMouseLeave={handleLocationLeave}
+                  onMouseEnter={handleCategoriesEnter}
+                  onMouseLeave={handleCategoriesLeave}
                 >
-                  <Link to="/locations" className="text-gray-700 hover:text-red-600 transition-colors">
+                  <Link to="/locations" className="text-sm font-bold text-gray-700 hover:text-red-600 transition-colors">
                     Location
                   </Link>
                   <AnimatePresence>
@@ -248,10 +231,11 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
 
-                <Link to="/about" className="text-gray-700 hover:text-red-600 transition-colors">
+                <Link to="/about" className="text-sm font-bold text-gray-700 hover:text-red-600 transition-colors">
                   About Us
                 </Link>
               </div>
+
               <Link 
                 to={user ? '/cart' : '/signin'} 
                 className="text-gray-700 hover:text-red-600 transition-colors"
@@ -272,7 +256,7 @@ const Navbar = () => {
             exit={{ opacity: 0, height: 0 }}
             className="lg:hidden fixed top-16 left-0 right-0 bg-white shadow-lg z-40"
           >
-            {/* Mobile menu content remains the same */}
+            {/* Mobile menu content */}
           </motion.div>
         )}
       </AnimatePresence>
