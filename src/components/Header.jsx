@@ -111,7 +111,7 @@ const Header = () => {
                     className="w-full h-[290px] object-cover"
                   />
                   <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/50 to-transparent">
-                    <p className="text-white text-lg font-light">
+                    <p className="text-white text-lg font-bold">
                       {images[getImageIndex(offset)].title}
                     </p>
                     <p className="text-gray-200 text-sm">

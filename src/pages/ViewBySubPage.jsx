@@ -1,30 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-import axios from 'axios';
-import config from '../config';
+import ExperienceService from '../Admin_Pages/ExperienceService';
 import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulSubcategories from '../components/PlayfulSubcategories';
 import CategoryService from '../Admin_Pages/CategoryService';
+import { CircularProgress, Chip, Box } from '@mui/material';
 
 const ViewBySubPage = () => {
   const { categoryId } = useParams();
   const [searchParams] = useSearchParams();
   const subcategoryParam = searchParams.get('subcategory');
-  const [filter, setFilter] = useState(subcategoryParam || 'All');
+  const [selectedSubcategories, setSelectedSubcategories] = useState(
+    subcategoryParam ? [subcategoryParam] : []
+  );
   const [experiences, setExperiences] = useState([]);
   const [category, setCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const api = axios.create({
-    baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
-  });
-
+  // Fetch category and all experiences
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -33,15 +28,15 @@ const ViewBySubPage = () => {
         const categoryData = await CategoryService.getCategoryById(categoryId);
         setCategory(categoryData);
 
-        // Fetch all experiences for this category
-        const experiencesResponse = await api.get('/public/api/products');
-        if (experiencesResponse.data && Array.isArray(experiencesResponse.data)) {
-          // Filter experiences by category ID first
-          const categoryExperiences = experiencesResponse.data.filter(
-            exp => exp.category?.id === parseInt(categoryId)
-          );
-          setExperiences(categoryExperiences);
-        }
+        // Fetch all experiences
+        const allExperiences = await ExperienceService.getAllExperiences();
+        
+        // Filter experiences by category
+        const categoryExperiences = allExperiences.filter(exp => 
+          exp.categoryName === categoryData.name
+        );
+        
+        setExperiences(categoryExperiences);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError(err.message);
@@ -53,21 +48,46 @@ const ViewBySubPage = () => {
     if (categoryId) {
       fetchData();
     }
-  }, [categoryId]); // Remove filter from dependencies since we're filtering in render
+  }, [categoryId]);
 
-  useEffect(() => {
-    setFilter(subcategoryParam || 'All');
-  }, [subcategoryParam]);
-
-  // Filter experiences based on selected subcategory
+  // Filter experiences based on selected subcategories
   const filteredExperiences = React.useMemo(() => {
     if (!experiences.length) return [];
-    if (filter === 'All') return experiences;
+    if (!selectedSubcategories.length) return experiences;
     
     return experiences.filter(exp => 
-      exp.subcategory?.toLowerCase() === filter.toLowerCase()
+      selectedSubcategories.some(sub => 
+        exp.subcategory?.toLowerCase() === sub.toLowerCase()
+      )
     );
-  }, [experiences, filter]);
+  }, [experiences, selectedSubcategories]);
+
+  const handleSubcategorySelect = (subcategory) => {
+    setSelectedSubcategories(prev => {
+      let newSelection;
+      if (prev.includes(subcategory)) {
+        // Remove subcategory if already selected
+        newSelection = prev.filter(sub => sub !== subcategory);
+      } else {
+        // Add subcategory to selection
+        newSelection = [...prev, subcategory];
+      }
+      
+      // Update URL
+      if (newSelection.length === 0) {
+        navigate(``);
+      } else {
+        navigate(`?subcategory=${newSelection.join(',')}`);
+      }
+      
+      return newSelection;
+    });
+  };
+
+  const handleClearFilters = () => {
+    setSelectedSubcategories([]);
+    navigate(``);
+  };
 
   if (error) {
     return (
@@ -105,41 +125,67 @@ const ViewBySubPage = () => {
           Back to All Experiences
         </button>
 
-        {category && (
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
-            {category.name} Experiences
-          </h1>
+        {loading ? (
+          <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+            <CircularProgress color="primary" />
+          </Box>
+        ) : (
+          <>
+            {category && (
+              <h1 className="text-3xl font-bold text-gray-800 mb-6">
+                {category.name} Experiences
+              </h1>
+            )}
+
+            {category && category.sub && (
+              <div className="mb-6">
+                <PlayfulSubcategories
+                  categoryId={categoryId}
+                  onSubcategorySelect={handleSubcategorySelect}
+                  activeSubcategories={selectedSubcategories}
+                  subcategories={category.sub}
+                />
+                
+                {/* Selected Subcategories Display */}
+                {selectedSubcategories.length > 0 && (
+                  <div className="mt-4 flex flex-wrap gap-2 items-center">
+                    <span className="text-gray-600">Selected Filters:</span>
+                    {selectedSubcategories.map(sub => (
+                      <Chip
+                        key={sub}
+                        label={sub}
+                        onDelete={() => handleSubcategorySelect(sub)}
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ))}
+                    <Chip
+                      label="Clear All"
+                      onClick={handleClearFilters}
+                      color="secondary"
+                      variant="outlined"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            <ExperienceGrid
+              title={`Discover ${category?.name || ''} Experiences`}
+              subtitle={
+                selectedSubcategories.length > 0
+                  ? `Exploring ${selectedSubcategories.join(', ')} adventures...`
+                  : `Explore all ${category?.name} adventures...`
+              }
+              experiences={filteredExperiences}
+              isLoading={loading}
+              columns={3}
+              showPrice={true}
+              showViewDetails={true}
+              className="mt-8"
+            />
+          </>
         )}
-
-        {category && category.sub && (
-          <PlayfulSubcategories
-            categoryId={categoryId}
-            onSubcategorySelect={(subcategory) => {
-              setFilter(subcategory);
-              navigate(`?subcategory=${subcategory}`);
-            }}
-            activeSubcategory={filter}
-            subcategories={category.sub} // Using the correct field name 'sub'
-          />
-        )}
-
-        {/* Debug info - can be removed in production */}
-        <div className="text-sm text-gray-500 mb-4">
-          <p>Active Filter: {filter}</p>
-          <p>Total Experiences: {experiences.length}</p>
-          <p>Filtered Experiences: {filteredExperiences.length}</p>
-        </div>
-
-        <ExperienceGrid
-          title={`Discover ${category?.name || ''} Experiences`}
-          subtitle={`Explore amazing ${filter === 'All' ? category?.name : filter} adventures...`}
-          experiences={filteredExperiences}
-          isLoading={loading}
-          columns={3}
-          showPrice={true}
-          showViewDetails={true}
-          className="mt-8"
-        />
       </div>
     </div>
   );

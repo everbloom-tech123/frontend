@@ -1,8 +1,12 @@
-// src/services/AuthService.js
+import axios from 'axios';
+import config from '../config';
 
-const API_URL = process.env.NODE_ENV === 'production'
+const API_URL = `${config.API_BASE_URL}/auth`;
+
+
+/* const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://3.83.93.102.nip.io/auth'  // This will be your deployed backend URL
-  : 'http://localhost:8080/auth';
+  : 'http://localhost:8080/auth'; */
 
 export const register = async (username, email, password) => {
   try {

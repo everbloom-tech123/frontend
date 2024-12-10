@@ -6,6 +6,7 @@ import { Search, Twitter, Instagram, Facebook, Rss } from 'lucide-react';
 import * as AuthService from '../services/AuthService';
 import Categories from './CategoryList';
 import District from './DistrictList';
+import LayoutWrapper from './LayoutWrapper';
 
 const Navbar = () => {
   const [activeItem, setActiveItem] = useState('home');

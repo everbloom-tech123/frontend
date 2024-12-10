@@ -331,6 +331,38 @@ class ExperienceService {
     }
   }
 
+  static async getExperiencesBySubcategory(subcategory) {
+    try {
+      console.log('Fetching experiences by subcategory:', subcategory);
+      const response = await axios.get(`${API_BASE_URL}/filter/by-subcategory`, {
+        params: { subcategory }
+      });
+      console.log('Experiences filtered by subcategory successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching experiences by subcategory:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+  
+  static async filterExperiencesByCategoryAndSubcategory(categoryId, subcategory) {
+    try {
+      console.log(`Fetching experiences for category ${categoryId} and subcategory ${subcategory}`);
+      const response = await axios.get(`${API_BASE_URL}/filter/subcategory`, {
+        params: {
+          categoryId,
+          subcategory
+        }
+      });
+      console.log('Experiences filtered successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching filtered experiences:', 
+        error.response?.data || error.message);
+      throw error;
+    }
+  }
+  
   static async uploadFile(file, type = 'image') {
     try {
       await this.validateFile(file, type);
