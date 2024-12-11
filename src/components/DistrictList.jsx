@@ -206,8 +206,8 @@ const District = () => {
             </div>
           ) : !selectedDistrict ? (
             <div className="text-center py-8 text-gray-500">
-              <              svg
-                className="w-12 h-12 mx-auto text-gray-300"
+              <svg
+                className="w-16 h-16 mx-auto mb-4 text-gray-300"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -216,14 +216,14 @@ const District = () => {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M9.75 9.75a7.5 7.5 0 105.5 0M12 4.75v5m0 0h5"
+                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2"
                 />
               </svg>
-              <p className="mt-4">No district selected</p>
+              <p>Click on a district to view its cities</p>
             </div>
           ) : cities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>No cities found for the selected district.</p>
+              <p>No cities found in this district</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -231,9 +231,7 @@ const District = () => {
                 <LocationItem
                   key={city.id}
                   name={city.name}
-                  isSelected={false} // Adjust logic for city selection if needed
                   isHovered={hoveredCityId === city.id}
-                  onClick={() => console.log(`Clicked on city: ${city.name}`)}
                   onMouseEnter={() => setHoveredCityId(city.id)}
                   onMouseLeave={() => setHoveredCityId(null)}
                 />
@@ -241,41 +239,53 @@ const District = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Pagination */}
-      {filteredAndPaginatedDistricts.totalPages > 1 && (
-        <div className="flex justify-between items-center p-6 border-t">
-          <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              currentPage === 1 ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white'
-            }`}
-          >
-            Previous
-          </button>
-          <span className="text-sm text-gray-600">
-            Page {currentPage} of {filteredAndPaginatedDistricts.totalPages}
-          </span>
-          <button
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, filteredAndPaginatedDistricts.totalPages))
-            }
-            disabled={currentPage === filteredAndPaginatedDistricts.totalPages}
-            className={`px-4 py-2 rounded-lg transition-all ${
-              currentPage === filteredAndPaginatedDistricts.totalPages
-                ? 'bg-gray-200 text-gray-500'
-                : 'bg-blue-500 text-white'
-            }`}
-          >
-            Next
-          </button>
-        </div>
-      )}
+        {filteredAndPaginatedDistricts.totalPages > 1 && (
+          <div className="mt-6 flex justify-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-3 py-1 rounded-md ${
+                currentPage === 1
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+            >
+              Previous
+            </button>
+            
+            <div className="flex gap-1">
+              {[...Array(filteredAndPaginatedDistricts.totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`w-8 h-8 rounded-md ${
+                    currentPage === index + 1
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, filteredAndPaginatedDistricts.totalPages))}
+              disabled={currentPage === filteredAndPaginatedDistricts.totalPages}
+              className={`px-3 py-1 rounded-md ${
+                currentPage === filteredAndPaginatedDistricts.totalPages
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 export default District;
-
