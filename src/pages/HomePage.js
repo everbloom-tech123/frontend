@@ -7,6 +7,8 @@ import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 import Header from '../components/Header'; // Import the Header component
 import ImageSlider from '../components/ImageSlider';
+import ModernHero from '../components/tr';
+
 
 const HomePage = () => {
   const [featuredExperiences, setFeaturedExperiences] = useState([]);
@@ -78,13 +80,25 @@ const HomePage = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
 
-
-      {/* Header Component */}
-      <Header />
-     
+{/* Add margin-top to the Header */}
+<div className="mt-4">
+    <ModernHero />
+  </div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
+
+      {featuredExperiences.length > 0 && (
+          <ExperienceGrid
+            title="Featured Experiences"
+            subtitle="Discover our most popular adventures"
+            experiences={featuredExperiences}
+            columns={3}
+            onExperienceClick={handleExperienceClick}
+            isLoading={loading}
+          />
+      )} 
+      
         {/* Categories Section */}
         {categories.length > 0 && (
           <PlayfulCategories
@@ -94,10 +108,14 @@ const HomePage = () => {
           />
         )}
 
+        <div className="mt-4">
+          <Header />
+        </div>
+
          {/* Most Visited */}
       {featuredExperiences.length > 0 && (
           <ExperienceGrid
-            title="Featured Experiences"
+            title="Most Viewd Experiences"
             subtitle="Discover our most popular adventures"
             experiences={featuredExperiences}
             columns={3}

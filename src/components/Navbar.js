@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaShoppingCart } from 'react-icons/fa';
-import { Search, Twitter, Instagram, Facebook, Rss } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import * as AuthService from '../services/AuthService';
 import Categories from './CategoryList';
 import District from './DistrictList';
@@ -89,29 +89,24 @@ const Navbar = () => {
   };
 
   return (
-
-    
-    <div className={`w-full bg-white shadow-sm ${scrolled ? 'shadow-md' : ''}`}>
-      {/* Logo - Centered */}
-      <div className="flex justify-center py-8">
-          <Link to="/" className="text-3xl font-bold ">
-            Ceylon Bucket
-            <div className="text-sm text-red-400 font-normal mt-1">Your Travel Guide</div>
-          </Link>
-        </div>
+    <nav className={`w-full bg-white shadow-sm transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
       <div className="max-w-7xl mx-auto px-4">
-        {/* Combined navigation bar */}
-        <div className="flex justify-between items-center py-3 border-b border-gray-100">
-          {/* Social icons - Left side */}
-          <div className="flex items-center space-x-3">
-            <Twitter className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700 cursor-pointer font-semibold" />
-            <Facebook className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700 cursor-pointer font-semibold" />
-            <Instagram className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700 cursor-pointer font-semibold" />
-            <Rss className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700 cursor-pointer font-semibold" />
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link 
+              to="/" 
+              className="flex items-center text-xl font-semibold text-red-600 hover:text-red-700 transition-colors duration-200"
+            >
+              <div className="w-8 h-8 bg-red-600 rounded-full mr-2 flex items-center justify-center">
+                <span className="text-white text-sm">CB</span>
+              </div>
+              Ceylon Bucket
+            </Link>
           </div>
 
-          {/* Navigation Links - Center */}
-          <div className="flex items-center space-x-8">
+          {/* Navigation Items */}
+          <div className="hidden md:flex items-center space-x-8">
             <div 
               className="relative group"
               onMouseEnter={handleCategoriesEnter}
@@ -119,9 +114,10 @@ const Navbar = () => {
             >
               <Link 
                 to="/experiences"
-                className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+                className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
               >
-                Experiences
+                <span>Experiences</span>
+                <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
               </Link>
               <AnimatePresence>
                 {categoriesOpen && (
@@ -130,7 +126,7 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute left-0 w-80 mt-2 z-50"
+                    className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
                   >
                     <Categories />
                   </motion.div>
@@ -145,9 +141,10 @@ const Navbar = () => {
             >
               <Link 
                 to="/locations"
-                className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+                className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
               >
-                Location
+                <span>Locations</span>
+                <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${districtOpen ? 'rotate-180' : ''}`} />
               </Link>
               <AnimatePresence>
                 {districtOpen && (
@@ -156,7 +153,7 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute left-0 w-80 mt-2 z-50"
+                    className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
                   >
                     <District />
                   </motion.div>
@@ -165,46 +162,37 @@ const Navbar = () => {
             </div>
 
             <Link 
-              to="/about"
-              className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
-            >
-              About Us
-            </Link>
-
-            <Link 
               to="/viewall"
-              className="text-sm font-bold tracking-wider hover:text-red-400 transition-colors duration-200"
+              className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
             >
               View All
             </Link>
           </div>
 
-          {/* Right side icons */}
-          <div className="flex items-center space-x-4">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="absolute right-0 top-0 w-0 opacity-0 group-hover:w-48 group-hover:opacity-100 transition-all duration-300"
-              />
-              <button type="submit" className="hover:text-red-400 transition-colors duration-200">
-                <Search className="w-4 h-4" />
-              </button>
-            </form>
-            
+          {/* Right Side Icons */}
+          <div className="flex items-center space-x-6">
+            <Link 
+              to={user ? '/cart' : '/signin'}
+              className="text-gray-700 hover:text-red-600 transition-colors duration-200 relative group"
+            >
+              <FaShoppingCart className="w-5 h-5" />
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform duration-200">0</span>
+            </Link>
+
             <div className="relative">
               {user ? (
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="hover:text-red-400 transition-colors duration-200"
+                  className="text-gray-700 hover:text-red-600 transition-colors duration-200"
                 >
-                  <FaUser className="w-3.5 h-3.5" />
+                  <FaUser className="w-5 h-5" />
                 </button>
               ) : (
-                <Link to="/signin">
-                  <FaUser className="w-3.5 h-3.5 hover:text-red-400 transition-colors duration-200" />
+                <Link 
+                  to="/signin" 
+                  className="text-gray-700 hover:text-red-600 transition-colors duration-200"
+                >
+                  <FaUser className="w-5 h-5" />
                 </Link>
               )}
               
@@ -214,6 +202,7 @@ const Navbar = () => {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
                     className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
                   >
                     <div className="px-4 py-2 text-sm text-gray-500">
@@ -222,26 +211,26 @@ const Navbar = () => {
                     {AuthService.getUserRole() === 'ROLE_ADMIN' && (
                       <Link
                         to="/admin/manage-experiences"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                       >
                         Admin
                       </Link>
                     )}
                     <Link
                       to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                     >
                       Profile
                     </Link>
                     <Link
                       to="/wishlist"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                     >
                       Wishlist
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-400"
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
                     >
                       Sign Out
                     </button>
@@ -249,33 +238,10 @@ const Navbar = () => {
                 )}
               </AnimatePresence>
             </div>
-            
-            <Link 
-              to={user ? '/cart' : '/signin'}
-              className="hover:text-red-400 transition-colors duration-200"
-            >
-              <FaShoppingCart className="w-3.5 h-3.5" />
-            </Link>
           </div>
         </div>
-
-        
-
-        {/* Mobile Menu */}
-        <AnimatePresence>
-          {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden fixed top-16 left-0 right-0 bg-white shadow-lg z-40"
-            >
-              {/* Mobile menu content */}
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
-    </div>
+    </nav>
   );
 };
 

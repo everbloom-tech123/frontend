@@ -1,6 +1,12 @@
-const API_URL = process.env.NODE_ENV === 'production'
+import axios from 'axios';
+import config from '../config';
+
+
+const API_URL = `${config.API_BASE_URL}/api/v1/users`;
+
+/* const API_URL = process.env.NODE_ENV === 'production'
   ? 'https://3.83.93.102.nip.io/api/v1/users'
-  : 'http://localhost:8080/api/v1/users';
+  : 'http://localhost:8080/api/v1/users'; */
 
 export const getCurrentUserProfile = async () => {
   try {

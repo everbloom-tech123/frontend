@@ -5,7 +5,6 @@ import { Skeleton } from '@mui/material';
 import { Loader2 } from 'lucide-react';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 
-// Separate ExperienceCard component
 const ExperienceCard = ({ 
   experience, 
   onExperienceClick, 
@@ -32,12 +31,12 @@ const ExperienceCard = ({
 
   return (
     <motion.div 
-      className="bg-white rounded-lg shadow-md overflow-hidden group hover:shadow-xl transition-shadow duration-300"
+      className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300"
       variants={itemVariants}
       whileHover={{ y: -5 }}
       onClick={() => onExperienceClick && onExperienceClick(experience)}
     >
-      <div className="relative aspect-w-16 aspect-h-9 bg-gray-100">
+      <div className="relative aspect-w-16 aspect-h-9">
         {imageLoading && mainImageUrl && (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
@@ -47,77 +46,86 @@ const ExperienceCard = ({
           <img 
             src={ExperienceService.getImageUrl(mainImageUrl)}
             alt={experience.title}
-            className={`w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-300 ${
+            className={`w-full h-56 object-cover transform group-hover:scale-105 transition-transform duration-300 ${
               imageLoading ? 'opacity-0' : 'opacity-100'
             }`}
             onLoad={() => setImageLoading(false)}
           />
         )}
         {experience.discount > 0 && (
-          <div className="absolute top-0 right-0 bg-red-600 text-white px-2 py-1 m-2 rounded-md text-sm font-bold">
+          <div className="absolute top-4 left-4 bg-red-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
             {experience.discount}% OFF
           </div>
         )}
         {experience.category && (
-          <div className="absolute bottom-0 left-0 bg-black bg-opacity-50 text-white px-2 py-1 m-2 rounded-md text-sm">
+          <div className="absolute top-4 right-4 bg-black bg-opacity-50 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm shadow-lg">
             {experience.category}
           </div>
         )}
       </div>
 
-      <div className="p-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2 line-clamp-2">
-          {experience.title}
-        </h3>
-        
-        {experience.description && (
-          <p className="text-gray-600 mb-4 line-clamp-2">
-            {experience.description}
-          </p>
-        )}
-
-        {showPrice && (
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <p className="text-gray-600">
-                {experience.discount > 0 && (
-                  <span className="line-through text-gray-400 mr-2">
-                    {formatPrice(experience.price)}
-                  </span>
-                )}
-                <span className="text-lg font-bold text-red-600">
-                  {formatPrice(discountedPrice)}
-                </span>
+      <div className="p-6 h-[279px]">
+        <div className="h-full flex flex-col">
+          <div className="flex-grow">
+            <h3 className="text-2xl font-bold text-gray-800 mb-3 line-clamp-1">
+              {experience.title}
+            </h3>
+            
+            {experience.description && (
+              <p className="text-sm font-semibold text-gray-600 mb-6 line-clamp-2 leading-relaxed min-h-[40px]">
+                {experience.description}
               </p>
-            </div>
-            {experience.tags && experience.tags.length > 0 && (
-              <div className="flex gap-1">
-                {experience.tags.slice(0, 2).map((tag, index) => (
-                  <span 
-                    key={index}
-                    className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
             )}
-          </div>
-        )}
 
-        {showViewDetails && (
-          <Link 
-            to={`/experience/${experience.id}`}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full text-sm transition duration-300 inline-block w-full text-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              console.log('Clicking experience with ID:', experience.id);
-              if (onExperienceClick) onExperienceClick(experience);
-            }}
-          >
-            View Details
-          </Link>
-        )}
+            <div className="min-h-[32px] mb-6">
+              {experience.tags && experience.tags.length > 0 && (
+                <div className="flex gap-2">
+                  {experience.tags.slice(0, 2).map((tag, index) => (
+                    <span 
+                      key={index}
+                      className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium shadow-sm"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {showPrice && (
+            <div className="mt-auto pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-red-600">
+                      {formatPrice(discountedPrice)}
+                    </span>
+                    {experience.discount > 0 && (
+                      <span className="text-lg line-through text-gray-400">
+                        {formatPrice(experience.price)}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-gray-600 text-sm block mt-1">/per person</span>
+                </div>
+
+                {showViewDetails && (
+                  <Link 
+                    to={`/experience/${experience.id}`}
+                    className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2.5 rounded-full transition duration-300 shadow-lg hover:shadow-xl whitespace-nowrap"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (onExperienceClick) onExperienceClick(experience);
+                    }}
+                  >
+                    View Details
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
@@ -161,9 +169,9 @@ const ExperienceGrid = ({
   }[columns] || 'grid-cols-1 md:grid-cols-3';
 
   const renderSkeleton = () => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Skeleton variant="rectangular" height={200} />
-      <div className="p-6">
+    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
+      <Skeleton variant="rectangular" height={224} />
+      <div className="p-6 h-[272px]">
         <Skeleton variant="text" height={32} width="80%" />
         <Skeleton variant="text" height={20} width="60%" />
         <div className="mt-4">
