@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaShoppingCart } from 'react-icons/fa';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Bell } from 'lucide-react';
 import * as AuthService from '../services/AuthService';
 import Categories from './CategoryList';
 import District from './DistrictList';
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [activeItem, setActiveItem] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [districtOpen, setDistrictOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -31,6 +32,7 @@ const Navbar = () => {
     setDropdownOpen(false);
     setCategoriesOpen(false);
     setDistrictOpen(false);
+    setNotificationDropdownOpen(false);
   }, [location]);
 
   const setupScrollListener = () => {
@@ -105,68 +107,84 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Navigation Items */}
-          <div className="hidden md:flex items-center space-x-8">
-            <div 
-              className="relative group"
-              onMouseEnter={handleCategoriesEnter}
-              onMouseLeave={handleCategoriesLeave}
-            >
-              <Link 
-                to="/experiences"
-                className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+          <div className="pr-6">
+            {/* Navigation Items */}
+            <div className="hidden md:flex items-center space-x-8">
+              <div 
+                className="relative group"
+                onMouseEnter={handleCategoriesEnter}
+                onMouseLeave={handleCategoriesLeave}
               >
-                <span>Experiences</span>
-                <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
-              </Link>
-              <AnimatePresence>
-                {categoriesOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
-                  >
-                    <Categories />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                <Link 
+                  to="/experiences"
+                  className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+                >
+                  <span>Experiences</span>
+                  <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
+                </Link>
+                <AnimatePresence>
+                  {categoriesOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
+                    >
+                      <Categories />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
-            <div 
-              className="relative group"
-              onMouseEnter={handleDistrictEnter}
-              onMouseLeave={handleDistrictLeave}
-            >
-              <Link 
-                to="/locations"
-                className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+              <div 
+                className="relative group"
+                onMouseEnter={handleDistrictEnter}
+                onMouseLeave={handleDistrictLeave}
               >
-                <span>Locations</span>
-                <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${districtOpen ? 'rotate-180' : ''}`} />
-              </Link>
-              <AnimatePresence>
-                {districtOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    transition={{ duration: 0.2 }}
-                    className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
-                  >
-                    <District />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                <Link 
+                  to="/locations"
+                  className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+                >
+                  <span>Locations</span>
+                  <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${districtOpen ? 'rotate-180' : ''}`} />
+                </Link>
+                <AnimatePresence>
+                  {districtOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
+                    >
+                      <District />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
-            <Link 
-              to="/viewall"
-              className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
-            >
-              View All
-            </Link>
+              <Link 
+                to="/viewall"
+                className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+              >
+                View All
+              </Link>
+
+              <Link 
+                to="#"
+                className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+              >
+                About Us
+              </Link>
+
+              <Link 
+                to="#"
+                className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
+              >
+                Contact Us
+              </Link>
+            </div>
           </div>
 
           {/* Right Side Icons */}
@@ -178,6 +196,57 @@ const Navbar = () => {
               <FaShoppingCart className="w-5 h-5" />
               <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform duration-200">0</span>
             </Link>
+
+            {/* Notification Icon - Only shown when user is authenticated */}
+            {user && (
+              <div className="relative">
+                <button
+                  onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
+                  className="text-gray-700 hover:text-red-600 transition-colors duration-200 relative"
+                >
+                  <Bell className="w-5 h-5" />
+                  {/* Notification badge */}
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    2
+                  </span>
+                </button>
+
+                <AnimatePresence>
+                  {notificationDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50"
+                    >
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <h3 className="text-sm font-semibold text-gray-700">Notifications</h3>
+                      </div>
+                      {/* Example notifications */}
+                      <div className="max-h-96 overflow-y-auto">
+                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+                          <p className="text-sm text-gray-600">Your booking for "Adventure Trek" has been confirmed.</p>
+                          <span className="text-xs text-gray-400 mt-1">2 hours ago</span>
+                        </div>
+                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+                          <p className="text-sm text-gray-600">New experience added in your wishlist location!</p>
+                          <span className="text-xs text-gray-400 mt-1">1 day ago</span>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2 border-t border-gray-100">
+                        <Link
+                          to="/notifications"
+                          className="text-sm text-red-600 hover:text-red-700 transition-colors duration-200"
+                        >
+                          View all notifications
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
 
             <div className="relative">
               {user ? (

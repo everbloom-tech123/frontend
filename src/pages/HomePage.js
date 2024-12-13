@@ -8,6 +8,7 @@ import ExperienceService from '../Admin_Pages/ExperienceService';
 import Header from '../components/Header'; // Import the Header component
 import ImageSlider from '../components/ImageSlider';
 import ModernHero from '../components/tr';
+import DestinationExplorer from '../components/Destination';
 
 
 const HomePage = () => {
@@ -80,18 +81,22 @@ const HomePage = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
 
-{/* Add margin-top to the Header */}
-<div className="mt-4">
+{/* Option 2: Using margins */}
+<div className="mt-0 ml-0 mr-auto">
     <ModernHero />
-  </div>
+</div>
+
+<div className="mt-0 ml-0 mr-auto">
+    <DestinationExplorer />
+</div>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-12">
 
-      {featuredExperiences.length > 0 && (
+      {featuredExperiences.length > 3 && (
           <ExperienceGrid
             title="Featured Experiences"
-            subtitle="Discover our most popular adventures"
+            subtitle="Highlighting the best and most unique offerings, carefully selected to provide exceptional value and unforgettable moments."
             experiences={featuredExperiences}
             columns={3}
             onExperienceClick={handleExperienceClick}
@@ -116,7 +121,7 @@ const HomePage = () => {
       {featuredExperiences.length > 0 && (
           <ExperienceGrid
             title="Most Viewd Experiences"
-            subtitle="Discover our most popular adventures"
+            subtitle="The top experiences that have captured the interest of the most visitors, offering exceptional popularity and appeal."
             experiences={featuredExperiences}
             columns={3}
             onExperienceClick={handleExperienceClick}

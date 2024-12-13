@@ -31,100 +31,103 @@ const ExperienceCard = ({
 
   return (
     <motion.div 
-      className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300"
+      className="relative bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 w-96"
       variants={itemVariants}
       whileHover={{ y: -5 }}
       onClick={() => onExperienceClick && onExperienceClick(experience)}
     >
-      <div className="relative aspect-w-16 aspect-h-9">
+      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/50 to-black/80 z-10"/>
+      
+      <div className="relative h-full">
         {imageLoading && mainImageUrl && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 text-red-600 animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <Loader2 className="w-6 h-6 text-red-600 animate-spin" />
           </div>
         )}
         {mainImageUrl && (
           <img 
             src={ExperienceService.getImageUrl(mainImageUrl)}
             alt={experience.title}
-            className={`w-full h-56 object-cover transform group-hover:scale-105 transition-transform duration-300 ${
+            className={`absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 ${
               imageLoading ? 'opacity-0' : 'opacity-100'
             }`}
             onLoad={() => setImageLoading(false)}
           />
         )}
-        {experience.discount > 0 && (
-          <div className="absolute top-4 left-4 bg-red-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">
-            {experience.discount}% OFF
-          </div>
-        )}
-        {experience.category && (
-          <div className="absolute top-4 right-4 bg-black bg-opacity-50 backdrop-blur-sm text-white px-4 py-1 rounded-full text-sm shadow-lg">
-            {experience.category}
-          </div>
-        )}
-      </div>
 
-      <div className="p-6 h-[279px]">
-        <div className="h-full flex flex-col">
-          <div className="flex-grow">
-            <h3 className="text-2xl font-bold text-gray-800 mb-3 line-clamp-1">
-              {experience.title}
-            </h3>
-            
-            {experience.description && (
-              <p className="text-sm font-semibold text-gray-600 mb-6 line-clamp-2 leading-relaxed min-h-[40px]">
-                {experience.description}
-              </p>
-            )}
+        <div className="relative z-20 h-full">
+          {experience.discount > 0 && (
+            <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg">
+              {experience.discount}% OFF
+            </div>
+          )}
+          {experience.category && (
+            <div className="absolute top-4 right-4 bg-black bg-opacity-50 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs shadow-lg">
+              {experience.category}
+            </div>
+          )}
 
-            <div className="min-h-[32px] mb-6">
-              {experience.tags && experience.tags.length > 0 && (
-                <div className="flex gap-2">
-                  {experience.tags.slice(0, 2).map((tag, index) => (
-                    <span 
-                      key={index}
-                      className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium shadow-sm"
-                    >
-                      {tag}
-                    </span>
-                  ))}
+          <div className="p-6 h-[500px] flex flex-col justify-end">
+            <div className="space-y-3">
+              <h3 className="text-xl font-bold text-white line-clamp-1">
+                {experience.title}
+              </h3>
+              
+              {experience.description && (
+                <p className="text-sm font-medium text-white/80 line-clamp-2 leading-relaxed">
+                  {experience.description}
+                </p>
+              )}
+
+              <div className="min-h-[28px]">
+                {experience.tags && experience.tags.length > 0 && (
+                  <div className="flex gap-2">
+                    {experience.tags.slice(0, 2).map((tag, index) => (
+                      <span 
+                        key={index}
+                        className="bg-white/20 text-white px-3 py-1 rounded-full text-xs font-medium"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {showPrice && (
+                <div className="pt-3 border-t border-white/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-bold text-white">
+                          {formatPrice(discountedPrice)}
+                        </span>
+                        {experience.discount > 0 && (
+                          <span className="text-base line-through text-white/60">
+                            {formatPrice(experience.price)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-white/80 block">/per person</span>
+                    </div>
+
+                    {showViewDetails && (
+                      <Link 
+                        to={`/experience/${experience.id}`}
+                        className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-full text-sm shadow-sm hover:shadow transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onExperienceClick) onExperienceClick(experience);
+                        }}
+                      >
+                        View Details
+                      </Link>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </div>
-
-          {showPrice && (
-            <div className="mt-auto pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-bold text-red-600">
-                      {formatPrice(discountedPrice)}
-                    </span>
-                    {experience.discount > 0 && (
-                      <span className="text-lg line-through text-gray-400">
-                        {formatPrice(experience.price)}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-gray-600 text-sm block mt-1">/per person</span>
-                </div>
-
-                {showViewDetails && (
-                  <Link 
-                    to={`/experience/${experience.id}`}
-                    className="bg-red-600 hover:bg-red-700 text-white font-semibold px-6 py-2.5 rounded-full transition duration-300 shadow-lg hover:shadow-xl whitespace-nowrap"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onExperienceClick) onExperienceClick(experience);
-                    }}
-                  >
-                    View Details
-                  </Link>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </motion.div>
@@ -136,7 +139,7 @@ const ExperienceGrid = ({
   subtitle,
   experiences,
   layout = 'grid',
-  columns = 3,
+  columns = 4,
   showPrice = true,
   showViewDetails = true,
   className = '',
@@ -163,63 +166,49 @@ const ExperienceGrid = ({
 
   const gridClass = {
     1: 'grid-cols-1',
-    2: 'grid-cols-1 md:grid-cols-2',
-    3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
-    4: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-  }[columns] || 'grid-cols-1 md:grid-cols-3';
+    2: 'grid-cols-2',
+    3: 'grid-cols-3',
+    4: 'grid-cols-4'
+  }[columns] || 'grid-cols-4';
 
   const renderSkeleton = () => (
-    <div className="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
-      <Skeleton variant="rectangular" height={224} />
-      <div className="p-6 h-[272px]">
-        <Skeleton variant="text" height={32} width="80%" />
-        <Skeleton variant="text" height={20} width="60%" />
-        <div className="mt-4">
-          <Skeleton variant="rectangular" height={36} width="100%" />
-        </div>
-      </div>
+    <div className="relative bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden w-96">
+      <Skeleton variant="rectangular" height={500} />
     </div>
   );
 
   return (
     <motion.section 
-      className={`mb-16 ${className}`}
+      className={`mb-16 px-6 ${className}`}
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
       {title && (
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
-          {subtitle && <p className="text-gray-600 mt-2">{subtitle}</p>}
-        </div>
-      )}
-
-      {filterOptions && (
-        <div className="flex flex-wrap justify-center gap-4 mb-8">
-          {filterOptions.map((option) => (
-            <motion.button
-              key={option.value}
-              className="bg-white text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:bg-gray-100 transition duration-300"
-              variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => option.onClick(option.value)}
-            >
-              {option.label}
-            </motion.button>
-          ))}
+        <div className="flex flex-col items-start mb-12">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className="text-3xl font-bold text-gray-800">
+              {title}
+              <span className="text-red-200 mx-2">:</span>
+            </h2>
+            {subtitle && (
+              <p className="text-base font-semibold max-w-xl text-gray-500 leading-snug hover:text-black-600 transition-colors duration-300">
+                {subtitle}
+              </p>
+            )}
+          </div>
         </div>
       )}
 
       <div 
         className={`
-          ${layout === 'grid' ? `grid ${gridClass} gap-8` : 'flex overflow-x-auto space-x-6 pb-4'}
+          ${layout === 'grid' ? `grid ${gridClass} gap-y-8 gap-x-3` : 'flex overflow-x-auto space-x-4 pb-4'}
           ${layout === 'scroll' ? 'hide-scrollbar' : ''}
+          justify-items-center
         `}
       >
         {isLoading
-          ? Array(6).fill(0).map((_, index) => (
+          ? Array(8).fill(0).map((_, index) => (
               <div key={index}>{renderSkeleton()}</div>
             ))
           : experiences.map(experience => (
@@ -236,7 +225,7 @@ const ExperienceGrid = ({
       </div>
 
       {experiences.length === 0 && !isLoading && (
-        <div className="text-center py-8">
+        <div className="text-center py-6">
           <p className="text-gray-600">No experiences found</p>
         </div>
       )}

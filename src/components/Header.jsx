@@ -59,36 +59,36 @@ const Header = () => {
   };
 
   return (
-    <div className="relative w-full overflow-hidden bg-white p-10">
-      <div className="max-w-[1100px] mx-auto">
+    <div className="relative w-full overflow-hidden bg-white p-16">
+      <div className="max-w-[1400px] mx-auto">
         {/* Main content container with enhanced 3D effect */}
-        <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.05)] p-10 min-h-[550px] border border-gray-100 hover:shadow-[0_20px_50px_rgba(8,_112,_184,_0.07)] transition-all transform hover:-translate-y-1">
+        <div className="relative bg-white/80 backdrop-blur-sm rounded-3xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.05)] p-12 min-h-[650px] border border-gray-100 hover:shadow-[0_20px_50px_rgba(8,_112,_184,_0.07)] transition-all transform hover:-translate-y-1">
           {/* Background gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-red-50 via-white to-gray-50 rounded-3xl opacity-50" />
           
           {/* Content wrapper with flex layout */}
           <div className="relative z-10 flex items-center justify-between">
             {/* Text Content */}
-            <div className="w-[30%] pr-8">
+            <div className="w-[35%] pr-12">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
               >
-                <h1 className="text-5xl font-black mb-6 leading-tight text-gray-800">
+                <h1 className="text-6xl font-black mb-8 leading-tight text-gray-800">
                   Make Beautiful <span className="text-red-500">Travel</span>
                   <br />
-                  <span className="text-3xl italic font-semibold">in the world!</span>
+                  <span className="text-4xl italic font-semibold">in the world!</span>
                 </h1>
                 
-                <p className="text-gray-600 mb-8 text-base font-medium leading-relaxed">
+                <p className="text-gray-600 mb-10 text-lg font-medium leading-relaxed">
                   If diving has always been your dream, then you are in the right
                   place! We will help your dreams come true by sparking the
                   wonderful in the world!
                 </p>
 
-                <button className="bg-red-500 text-white px-8 py-3 rounded-xl inline-flex items-center space-x-3 group hover:shadow-xl transition-all hover:bg-red-600 border border-red-400 transform hover:-translate-y-0.5">
-                  <span className="font-semibold text-base">EXPLORE</span>
+                <button className="bg-red-500 text-white px-10 py-4 rounded-xl inline-flex items-center space-x-3 group hover:shadow-xl transition-all hover:bg-red-600 border border-red-400 transform hover:-translate-y-0.5">
+                  <span className="font-semibold text-lg">EXPLORE</span>
                   <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
               </motion.div>
@@ -96,23 +96,23 @@ const Header = () => {
 
             {/* Image Gallery */}
             <div className="w-[65%]">
-              <div className="relative flex space-x-6">
+              <div className="relative flex space-x-8">
                 {/* Navigation Buttons */}
                 <button 
                   onClick={handlePrev}
-                  className="absolute -left-5 top-1/2 -translate-y-1/2 z-20 bg-red-500 p-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all hover:bg-red-600 border border-red-400 transform hover:-translate-y-0.5"
+                  className="absolute -left-6 top-1/2 -translate-y-1/2 z-20 bg-red-500 p-3 rounded-xl shadow-lg hover:shadow-xl transition-all hover:bg-red-600 border border-red-400 transform hover:-translate-y-0.5"
                 >
-                  <ChevronLeft className="w-5 h-5 text-white" />
+                  <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
                 <button 
                   onClick={handleNext}
-                  className="absolute -right-5 top-1/2 -translate-y-1/2 z-20 bg-white p-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all hover:bg-gray-50 border border-gray-200 transform hover:-translate-y-0.5"
+                  className="absolute -right-6 top-1/2 -translate-y-1/2 z-20 bg-white p-3 rounded-xl shadow-lg hover:shadow-xl transition-all hover:bg-gray-50 border border-gray-200 transform hover:-translate-y-0.5"
                 >
-                  <ChevronRight className="w-5 h-5 text-red-500" />
+                  <ChevronRight className="w-6 h-6 text-red-500" />
                 </button>
 
                 {/* Main Image */}
-                <div className="w-[60%] h-[420px] rounded-2xl overflow-hidden shadow-xl relative ring-1 ring-gray-100 transform hover:-translate-y-1 transition-transform">
+                <div className="w-[60%] h-[520px] rounded-2xl overflow-hidden shadow-xl relative ring-1 ring-gray-100 transform hover:-translate-y-1 transition-transform">
                   <AnimatePresence initial={false} custom={direction}>
                     <motion.img
                       key={page}
@@ -133,7 +133,7 @@ const Header = () => {
                 </div>
                 
                 {/* Side Images */}
-                <div className="flex flex-col space-y-6 w-[40%]">
+                <div className="flex flex-col space-y-8 w-[40%]">
                   {[1, 2].map((offset) => (
                     <motion.div 
                       key={getImageIndex(offset)}
@@ -144,16 +144,16 @@ const Header = () => {
                       <img
                         src={images[getImageIndex(offset)].url}
                         alt={images[getImageIndex(offset)].title}
-                        className="w-full h-[205px] object-cover"
+                        className="w-full h-[250px] object-cover"
                       />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                        <p className="text-white text-base font-bold">
+                      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/70 to-transparent">
+                        <p className="text-white text-lg font-bold">
                           {images[getImageIndex(offset)].title}
                         </p>
-                        <p className="text-gray-200 text-sm font-medium">
+                        <p className="text-gray-200 text-base font-medium">
                           {images[getImageIndex(offset)].location}
                         </p>
-                        <p className="text-gray-300 text-sm font-medium mt-1 group-hover:text-red-300 transition-colors">
+                        <p className="text-gray-300 text-base font-medium mt-1 group-hover:text-red-300 transition-colors">
                           {images[getImageIndex(offset)].explore}
                         </p>
                       </div>

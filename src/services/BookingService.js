@@ -1,15 +1,16 @@
 import config from '../config';
 
+const API_URL = `${config.API_BASE_URL}/api/bookings`;
 
 class BookingService {
   static async submitBooking(bookingData) {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${config.API_BASE_URL}/api/bookings`, {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(bookingData),
       });
@@ -25,21 +26,6 @@ class BookingService {
       throw error;
     }
   }
-
-  static async sendInquiryEmail(inquiryData) {
-    try {
-      const response = await fetch(`${config.API_BASE_URL}/api/inquiries`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(inquiryData),
-      });
-      return await response.json();
-    } catch (error) {
-      throw new Error('Failed to send inquiry');
-    }
-  }
 }
 
-export default BookingService; 
+export default BookingService;

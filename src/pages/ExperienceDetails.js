@@ -152,6 +152,18 @@ const ExperienceDetails = () => {
         }
       }
     });
+    /* navigate('/booking', {
+      state: {
+        userId: currentUser.id,
+        userEmail: currentUser.email,
+        experienceDetails: {
+          id: experience.id,        // Add this
+          title: experience.title,
+          price: experience.price,
+          imageUrl: experience.imageUrl,
+        }
+      }
+    }); */
   };
 
   const handleWishlistToggle = async () => {
