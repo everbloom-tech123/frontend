@@ -87,12 +87,13 @@ const HomePage = () => {
 </div> */}
 
 <ModernHero />
-
 {/* <div className="mt-0 ml-0 mr-auto">
     <DestinationExplorer />
 </div> */}
 <DestinationExplorer />
 
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12">
 
       {featuredExperiences.length > 3 && (
           <ExperienceGrid
@@ -157,7 +158,7 @@ const HomePage = () => {
           </form>
         </motion.section>
       </div>
-    
+    </div>
   );
 };
 
