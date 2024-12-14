@@ -82,16 +82,17 @@ const HomePage = () => {
     <div className="bg-gray-50 min-h-screen">
 
 {/* Option 2: Using margins */}
-<div className="mt-0 ml-0 mr-auto">
+{/* <div className="mt-0 ml-0 mr-auto">
     <ModernHero />
-</div>
+</div> */}
 
-<div className="mt-0 ml-0 mr-auto">
+<ModernHero />
+
+{/* <div className="mt-0 ml-0 mr-auto">
     <DestinationExplorer />
-</div>
+</div> */}
+<DestinationExplorer />
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
 
       {featuredExperiences.length > 3 && (
           <ExperienceGrid
@@ -156,7 +157,7 @@ const HomePage = () => {
           </form>
         </motion.section>
       </div>
-    </div>
+    
   );
 };
 
