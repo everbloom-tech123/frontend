@@ -120,7 +120,7 @@ const ExperienceCard = ({
                           if (onExperienceClick) onExperienceClick(experience);
                         }}
                       >
-                        View Details
+                        View
                       </Link>
                     )}
                   </div>

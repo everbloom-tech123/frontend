@@ -9,6 +9,7 @@ import Header from '../components/Header'; // Import the Header component
 import ImageSlider from '../components/ImageSlider';
 import ModernHero from '../components/tr';
 import DestinationExplorer from '../components/Destination';
+import ContactForm from '../components/contactForm';
 
 
 const HomePage = () => {
@@ -115,9 +116,10 @@ const HomePage = () => {
           />
         )}
 
-        <div className="mt-4">
+      </div>  
           <Header />
-        </div>
+       
+          <div className="container mx-auto px-4 py-12">
 
          {/* Most Visited */}
       {featuredExperiences.length > 0 && (
@@ -131,32 +133,9 @@ const HomePage = () => {
           />
       )}
       
-
+      <ContactForm />
         {/* Newsletter Section */}
-        <motion.section 
-          className="mb-16 bg-red-600 text-white rounded-lg shadow-md p-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h2 className="text-3xl font-bold mb-4 text-center">Stay Updated</h2>
-          <p className="text-center mb-6">
-            Subscribe to our newsletter for exclusive offers and travel tips
-          </p>
-          <form className="flex justify-center">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="px-4 py-2 rounded-l-full w-64 focus:outline-none text-gray-800"
-            />
-            <button 
-              type="submit" 
-              className="bg-white text-red-600 hover:bg-gray-100 px-6 py-2 rounded-r-full font-semibold transition duration-300"
-            >
-              Subscribe
-            </button>
-          </form>
-        </motion.section>
+        
       </div>
     </div>
   );
