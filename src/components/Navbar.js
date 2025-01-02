@@ -179,7 +179,7 @@ const Navbar = () => {
               </Link>
 
               <Link 
-                to="#"
+                to="/contact-us"
                 className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
               >
                 Contact Us

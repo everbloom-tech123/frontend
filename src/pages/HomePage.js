@@ -9,7 +9,7 @@ import Header from '../components/Header'; // Import the Header component
 import ImageSlider from '../components/ImageSlider';
 import ModernHero from '../components/tr';
 import DestinationExplorer from '../components/Destination';
-import ContactForm from '../components/contactForm';
+import ContactForm from './contactForm';
 
 
 const HomePage = () => {
@@ -133,7 +133,7 @@ const HomePage = () => {
           />
       )}
       
-      <ContactForm />
+      {/* <ContactForm /> */}
         {/* Newsletter Section */}
         
       </div>

@@ -18,6 +18,7 @@ import WishlistPage from './pages/WishlistPage';
 import ExperienceDetails from './pages/ExperienceDetails';
 import BookingPage from './pages/BookingPage';
 import ViewBySubPage from './pages/ViewBySubPage'; // Import the new page
+import ContactForm from './pages/contactForm';
 
 const AdminLayout = () => {
   return (
@@ -48,6 +49,7 @@ const PublicLayout = () => {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/viewall" element={<ViewAllExperiencesPage />} />
           <Route path="/experience/:id" element={<ExperienceDetails />} />
+          <Route path='/contact-us' element={<ContactForm />} />
           <Route 
             path="/wishlist" 
             element={
