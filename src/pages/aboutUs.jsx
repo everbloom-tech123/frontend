@@ -1,4 +1,3 @@
-// src/pages/AboutUs.js
 import React from 'react';
 import { Gift, Users, Star, Globe, Coffee, Compass, Sun } from 'lucide-react';
 

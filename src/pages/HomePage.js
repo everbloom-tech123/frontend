@@ -10,6 +10,7 @@ import ImageSlider from '../components/ImageSlider';
 import ModernHero from '../components/tr';
 import DestinationExplorer from '../components/Destination';
 import ContactForm from './contactForm';
+import ImageGrid from '../components/imageLayout';
 
 
 const HomePage = () => {
@@ -132,6 +133,8 @@ const HomePage = () => {
             isLoading={loading}
           />
       )}
+
+       <ImageGrid />
       
       {/* <ContactForm /> */}
         {/* Newsletter Section */}
