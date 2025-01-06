@@ -111,7 +111,7 @@ const DestinationExplorer = ({ destinations }) => {
                     key={`${destination.id}-${index}`}
                     className="relative w-80 h-[450px] shrink-0"
                     style={{
-                      borderRadius: '120px',
+                      borderRadius: '130px',
                     }}
                   >
                     <div
