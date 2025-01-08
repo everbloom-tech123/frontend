@@ -20,13 +20,13 @@ const ContactForm = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.inquiryType) newErrors.inquiryType = 'Required';
+    if (!formData.inquiryType) newErrors.inquiryType = 'Inquiry type is required';
     if (!formData.email || !/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Valid email required';
     }
-    if (!formData.name) newErrors.name = 'Required';
-    if (!formData.country) newErrors.country = 'Required';
-    if (!formData.message) newErrors.message = 'Required';
+    if (!formData.name) newErrors.name = 'Name is required';
+    if (!formData.country) newErrors.country = 'Country is required';
+    if (!formData.message) newErrors.message = 'Message is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -82,170 +82,199 @@ const ContactForm = () => {
   };
 
   return (
-      <div className="min-h-screen grid md:grid-cols-2">
-        {/* Left Column - Image and Contact Info */}
-        <div
-            className="relative h-full bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1485872299829-c673f5194813?q=80&w=2054&auto=format&fit=crop')`
-            }}
-        >
-          <div className="absolute inset-0 bg-gray-900/70">
-            <div className="p-16 text-white h-full flex flex-col">
-              <h2 className="text-5xl font-bold mb-20">Our Head Office</h2>
+      <div className="pt-16">
+        <div className="min-h-screen bg-gray-100">
+          <div className="relative bg-gradient-to-r from-green-700 to-red-500 text-white py-16">
+            <div className="absolute inset-0 bg-black/10"></div>
+            <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+              <h1 className="text-5xl md:text-6xl font-serif font-bold mb-6">Contact Us</h1>
+              <p className="text-xl md:text-2xl max-w-3xl mx-auto font-light">
+                Crafting extraordinary moments through meticulously curated experiences that reveal the authentic soul
+                of Sri Lanka
+              </p>
+            </div>
+          </div>
+          <div className="max-w-7xl mx-auto min-h-screen">
+            {/* Contact Section */}
+            <div className="container mx-auto px-8 py-16">
+              <div className="grid grid-cols-12 gap-8">
+                {/* Left Column */}
+                <div className="col-span-4 border-2 p-6 rounded-2xl bg-gray-50 border-white flex flex-col min-h-full">
+                  {/* Main Content */}
+                  <div>
+                    <div className="mb-8">
+                      <h2 className="text-2xl font-bold mb-2">Let's working together</h2>
+                      <p className="text-gray-600">
+                        Thank you for your interest in Ceylon Bucket. We're excited to hear from you.
+                      </p>
+                    </div>
 
-              <div className="space-y-12 mb-12">
-                <div className="flex items-center gap-6">
-                  <MapPin className="w-8 h-8" />
-                  <div className="text-xl">
-                    <p>No: 58 A, East Madison Street,</p>
-                    <p>Baltimore, MD, USA 4508</p>
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                        <Phone className="text-white"/>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Call Us For Support</p>
+                          <p className="font-semibold">+94 (77) 2158 315</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                          <Mail className="text-white"/>
+                        </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Email address</p>
+                            <p className="font-semibold">demo@example.com</p>
+                          </div>
+                        </div>
+
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                          <MapPin className="text-white"/>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Visit Our Office</p>
+                          <p className="font-semibold">123 Temple Road, Colombo 07, Sri Lanka</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Social Media Icons - Will stick to bottom */}
+                    <div className="flex gap-6 mt-auto px-6 pt-6">
+                    <a href="#"
+                       className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      <Facebook className="w-7 h-7 text-white"/>
+                    </a>
+                    <a href="#"
+                       className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      <Twitter className="w-7 h-7 text-white"/>
+                    </a>
+                    <a href="#"
+                       className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      <Youtube className="w-7 h-7 text-white"/>
+                    </a>
+                    <a href="#"
+                       className="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                      <Instagram className="w-7 h-7 text-white"/>
+                    </a>
                   </div>
                 </div>
+                <div className="col-span-8 border-2 p-6 rounded-2xl bg-white">
+                  {submitStatus.message && (
+                      <div className={`mb-6 p-4 rounded ${
+                          submitStatus.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {submitStatus.message}
+                      </div>
+                  )}
+                  {/* Right Column - Form */}
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-2 gap-5">
+                      <div>
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Your Name*"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className={`w-full p-3 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
+                                errors.name ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                        />
+                        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+                      </div>
+                      <div>
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Email Address*"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className={`w-full p-3 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
+                                errors.email ? 'border-red-500' : 'border-gray-300'
+                            }`}
+                        />
+                        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+                      </div>
+                    </div>
+                    <div>
+                      <input
+                          name="country"
+                          type="text"
+                          placeholder="Country*"
+                          value={formData.country}
+                          onChange={handleChange}
+                          className={`w-full p-3 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
+                              errors.country ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                      />
+                      {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
+                    </div>
+                    <div>
 
-                <div className="flex items-center gap-6">
-                  <Phone className="w-8 h-8" />
-                  <p className="text-xl">000 - 123 - 456789</p>
-                </div>
+                      <select
+                          name="inquiryType"
+                          value={formData.inquiryType}
+                          onChange={handleChange}
+                          className={`w-full p-3 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-emerald-600 ${
+                              errors.inquiryType ? 'border-red-500' : 'border-gray-300'
+                          }`}>
+                        <option value="">Inquiry types*</option>
+                        <option value="general">General Inquiry</option>
+                        <option value="support">Technical Support</option>
+                        <option value="billing">Billing Question</option>
+                      </select>
+                      {errors.inquiryType && <p className="text-red-500 text-sm mt-1">{errors.inquiryType}</p>}
+                    </div>
+                    <div>
+                      <textarea
+                          placeholder="Type your message*"
+                          name="message"
+                          rows={6}
+                          value={formData.message}
+                          onChange={handleChange}
+                          className={`w-full p-3 rounded-lg bg-gray-50 border focus:outline-none focus:ring-2 focus:ring-emerald-600${
+                              errors.inquiryType ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                      ></textarea>
+                      {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
+                    </div>
+                      <button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="bg-red-600 text-white px-8 py-3 rounded-3xl hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed "
+                      >
+                        {isSubmitting ? 'SUBMITTING...' : 'SEND MESSAGE'}
+                      </button>
 
-                <div className="flex items-center gap-6">
-                  <Mail className="w-8 h-8" />
-                  <p className="text-xl">info@example.com</p>
+                  </form>
                 </div>
-              </div>
-
-              <div className="mt-auto">
-                <div className="flex gap-6">
-                  <a href="#" className="w-14 h-14 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
-                    <Facebook className="w-7 h-7 text-gray-900" />
-                  </a>
-                  <a href="#" className="w-14 h-14 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
-                    <Twitter className="w-7 h-7 text-gray-900" />
-                  </a>
-                  <a href="#" className="w-14 h-14 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
-                    <Youtube className="w-7 h-7 text-gray-900" />
-                  </a>
-                  <a href="#" className="w-14 h-14 bg-white rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
-                    <Instagram className="w-7 h-7 text-gray-900" />
-                  </a>
-                </div>
-              </div>
-            </div>
           </div>
-        </div>
-
-        {/* Right Column - Contact Form */}
-        <div className="p-16 bg-white relative overflow-hidden">
-          <div className="mb-16 relative">
-            <p className="text-2xl mb-2" style={{ fontFamily: 'Permanent Marker, cursive' }}>Reach Us</p>
-            <h1 className="text-6xl font-bold">Contact form</h1>
-            <div className="text-[200px] font-bold text-gray-100 absolute -right-20 -top-16 -z-10 opacity-50">
-              Enquiry
-            </div>
-          </div>
-
-          {submitStatus.message && (
-              <div className={`mb-6 p-4 rounded ${
-                  submitStatus.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-              }`}>
-                {submitStatus.message}
-              </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-12">
-            <div className="relative grid md:grid-cols-2 gap-12">
-              <div>
-                <select
-                    name="inquiryType"
-                    value={formData.inquiryType}
-                    onChange={handleChange}
-                    className={`w-full pb-3 bg-transparent border-b-2 ${
-                        errors.inquiryType ? 'border-red-500' : 'border-gray-300'
-                    } focus:border-gray-900 focus:outline-none appearance-none text-lg`}
-                >
-                  <option value="">Inquiry types*</option>
-                  <option value="general">General Inquiry</option>
-                  <option value="support">Technical Support</option>
-                  <option value="billing">Billing Question</option>
-                </select>
-                {errors.inquiryType && <p className="text-red-500 text-sm mt-1">{errors.inquiryType}</p>}
-              </div>
-
-              <div>
-                <input
-                    type="email"
-                    name="email"
-                    placeholder="E-mail*"
-                    value={formData.email}
-                    onChange={handleChange}
-                    className={`w-full pb-3 bg-transparent border-b-2 ${
-                        errors.email ? 'border-red-500' : 'border-gray-300'
-                    } focus:border-gray-900 focus:outline-none text-lg`}
-                />
-                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-12">
-              <div>
-                <input
-                    type="text"
-                    name="name"
-                    placeholder="Your Name*"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className={`w-full pb-3 bg-transparent border-b-2 ${
-                        errors.name ? 'border-red-500' : 'border-gray-300'
-                    } focus:border-gray-900 focus:outline-none text-lg`}
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
-              </div>
-
-              <div>
-                <select
-                    name="country"
-                    value={formData.country}
-                    onChange={handleChange}
-                    className={`w-full pb-3 bg-transparent border-b-2 ${
-                        errors.country ? 'border-red-500' : 'border-gray-300'
-                    } focus:border-gray-900 focus:outline-none appearance-none text-lg`}
-                >
-                  <option value="">Country*</option>
-                  <option value="us">United States</option>
-                  <option value="uk">United Kingdom</option>
-                  <option value="ca">Canada</option>
-                </select>
-                {errors.country && <p className="text-red-500 text-sm mt-1">{errors.country}</p>}
-              </div>
-            </div>
-
-            <div>
-            <textarea
-                name="message"
-                placeholder="Message*"
-                value={formData.message}
-                onChange={handleChange}
-                rows="4"
-                className={`w-full pb-3 bg-transparent border-b-2 ${
-                    errors.message ? 'border-red-500' : 'border-gray-300'
-                } focus:border-gray-900 focus:outline-none text-lg resize-none`}
-            />
-              {errors.message && <p className="text-red-500 text-sm mt-1">{errors.message}</p>}
-            </div>
-
-            <div className="pt-12 flex justify-end">
-              <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="px-16 py-4 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors text-lg disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? 'SUBMITTING...' : 'SUBMIT'}
-              </button>
-            </div>
-          </form>
         </div>
       </div>
-  );
+          <div className="relative text-white">
+    <div className="h-96 overflow-hidden">
+      {/* Add your Google Maps iframe or component here */}
+      <iframe
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63371.81636831517!2d79.82118597944535!3d6.921837390062624!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae253d10f7a7003%3A0x320b2e4d32d3838d!2sColombo%2C%20Sri%20Lanka!5e0!3m2!1sen!2sus!4v1704997544696!5m2!1sen!2sus"
+          width="100%"
+          height="100%"
+          style={{border: 0}}
+          allowFullScreen
+          loading="lazy"
+      />
+    </div>
+  </div>
+</div>
+
+
+</div>
+
+)
+  ;
 };
 
 export default ContactForm;
