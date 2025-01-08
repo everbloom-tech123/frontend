@@ -14,7 +14,7 @@ const Footer = () => {
           <div className="space-y-4">
             <h3 className="text-2xl font-bold text-white">Ceylon Bucket</h3>
             <p className="text-gray-300 text-sm leading-relaxed">
-              Discover the beauty of Sri Lanka with Ceylon Bucket. We provide authentic travel experiences 
+              Discover the beauty of Sri Lanka with Ceylon Bucket. We provide authentic travel experiences
               and unforgettable adventures across the paradise island.
             </p>
             <div className="flex space-x-4 pt-4">
@@ -42,12 +42,12 @@ const Footer = () => {
                 { name: 'Yala', desc: 'Wildlife Safari' },
                 { name: 'Galle', desc: 'Historic Fort' }
               ].map((dest) => (
-                <Link 
+                <Link
                   key={dest.name}
-                  to={`/destination/${dest.name.toLowerCase()}`} 
+                  to={`/destination/${dest.name.toLowerCase()}`}
                   className="group"
                 >
-                  <div className="text-gray-300 hover:text-white transition-colors"> 
+                  <div className="text-gray-300 hover:text-white transition-colors">
                     <div className="font-medium">{dest.name}</div>
                     <div className="text-xs text-gray-400 group-hover:text-gray-200">{dest.desc}</div>
                   </div>

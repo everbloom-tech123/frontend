@@ -70,13 +70,13 @@ const DestinationExplorer = ({ destinations }) => {
   }, [currentIndex, items.length, isTransitioning]);
 
   return (
-    <div className="w-full bg-[#FAF9F6] py-24">
-      <div className="max-w-7xl mx-auto">
+    <div className="w-full bg-[#FAF9F6] py-16">
+      <div className="mx-auto">
         <div className="flex justify-between items-start">
           {/* Left Content Area */}
           <div className="w-1/3 h-[450px] flex flex-col justify-between px-8">
             <div>
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2">
                 <MapPin className="w-6 h-6" strokeWidth={1.5} />
                 <p className="text-xl" style={{ fontFamily: 'Comic Sans MS, cursive' }}>
                   Cherished your memories
@@ -97,9 +97,9 @@ const DestinationExplorer = ({ destinations }) => {
           </div>
 
           {/* Right Section with Images and Navigation */}
-          <div className="w-2/3 flex flex-col px-8">
+          <div className="w-2/3 flex flex-col px-8 ">
             {/* Images Container */}
-            <div className="relative overflow-hidden mb-8">
+            <div className="relative overflow-hidden mb-8 rounded-[2rem]">
               <div 
                 className="flex gap-6 transition-transform duration-500 ease-in-out"
                 style={{
@@ -115,7 +115,7 @@ const DestinationExplorer = ({ destinations }) => {
                     }}
                   >
                     <div
-                      className="absolute inset-0 bg-cover bg-center w-full h-full"
+                      className="absolute inset-0 bg-cover bg-center w-full h-full "
                       style={{ 
                         backgroundImage: `url(${destination.image})`,
                       }}

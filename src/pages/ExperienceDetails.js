@@ -218,11 +218,11 @@ const ExperienceDetails = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
       <MediaGallery
-        media={experience}
-        activeMedia={activeMedia}
-        onMediaChange={handleMediaChange}
-        onVideoClick={handleVideoClick}
-        onBack={() => navigate(-1)}
+          media={experience}
+          activeMedia={activeMedia}
+          onMediaChange={handleMediaChange}
+          onVideoClick={handleVideoClick}
+          onBack={() => navigate(-1)}
       />
 
       <div className="container mx-auto px-4 py-8">
@@ -232,13 +232,13 @@ const ExperienceDetails = () => {
               <div className="p-6">
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">{experience.title}</h1>
                 <RatingInfo
-                  rating={experience.rating}
-                  reviewCount={experience.reviews?.length}
-                  viewCount={experience.viewCount}
-                  className="mb-6"
+                    rating={experience.rating}
+                    reviewCount={experience.reviews?.length}
+                    viewCount={experience.viewCount}
+                    className="mb-6"
                 />
-                <ExperienceContent 
-                  experience={experience}
+                <ExperienceContent
+                    experience={experience}
                 />
               </div>
             </div>
@@ -247,19 +247,19 @@ const ExperienceDetails = () => {
           <div className="lg:w-1/4 mt-6 lg:mt-0">
             <div className="sticky top-6">
               <BookingCard
-                experience={experience}
-                isAuthenticated={isAuthenticated}
-                currentUser={currentUser}
-                isInWishlist={isInWishlist}
-                onBooking={handleBooking}
-                onWishlistToggle={handleWishlistToggle}
+                  experience={experience}
+                  isAuthenticated={isAuthenticated}
+                  currentUser={currentUser}
+                  isInWishlist={isInWishlist}
+                  onBooking={handleBooking}
+                  onWishlistToggle={handleWishlistToggle}
               />
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
-};
+    );
+    };
 
-export default ExperienceDetails;
+    export default ExperienceDetails;

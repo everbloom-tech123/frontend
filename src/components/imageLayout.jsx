@@ -11,23 +11,26 @@ const ImageGrid = ({ images = [
     { id: 7, src: 'https://st2.depositphotos.com/1017986/6014/i/600/depositphotos_60142053-stock-photo-friends-with-smartphone-taking-selfie.jpg', alt: 'Survey 7' },
     { id: 8, src: 'https://powertraveller.com/wp-content/uploads/2024/08/1_treeking-to-knuckles-adventure-camping-in-meemure.jpg', alt: 'Survey 8' },
     { id: 9, src: 'https://powertraveller.com/wp-content/uploads/2024/08/3_treeking-to-knuckles-adventure-camping-in-meemure.jpg', alt: 'Survey 9' },
-  ] }) => {
+    { id: 10, src: 'https://img.redbull.com/images/q_auto,f_auto/redbullcom/2014/04/07/1331644110558_2/kayak-selfie-krystle-wright', alt: 'Survey 1' },
+    { id: 11, src: 'https://img.redbull.com/images/q_auto,f_auto/redbullcom/2014/04/07/1331644124190_6/veso-ovcharov-selfie-skydive', alt: 'Survey 2' },
+    { id: 12, src: 'https://img.redbull.com/images/q_auto,f_auto/redbullcom/2014/04/29/1331648071122_2/jokke-sommer-hawaii-heli-selfie', alt: 'Survey 3' },
+
+] }) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 py-10">
-        <div className="text-center mb-16">
+      <div className="mx-auto">
+        <div className="mb-8">
           <div className="inline-block relative">
-            <h1 className="text-4xl uppercase tracking-widest font-light mb-3">
-              Customer Surveys
-            </h1>
-            <div className="absolute -bottom-4 left-0 right-0 mx-auto w-16 h-px bg-black"></div>
-            <div className="absolute -bottom-6 left-0 right-0 mx-auto w-8 h-px bg-black"></div>
+              <h1 className="text-5xl font-extrabold mb-6 leading-tight tracking-tight">
+                  Customer Surveys
+              </h1>
+
           </div>
         </div>
         
-        <div className="grid grid-cols-3 gap-1">
+        <div className="grid grid-cols-4 gap-1">
           {images.map((image) => (
             <div 
               key={image.id}
@@ -53,10 +56,10 @@ const ImageGrid = ({ images = [
           className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <div 
-            className="relative max-w-2xl w-full bg-transparent transform transition-all duration-300 ease-out animate-modalEntry"
-            onClick={e => e.stopPropagation()}
-          >
+              <div
+                className="relative max-w-2xl w-full bg-transparent transform transition-all duration-300 ease-out animate-modalEntry"
+                onClick={e => e.stopPropagation()}
+              >
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute -top-10 right-0 p-2 text-white hover:text-gray-300 transition-colors duration-200"

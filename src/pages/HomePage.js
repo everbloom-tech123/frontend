@@ -31,11 +31,11 @@ const HomePage = () => {
           CategoryService.getAllCategories()
         ]);
 
-        const featured = Array.isArray(experiencesResponse) ? 
-          (experiencesResponse.filter(exp => exp.featured).length > 0 ? 
-            experiencesResponse.filter(exp => exp.featured) : 
-            experiencesResponse.slice(0, 6)
-          ) : [];
+        const featured = Array.isArray(experiencesResponse) ?
+            (experiencesResponse.filter(exp => exp.featured).length > 0 ?
+                    experiencesResponse.filter(exp => exp.featured) :
+                    experiencesResponse.slice(0, 6)
+            ) : [];
 
         setFeaturedExperiences(featured);
         setCategories(Array.isArray(categoriesResponse) ? categoriesResponse : []);
@@ -59,88 +59,104 @@ const HomePage = () => {
     }
   };
 
-  
-  
+
+
   const handleExperienceClick = (experience) => {
     navigate(`/experience/${experience.id}`);
   };
 
   if (error) {
     return (
-      <div className="text-center mt-8">
-        <h2 className="text-2xl font-bold text-red-600">Error Loading Data</h2>
-        <p className="text-gray-600 mt-2">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
-        >
-          Try Again
-        </button>
-      </div>
+        <div className="text-center mt-8">
+          <h2 className="text-2xl font-bold text-red-600">Error Loading Data</h2>
+          <p className="text-gray-600 mt-2">{error}</p>
+          <button
+              onClick={() => window.location.reload()}
+              className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
+          >
+            Try Again
+          </button>
+        </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+      <div className="bg-gray-50 min-h-screen">
 
-{/* Option 2: Using margins */}
-{/* <div className="mt-0 ml-0 mr-auto">
+          {/* Option 2: Using margins */}
+          {/* <div className="mt-0 ml-0 mr-auto">
     <ModernHero />
 </div> */}
+          <div className="pt-16">
+              <ModernHero/>
+          </div>
+          <DestinationExplorer/>
+          <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
+              <div className="relative mb-16">
 
-<ModernHero />
-{/* <div className="mt-0 ml-0 mr-auto">
-    <DestinationExplorer />
-</div> */}
-<DestinationExplorer />
+                  {/* Most Visited */}
+                  {featuredExperiences.length > 0 && (
+                      <ExperienceGrid
+                          title="Most Viewd Experiences"
+                          subtitle="The top experiences that have captured the interest of the most visitors, offering exceptional popularity and appeal."
+                          experiences={featuredExperiences}
+                          columns={3}
+                          onExperienceClick={handleExperienceClick}
+                          isLoading={loading}
+                      />
+                  )}
 
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+                  <Header/>
 
-      {featuredExperiences.length > 3 && (
-          <ExperienceGrid
-            title="Featured Experiences"
-            subtitle="Highlighting the best and most unique offerings, carefully selected to provide exceptional value and unforgettable moments."
-            experiences={featuredExperiences}
-            columns={3}
-            onExperienceClick={handleExperienceClick}
-            isLoading={loading}
-          />
-      )} 
-      
-        {/* Categories Section */}
-        {categories.length > 0 && (
-          <PlayfulCategories
-            categories={categories}
-            onCategorySelect={handleCategorySelect}
-            activeCategory="All"
-          />
-        )}
 
-      </div>  
-          <Header />
-       
-          <div className="container mx-auto px-4 py-12">
+              </div>
+          </div>
+          {/* Main Content */}
 
-         {/* Most Visited */}
-      {featuredExperiences.length > 0 && (
-          <ExperienceGrid
-            title="Most Viewd Experiences"
-            subtitle="The top experiences that have captured the interest of the most visitors, offering exceptional popularity and appeal."
-            experiences={featuredExperiences}
-            columns={3}
-            onExperienceClick={handleExperienceClick}
-            isLoading={loading}
-          />
-      )}
+          {/*    {featuredExperiences.length > 3 && (*/}
+          {/*        <ExperienceGrid*/}
+          {/*            title="Featured Experiences"*/}
+          {/*            subtitle="Highlighting the best and most unique offerings, carefully selected to provide exceptional value and unforgettable moments."*/}
+          {/*            experiences={featuredExperiences}*/}
+          {/*            columns={3}*/}
+          {/*            onExperienceClick={handleExperienceClick}*/}
+          {/*            isLoading={loading}*/}
+          {/*        />*/}
+          {/*    )}*/}
 
-       <ImageGrid />
-      
-      {/* <ContactForm /> */}
-        {/* Newsletter Section */}
-        
+          {/*     Categories Section */}
+          {/*    {categories.length > 0 && (*/}
+          {/*        <PlayfulCategories*/}
+          {/*            categories={categories}*/}
+          {/*            onCategorySelect={handleCategorySelect}*/}
+          {/*            activeCategory="All"*/}
+          {/*        />*/}
+          {/*    )}*/}
+
+
+          <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
+              <div className="relative mb-16">
+
+                  {/* Most Visited */}
+                  {featuredExperiences.length > 0 && (
+                      <ExperienceGrid
+                          title="Most Viewd Experiences"
+                          subtitle="The top experiences that have captured the interest of the most visitors, offering exceptional popularity and appeal."
+                          experiences={featuredExperiences}
+                          columns={3}
+                          onExperienceClick={handleExperienceClick}
+                          isLoading={loading}
+                      />
+                  )}
+
+                  <ImageGrid/>
+
+                  {/* <ContactForm /> */}
+                  {/* Newsletter Section */}
+
+              </div>
+          </div>
       </div>
-    </div>
   );
 };
 
