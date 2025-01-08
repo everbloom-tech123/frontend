@@ -5,9 +5,9 @@ import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulCategories from '../components/PlayfulCategories';
 import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
-import Header from '../components/Header'; // Import the Header component
+import Header from '../components/traveTips'; // Import the Header component
 import ImageSlider from '../components/ImageSlider';
-import ModernHero from '../components/tr';
+import ModernHero from '../components/modernHero';
 import DestinationExplorer from '../components/Destination';
 import ContactForm from './contactForm';
 import ImageGrid from '../components/imageLayout';
@@ -97,8 +97,8 @@ const HomePage = () => {
                   {/* Most Visited */}
                   {featuredExperiences.length > 0 && (
                       <ExperienceGrid
-                          title="Most Viewd Experiences"
-                          subtitle="The top experiences that have captured the interest of the most visitors, offering exceptional popularity and appeal."
+                          title="Featured Experiences"
+                          subtitle="Explore Our Curated Selection of Exclusive Experiences Designed to Create Lasting Memories"
                           experiences={featuredExperiences}
                           columns={3}
                           onExperienceClick={handleExperienceClick}

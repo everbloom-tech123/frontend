@@ -14,7 +14,7 @@ const DestinationExplorer = ({ destinations }) => {
     },
     {
       id: 2,
-      country: 'Gall',
+      country: 'Galle',
       description: 'A historic coastal city with beaches and the iconic Galle Fort.',
       image: 'https://static.saltinourhair.com/wp-content/uploads/2016/11/23154307/galle-dutch-fort-sri-lanka-header-1440x1440.jpg'
     },
