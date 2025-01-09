@@ -245,16 +245,16 @@ const ExperienceDetails = () => {
           </div>
 
           <div className="lg:w-1/4 mt-6 lg:mt-0">
-            <div className="sticky top-6">
-              <BookingCard
-                  experience={experience}
-                  isAuthenticated={isAuthenticated}
-                  currentUser={currentUser}
-                  isInWishlist={isInWishlist}
-                  onBooking={handleBooking}
-                  onWishlistToggle={handleWishlistToggle}
-              />
-            </div>
+            <div className="sticky top-30"> {/* Increased from top-6 */}
+  <BookingCard
+    experience={experience}
+    isAuthenticated={isAuthenticated}
+    currentUser={currentUser}
+    isInWishlist={isInWishlist}
+    onBooking={handleBooking}
+    onWishlistToggle={handleWishlistToggle}
+  />
+</div>
           </div>
         </div>
       </div>
