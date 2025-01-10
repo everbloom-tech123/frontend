@@ -72,9 +72,9 @@ const DestinationExplorer = ({ destinations }) => {
   return (
     <div className="w-full bg-[#FAF9F6] py-16">
       <div className="mx-auto">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col lg:flex-row justify-between items-start">
           {/* Left Content Area */}
-          <div className="w-1/3 h-[450px] flex flex-col justify-between px-8">
+          <div className="w-full lg:w-1/3 h-auto lg:h-[450px] flex flex-col justify-between px-4 lg:px-8 mb-8 lg:mb-0">
             <div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-6 h-6" strokeWidth={1.5} />
@@ -97,25 +97,25 @@ const DestinationExplorer = ({ destinations }) => {
           </div>
 
           {/* Right Section with Images and Navigation */}
-          <div className="w-2/3 flex flex-col px-8 ">
+          <div className="w-full lg:w-2/3 flex flex-col px-4 lg:px-8">
             {/* Images Container */}
             <div className="relative overflow-hidden mb-8 rounded-[2rem]">
               <div 
                 className="flex gap-6 transition-transform duration-500 ease-in-out"
                 style={{
-                  transform: `translateX(${-currentIndex * (320 + 24)}px)`
+                  transform: `translateX(${-currentIndex * (window.innerWidth < 1024 ? 280 : 320 + 24)}px)`
                 }}
               >
                 {extendedItems.map((destination, index) => (
                   <div 
                     key={`${destination.id}-${index}`}
-                    className="relative w-80 h-[450px] shrink-0"
+                    className="relative w-[280px] lg:w-80 h-[400px] lg:h-[450px] shrink-0"
                     style={{
                       borderRadius: '130px',
                     }}
                   >
                     <div
-                      className="absolute inset-0 bg-cover bg-center w-full h-full "
+                      className="absolute inset-0 bg-cover bg-center w-full h-full"
                       style={{ 
                         backgroundImage: `url(${destination.image})`,
                       }}
