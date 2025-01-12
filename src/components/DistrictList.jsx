@@ -3,7 +3,7 @@ import districtService from '../services/districtService';
 
 const ITEMS_PER_PAGE = 7;
 
-// Reusable Location Item Component
+// Reusable Item Component for both Districts and Cities
 const LocationItem = ({ name, isSelected, isHovered, onClick, onMouseEnter, onMouseLeave }) => (
   <div
     className="group relative overflow-hidden"
@@ -58,11 +58,10 @@ const LocationItem = ({ name, isSelected, isHovered, onClick, onMouseEnter, onMo
 
 const District = () => {
   const [districts, setDistricts] = useState([]);
-  const [cities, setCities] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
+  const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCitiesLoading, setIsCitiesLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
   const [hoveredCityId, setHoveredCityId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -71,25 +70,20 @@ const District = () => {
   const fetchDistricts = async () => {
     try {
       setIsLoading(true);
-      setError(null);
       const data = await districtService.getAllDistricts();
-      setDistricts(Array.isArray(data) ? data : []);
+      setDistricts(data);
     } catch (error) {
       console.error('Failed to fetch districts:', error);
-      setError('Failed to load districts. Please try again.');
-      setDistricts([]);
     } finally {
-      setIsLoading(false);
+      setTimeout(() => setIsLoading(false), 300);
     }
   };
 
   const fetchCities = async (districtId) => {
-    if (!districtId) return;
-    
     try {
       setIsCitiesLoading(true);
       const data = await districtService.getCitiesByDistrict(districtId);
-      setCities(Array.isArray(data) ? data : []);
+      setCities(data);
     } catch (error) {
       console.error('Failed to fetch cities:', error);
       setCities([]);
@@ -107,20 +101,13 @@ const District = () => {
   }, [searchQuery]);
 
   const handleDistrictClick = async (district) => {
-    if (!district?.id) return;
-    
     setSelectedDistrict(district);
-    setCities([]); // Clear previous cities
     await fetchCities(district.id);
   };
 
   const filteredAndPaginatedDistricts = useMemo(() => {
-    if (!Array.isArray(districts)) {
-      return { displayedDistricts: [], totalPages: 0, totalResults: 0 };
-    }
-
     const filtered = districts.filter(district =>
-      district?.name?.toLowerCase().includes(searchQuery?.toLowerCase() || '')
+      district.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -155,29 +142,11 @@ const District = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="w-full max-w-2xl mx-auto bg-red-50 border border-red-200 rounded-lg p-4">
-        <div className="flex justify-between items-center text-red-700">
-          <span>{error}</span>
-          <button 
-            onClick={fetchDistricts}
-            className="px-4 py-2 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-sm">
-      {/* Districts Header */}
       <div className="p-6 border-b">
         <h2 className="text-xl font-semibold mb-4">Districts</h2>
         
-        {/* Search Input */}
         <div className="relative">
           <input
             type="text"
@@ -201,35 +170,25 @@ const District = () => {
           </svg>
         </div>
         
-        {/* Results Counter */}
-        {filteredAndPaginatedDistricts.totalResults > 0 && (
-          <div className="mt-2 text-sm text-gray-500">
-            Showing {filteredAndPaginatedDistricts.displayedDistricts.length} of {filteredAndPaginatedDistricts.totalResults} districts
-          </div>
-        )}
+        <div className="mt-2 text-sm text-gray-500">
+          Showing {filteredAndPaginatedDistricts.displayedDistricts.length} of {filteredAndPaginatedDistricts.totalResults} districts
+        </div>
       </div>
 
       <div className="p-6">
-        {/* Districts List */}
-        {filteredAndPaginatedDistricts.displayedDistricts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            No districts found
-          </div>
-        ) : (
-          <div className="space-y-2 mb-6">
-            {filteredAndPaginatedDistricts.displayedDistricts.map((district) => (
-              <LocationItem
-                key={district.id}
-                name={district.name}
-                isSelected={selectedDistrict?.id === district.id}
-                isHovered={hoveredId === district.id}
-                onClick={() => handleDistrictClick(district)}
-                onMouseEnter={() => setHoveredId(district.id)}
-                onMouseLeave={() => setHoveredId(null)}
-              />
-            ))}
-          </div>
-        )}
+        <div className="space-y-2 mb-6">
+          {filteredAndPaginatedDistricts.displayedDistricts.map((dist) => (
+            <LocationItem
+              key={dist.id}
+              name={dist.name}
+              isSelected={selectedDistrict?.id === dist.id}
+              isHovered={hoveredId === dist.id}
+              onClick={() => handleDistrictClick(dist)}
+              onMouseEnter={() => setHoveredId(dist.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            />
+          ))}
+        </div>
 
         {/* Cities Section */}
         <div className="mt-8 border-t pt-6">
@@ -281,7 +240,6 @@ const District = () => {
           )}
         </div>
 
-        {/* Pagination */}
         {filteredAndPaginatedDistricts.totalPages > 1 && (
           <div className="mt-6 flex justify-center gap-2">
             <button

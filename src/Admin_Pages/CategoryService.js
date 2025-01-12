@@ -3,105 +3,81 @@ import config from '../config';
 
 const API_BASE_URL = `${config.API_BASE_URL}/public/api/categories`;
 
-// Create an axios instance with default config
-const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000, // 10 second timeout
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Add response interceptor for consistent error handling
-axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
-    const errorMessage = error.response?.data?.message || error.message;
-    console.error('API Error:', {
-      endpoint: error.config?.url,
-      method: error.config?.method,
-      status: error.response?.status,
-      message: errorMessage
-    });
-    return Promise.reject(error);
-  }
-);
-
 class CategoryService {
   static async getAllCategories() {
     try {
-      const response = await axiosInstance.get('');
-      return Array.isArray(response.data) ? response.data : [];
+      console.log('Fetching categories from:', API_BASE_URL);
+      const response = await axios.get(API_BASE_URL);
+      console.log('Categories fetched successfully:', response.data);
+      return response.data;
     } catch (error) {
-      console.error('Failed to fetch categories:', error);
-      return []; // Return empty array to prevent UI breaks
+      console.error('Error fetching categories:', error);
+      console.error('Error details:', error.response?.data);
+      // Instead of throwing, return empty array to prevent form from breaking
+      return [];
     }
   }
 
   static async createCategory(categoryData) {
     try {
-      const response = await axiosInstance.post('', categoryData);
+      const response = await axios.post(API_BASE_URL, categoryData);
       return response.data;
     } catch (error) {
-      console.error('Failed to create category:', error);
-      throw new Error('Failed to create category. Please try again.');
+      console.error('Error creating category:', error.response?.data || error);
+      throw error;
     }
   }
 
   static async updateCategory(id, categoryData) {
     try {
-      const response = await axiosInstance.put(`/${id}`, categoryData);
+      const response = await axios.put(`${API_BASE_URL}/${id}`, categoryData);
       return response.data;
     } catch (error) {
-      console.error('Failed to update category:', error);
-      throw new Error('Failed to update category. Please try again.');
+      console.error('Error updating category:', error.response?.data || error);
+      throw error;
     }
   }
 
   static async deleteCategory(id) {
     try {
-      await axiosInstance.delete(`/${id}`);
-      return true;
+      await axios.delete(`${API_BASE_URL}/${id}`);
     } catch (error) {
-      console.error('Failed to delete category:', error);
-      throw new Error('Failed to delete category. Please try again.');
+      console.error('Error deleting category:', error.response?.data || error);
+      throw error;
     }
   }
 
   static async addSubcategory(categoryId, subCategory) {
     try {
-      const response = await axiosInstance.post(
-        `/${categoryId}/subcategories`, 
-        subCategory
-      );
+      const response = await axios.post(`${API_BASE_URL}/${categoryId}/subcategories`, subCategory);
       return response.data;
     } catch (error) {
-      console.error('Failed to add subcategory:', error);
-      throw new Error('Failed to add subcategory. Please try again.');
+      console.error('Error adding subcategory:', error.response?.data || error);
+      throw error;
     }
   }
 
   static async removeSubcategory(categoryId, subCategoryName) {
     try {
-      await axiosInstance.delete(
-        `/${categoryId}/subcategories/${encodeURIComponent(subCategoryName)}`
-      );
-      return true;
+      await axios.delete(`${API_BASE_URL}/${categoryId}/subcategories/${subCategoryName}`);
     } catch (error) {
-      console.error('Failed to remove subcategory:', error);
-      throw new Error('Failed to remove subcategory. Please try again.');
+      console.error('Error removing subcategory:', error.response?.data || error);
+      throw error;
     }
   }
 
+
   static async getCategoryById(id) {
     try {
-      const response = await axiosInstance.get(`/${id}`);
+      const response = await axios.get(`${API_BASE_URL}/${id}`);
       return response.data;
     } catch (error) {
-      console.error('Failed to fetch category:', error);
-      throw new Error('Failed to fetch category. Please try again.');
+      console.error('Error fetching category:', error.response?.data || error);
+      throw error;
     }
   }
 }
+
+
 
 export default CategoryService;
