@@ -10,16 +10,16 @@ export default config; */
 // src/config.js
 import axios from 'axios';
 
-const axiosInstance = axios.create({
-  baseURL: 'https://13.49.223.21',
-  httpsAgent: {
-    rejectUnauthorized: false
-  }
-});
+// Disable SSL verification only in development
+if (process.env.NODE_ENV === 'development') {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 const config = {
   API_BASE_URL: 'https://13.49.223.21',
-  axiosInstance
+  axiosInstance: axios.create({
+    baseURL: 'https://13.49.223.21'
+  })
 };
 
 export default config;
