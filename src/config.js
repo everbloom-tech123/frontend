@@ -2,7 +2,7 @@
 const config = {
   //API_BASE_URL: 'https://api-zdak.onrender.com'  // Always use production API
   //API_BASE_URL: 'http://localhost:8080'
-  API_BASE_URL: 'https://7b43-43-252-15-204.ngrok-free.app'
+  API_BASE_URL: 'http://13.49.223.21:8080'
 };
 
 export default config;
