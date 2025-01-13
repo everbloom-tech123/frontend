@@ -10,7 +10,7 @@ const API_URL = `${config.API_BASE_URL}/auth`;
 
 export const register = async (username, email, password) => {
   try {
-    const response = await fetch(`${API_URL}/signup`, {
+    const response = await config.axiosInstance.post(`${API_URL}/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ export const login = async (email, password) => {
   try {
     console.log('Attempting login with:', { email, password });
     
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await config.axiosInstance.post(`${API_URL}/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ export const removeToken = () => {
 
 export const verifyEmail = async (email, verificationCode) => {
   try {
-    const response = await fetch(`${API_URL}/verify`, {
+    const response = await config.axiosInstance.post(`${API_URL}/verify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export const verifyEmail = async (email, verificationCode) => {
 
 export const resendVerificationCode = async (email) => {
   try {
-    const response = await fetch(`${API_URL}/resend`, {
+    const response = await config.axiosInstance.post(`${API_URL}/resend`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

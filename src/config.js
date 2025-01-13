@@ -10,7 +10,6 @@ export default config; */
 // src/config.js
 import axios from 'axios';
 
-// Create axios instance with SSL validation disabled for development
 const axiosInstance = axios.create({
   baseURL: 'https://13.49.223.21',
   httpsAgent: {
@@ -20,8 +19,7 @@ const axiosInstance = axios.create({
 
 const config = {
   API_BASE_URL: 'https://13.49.223.21',
-  // Export the configured axios instance
-  axiosInstance: axiosInstance
+  axiosInstance
 };
 
 export default config;

@@ -7,7 +7,7 @@ class ExperienceService {
   static async getAllExperiences() {
     try {
       console.log('Fetching all experiences...');
-      const response = await axios.get(API_BASE_URL);
+      const response = await config.axiosInstance.get(API_BASE_URL);
       console.log('Experiences fetched successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -19,7 +19,7 @@ class ExperienceService {
   static async getExperience(id) {
     try {
       console.log(`Fetching experience with id: ${id}`);
-      const response = await axios.get(`${API_BASE_URL}/${id}`);
+      const response = await config.axiosInstance.get(`${API_BASE_URL}/${id}`);
       console.log('Experience fetched successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -123,7 +123,7 @@ class ExperienceService {
         formData.append('tags', JSON.stringify([]));
       }
 
-      const response = await axios.post(API_BASE_URL, formData, {
+      const response = await config.axiosInstance.post(API_BASE_URL, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -215,7 +215,7 @@ class ExperienceService {
         }
       }
 
-      const response = await axios.put(`${API_BASE_URL}/${id}`, formData, {
+      const response = await config.axiosInstance.put(`${API_BASE_URL}/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -245,7 +245,7 @@ class ExperienceService {
   static async deleteExperience(id) {
     try {
       console.log(`Deleting experience ${id}`);
-      await axios.delete(`${API_BASE_URL}/${id}`);
+      await config.axiosInstance.delete(`${API_BASE_URL}/${id}`);
       console.log(`Experience ${id} deleted successfully`);
     } catch (error) {
       console.error(`Error deleting experience ${id}:`, error.response?.data || error.message);
@@ -256,7 +256,7 @@ class ExperienceService {
   static async searchExperiences(query) {
     try {
       console.log('Searching experiences with query:', query);
-      const response = await axios.get(`${API_BASE_URL}/search`, {
+      const response = await config.axiosInstance.get(`${API_BASE_URL}/search`, {
         params: { query }
       });
       console.log('Search results:', response.data);
@@ -321,7 +321,7 @@ class ExperienceService {
   static async getExperiencesByCategory(categoryId) {
     try {
       console.log(`Fetching experiences for category ${categoryId}`);
-      const response = await axios.get(`${API_BASE_URL}/category/${categoryId}`);
+      const response = await config.axiosInstance.get(`${API_BASE_URL}/category/${categoryId}`);
       console.log('Experiences fetched successfully:', response.data);
       return response.data;
     } catch (error) {
@@ -334,7 +334,7 @@ class ExperienceService {
   static async getExperiencesBySubcategory(subcategory) {
     try {
       console.log('Fetching experiences by subcategory:', subcategory);
-      const response = await axios.get(`${API_BASE_URL}/filter/by-subcategory`, {
+      const response = await config.axiosInstance.get(`${API_BASE_URL}/filter/by-subcategory`, {
         params: { subcategory }
       });
       console.log('Experiences filtered by subcategory successfully:', response.data);
@@ -348,7 +348,7 @@ class ExperienceService {
   static async filterExperiencesByCategoryAndSubcategory(categoryId, subcategory) {
     try {
       console.log(`Fetching experiences for category ${categoryId} and subcategory ${subcategory}`);
-      const response = await axios.get(`${API_BASE_URL}/filter/subcategory`, {
+      const response = await config.axiosInstance.get(`${API_BASE_URL}/filter/subcategory`, {
         params: {
           categoryId,
           subcategory
@@ -370,7 +370,7 @@ class ExperienceService {
       const formData = new FormData();
       formData.append('file', file);
 
-      const response = await axios.post(`${API_BASE_URL}/upload/${type}`, formData, {
+      const response = await config.axiosInstance.post(`${API_BASE_URL}/upload/${type}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
