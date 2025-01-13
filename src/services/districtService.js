@@ -1,10 +1,10 @@
 // src/services/districtService.js
-import axios from 'axios';
 import config from '../config';
 
 class DistrictService {
     constructor() {
-        this.apiClient = axios.create({
+        // Use the pre-configured axiosInstance from config
+        this.apiClient = config.axiosInstance.create({
             baseURL: `${config.API_BASE_URL}/public/api`
         });
     }
