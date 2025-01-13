@@ -10,16 +10,18 @@ export default config; */
 // src/config.js
 import axios from 'axios';
 
-// Disable SSL verification only in development
-if (process.env.NODE_ENV === 'development') {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-}
+// Create an axios instance that ignores SSL certificate issues
+const axiosInstance = axios.create({
+    baseURL: 'https://13.49.223.21',
+    validateStatus: () => true,  // Accept all status codes
+    httpsAgent: {
+        rejectUnauthorized: false // This is the key part that makes it work with self-signed certificates
+    }
+});
 
 const config = {
-  API_BASE_URL: 'https://13.49.223.21',
-  axiosInstance: axios.create({
-    baseURL: 'https://13.49.223.21'
-  })
+    API_BASE_URL: 'https://13.49.223.21',
+    axiosInstance: axiosInstance
 };
 
 export default config;
