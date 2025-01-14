@@ -12,7 +12,7 @@ import axios from 'axios';
 
 // Create an axios instance that ignores SSL certificate issues
 const axiosInstance = axios.create({
-    baseURL: 'https://13.49.223.21',
+    baseURL: 'https://api-zdak.onrender.com',
     validateStatus: () => true,  // Accept all status codes
     httpsAgent: {
         rejectUnauthorized: false // This is the key part that makes it work with self-signed certificates
@@ -20,7 +20,7 @@ const axiosInstance = axios.create({
 });
 
 const config = {
-    API_BASE_URL: 'https://13.49.223.21',
+    API_BASE_URL: 'https://api-zdak.onrender.com',
     axiosInstance: axiosInstance
 };
 

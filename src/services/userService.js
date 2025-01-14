@@ -11,7 +11,7 @@ const API_URL = `${config.API_BASE_URL}/api/v1/users`;
 export const getCurrentUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await config.axiosInstance.get(`${API_URL}/me`, {
+    const response = await fetch(`${API_URL}/me`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -34,7 +34,7 @@ export const getCurrentUserProfile = async () => {
 export const getAllUsers = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await config.axiosInstance.get(`${API_URL}/admin/all`, {
+    const response = await fetch(`${API_URL}/admin/all`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
