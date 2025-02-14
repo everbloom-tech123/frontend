@@ -5,23 +5,37 @@ import BookingService from '../services/BookingService';
 import * as userService from '../services/userService';
 
 const BookingPage = () => {
+  // Navigation and authentication hooks
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+
+  // State management for user and form data
   const [currentUser, setCurrentUser] = useState(null);
   const [bookingData, setBookingData] = useState({
     name: '',
     phone: '',
     email: '',
-    description: ''
+    description: '',
+    bookedDate: '' // Added field for date selection
   });
+
+  // UI state management
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [bookingResponse, setBookingResponse] = useState(null);
 
+  // Get experience details from navigation state
   const { experienceId, experienceDetails } = location.state || {};
 
+  // Calculate date constraints for the date picker
+  const today = new Date().toISOString().split('T')[0];
+  const maxDate = new Date();
+  maxDate.setFullYear(maxDate.getFullYear() + 1);
+  const maxDateString = maxDate.toISOString().split('T')[0];
+
+  // Debug logging for navigation state
   useEffect(() => {
     console.group('Navigation State Debug');
     console.log('Location State:', location.state);
@@ -30,6 +44,7 @@ const BookingPage = () => {
     console.groupEnd();
   }, [location.state, experienceId, experienceDetails]);
 
+  // Fetch user data and handle authentication
   useEffect(() => {
     const fetchUserData = async () => {
       if (!isAuthenticated || !localStorage.getItem('token')) {
@@ -56,6 +71,7 @@ const BookingPage = () => {
     fetchUserData();
   }, [isAuthenticated, navigate, location.pathname]);
 
+  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setBookingData(prev => ({
@@ -64,16 +80,26 @@ const BookingPage = () => {
     }));
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    // Validate booking date
+    if (!bookingData.bookedDate) {
+      setError('Please select a booking date');
+      setLoading(false);
+      return;
+    }
+
+    // Validate authentication
     if (!localStorage.getItem('token') || !currentUser?.id) {
       navigate('/signin', { state: { from: location.pathname } });
       return;
     }
 
+    // Validate experience ID
     if (!experienceId) {
       setError('Experience ID is missing');
       setLoading(false);
@@ -86,10 +112,12 @@ const BookingPage = () => {
         phone: bookingData.phone,
         email: bookingData.email,
         description: bookingData.description,
+        bookedDate: bookingData.bookedDate,
         productId: Number(experienceId),
         user: currentUser.id
       };
 
+      // Debug logging for booking submission
       console.group('Booking Submission');
       console.log('Payload:', bookingPayload);
       console.log('Current User:', currentUser);
@@ -105,7 +133,8 @@ const BookingPage = () => {
         name: '',
         phone: '',
         email: '',
-        description: ''
+        description: '',
+        bookedDate: ''
       });
     } catch (err) {
       console.error('Booking error:', err);
@@ -115,6 +144,7 @@ const BookingPage = () => {
     }
   };
 
+  // Render error state if no experience details
   if (!experienceDetails || !experienceId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -135,6 +165,7 @@ const BookingPage = () => {
     );
   }
 
+  // Render success state after booking
   if (success) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -159,6 +190,7 @@ const BookingPage = () => {
     );
   }
 
+  // Main booking form render
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4">
@@ -176,6 +208,27 @@ const BookingPage = () => {
           )}
           
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Date Selection Field */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Select Date
+              </label>
+              <input
+                type="date"
+                name="bookedDate"
+                value={bookingData.bookedDate}
+                onChange={handleInputChange}
+                min={today}
+                max={maxDateString}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+              />
+              <p className="text-sm text-gray-500">
+                Please select a date within the next year
+              </p>
+            </div>
+
+            {/* Name Field */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Full Name
@@ -191,6 +244,7 @@ const BookingPage = () => {
               />
             </div>
 
+            {/* Phone Field */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Phone Number
@@ -206,6 +260,7 @@ const BookingPage = () => {
               />
             </div>
 
+            {/* Email Field */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Email
@@ -221,6 +276,7 @@ const BookingPage = () => {
               />
             </div>
 
+            {/* Special Requests Field */}
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-700">
                 Special Requests
@@ -234,6 +290,7 @@ const BookingPage = () => {
               />
             </div>
 
+            {/* Debug Information */}
             {process.env.NODE_ENV === 'development' && (
               <div className="p-4 bg-gray-100 rounded-lg text-sm font-mono">
                 Debug Info:
@@ -241,9 +298,12 @@ const BookingPage = () => {
                 Experience ID: {experienceId}
                 <br />
                 User ID: {currentUser?.id}
+                <br />
+                Selected Date: {bookingData.bookedDate}
               </div>
             )}
 
+            {/* Submit Button */}
             <button 
               type="submit" 
               disabled={loading}

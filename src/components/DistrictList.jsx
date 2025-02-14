@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import districtService from '../services/districtService';
 
+// Constants
 const ITEMS_PER_PAGE = 7;
 
-// Reusable Item Component for both Districts and Cities
+// LocationItem component handles the display and interaction for each district
 const LocationItem = ({ name, isSelected, isHovered, onClick, onMouseEnter, onMouseLeave }) => (
   <div
     className="group relative overflow-hidden"
@@ -57,16 +59,16 @@ const LocationItem = ({ name, isSelected, isHovered, onClick, onMouseEnter, onMo
 );
 
 const District = () => {
+  // Hooks and state management
+  const navigate = useNavigate();
   const [districts, setDistricts] = useState([]);
   const [selectedDistrict, setSelectedDistrict] = useState(null);
-  const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCitiesLoading, setIsCitiesLoading] = useState(false);
   const [hoveredId, setHoveredId] = useState(null);
-  const [hoveredCityId, setHoveredCityId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Fetch districts data from the service
   const fetchDistricts = async () => {
     try {
       setIsLoading(true);
@@ -79,32 +81,23 @@ const District = () => {
     }
   };
 
-  const fetchCities = async (districtId) => {
-    try {
-      setIsCitiesLoading(true);
-      const data = await districtService.getCitiesByDistrict(districtId);
-      setCities(data);
-    } catch (error) {
-      console.error('Failed to fetch cities:', error);
-      setCities([]);
-    } finally {
-      setIsCitiesLoading(false);
-    }
-  };
-
+  // Initial data fetch
   useEffect(() => {
     fetchDistricts();
   }, []);
 
+  // Reset pagination when search query changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const handleDistrictClick = async (district) => {
+  // Updated navigation handler - Now redirects to /viewby/:districtId
+  const handleDistrictClick = (district) => {
     setSelectedDistrict(district);
-    await fetchCities(district.id);
+    navigate(`/viewby/${district.id}`);  // Updated route pattern
   };
 
+  // Memoized filtering and pagination logic
   const filteredAndPaginatedDistricts = useMemo(() => {
     const filtered = districts.filter(district =>
       district.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -120,6 +113,7 @@ const District = () => {
     };
   }, [districts, searchQuery, currentPage]);
 
+  // Loading state UI
   if (isLoading) {
     return (
       <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-sm">
@@ -142,11 +136,13 @@ const District = () => {
     );
   }
 
+  // Main component UI
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-sm">
       <div className="p-6 border-b">
         <h2 className="text-xl font-semibold mb-4">Districts</h2>
         
+        {/* Search input */}
         <div className="relative">
           <input
             type="text"
@@ -170,12 +166,14 @@ const District = () => {
           </svg>
         </div>
         
+        {/* Results counter */}
         <div className="mt-2 text-sm text-gray-500">
           Showing {filteredAndPaginatedDistricts.displayedDistricts.length} of {filteredAndPaginatedDistricts.totalResults} districts
         </div>
       </div>
 
       <div className="p-6">
+        {/* Districts list */}
         <div className="space-y-2 mb-6">
           {filteredAndPaginatedDistricts.displayedDistricts.map((dist) => (
             <LocationItem
@@ -190,56 +188,7 @@ const District = () => {
           ))}
         </div>
 
-        {/* Cities Section */}
-        <div className="mt-8 border-t pt-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {selectedDistrict ? `Cities in ${selectedDistrict.name}` : 'Select a district to view cities'}
-          </h3>
-
-          {isCitiesLoading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, index) => (
-                <div key={index} className="animate-pulse">
-                  <div className="h-14 bg-gray-100 rounded-lg" />
-                </div>
-              ))}
-            </div>
-          ) : !selectedDistrict ? (
-            <div className="text-center py-8 text-gray-500">
-              <svg
-                className="w-16 h-16 mx-auto mb-4 text-gray-300"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2"
-                />
-              </svg>
-              <p>Click on a district to view its cities</p>
-            </div>
-          ) : cities.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <p>No cities found in this district</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {cities.map((city) => (
-                <LocationItem
-                  key={city.id}
-                  name={city.name}
-                  isHovered={hoveredCityId === city.id}
-                  onMouseEnter={() => setHoveredCityId(city.id)}
-                  onMouseLeave={() => setHoveredCityId(null)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
+        {/* Pagination */}
         {filteredAndPaginatedDistricts.totalPages > 1 && (
           <div className="mt-6 flex justify-center gap-2">
             <button

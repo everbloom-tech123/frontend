@@ -24,7 +24,7 @@ const ExperienceDetails = () => {
 
   const api = useMemo(() => {
     return axios.create({
-      baseURL: config.API_BASE_URL || 'https://3.83.93.102.nip.io',
+      baseURL: config.API_BASE_URL || 'http://localhost:8080',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'

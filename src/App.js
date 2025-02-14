@@ -20,6 +20,7 @@ import BookingPage from './pages/BookingPage';
 import ViewBySubPage from './pages/ViewBySubPage'; // Import the new page
 import ContactForm from './pages/contactForm';
 import AboutUs from './pages/aboutUs';
+import ExperienceByLocation from './pages/ViewBydistrict';
 
 const AdminLayout = () => {
   return (
@@ -70,6 +71,7 @@ const PublicLayout = () => {
           />
           <Route path="/viewby/:categoryId" element={<ViewBySubPage />} /> {/* Added route for ViewBySubPage */}
           <Route path="*" element={<Navigate to="/home" replace />} />
+          <Route path="/viewby/:districtId" element={<ExperienceByLocation />} />
         </Routes>
       </main>
       <Footer />

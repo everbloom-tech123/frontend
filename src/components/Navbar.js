@@ -15,6 +15,10 @@ const Navbar = () => {
   const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [districtOpen, setDistrictOpen] = useState(false);
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
+  const [mobileDistrictOpen, setMobileDistrictOpen] = useState(false);
+  const [mobileNotificationOpen, setMobileNotificationOpen] = useState(false);
+  const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
@@ -33,6 +37,10 @@ const Navbar = () => {
     setCategoriesOpen(false);
     setDistrictOpen(false);
     setNotificationDropdownOpen(false);
+    setMobileCategoriesOpen(false);
+    setMobileDistrictOpen(false);
+    setMobileNotificationOpen(false);
+    setMobileProfileOpen(false);
   }, [location]);
 
   const setupScrollListener = () => {
@@ -93,6 +101,64 @@ const Navbar = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const NotificationContent = () => (
+    <div className="bg-white rounded-md shadow-lg py-1">
+      <div className="px-4 py-2 border-b border-gray-100">
+        <h3 className="text-sm font-semibold text-gray-700">Notifications</h3>
+      </div>
+      <div className="max-h-96 overflow-y-auto">
+        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+          <p className="text-sm text-gray-600">Your booking for "Adventure Trek" has been confirmed.</p>
+          <span className="text-xs text-gray-400 mt-1">2 hours ago</span>
+        </div>
+        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
+          <p className="text-sm text-gray-600">New experience added in your wishlist location!</p>
+          <span className="text-xs text-gray-400 mt-1">1 day ago</span>
+        </div>
+      </div>
+      <div className="px-4 py-2 border-t border-gray-100">
+        <Link
+          to="/notifications"
+          className="text-sm text-red-600 hover:text-red-700 transition-colors duration-200"
+        >
+          View all notifications
+        </Link>
+      </div>
+    </div>
+  );
+
+  const ProfileContent = () => (
+    <div className="bg-white rounded-md shadow-lg py-1">
+      <div className="px-4 py-2 text-sm text-gray-500">{user?.username}</div>
+      {AuthService.getUserRole() === 'ROLE_ADMIN' && (
+        <Link
+          to="/admin/manage-experiences"
+          className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+        >
+          Admin
+        </Link>
+      )}
+      <Link
+        to="/profile"
+        className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+      >
+        Profile
+      </Link>
+      <Link
+        to="/wishlist"
+        className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+      >
+        Wishlist
+      </Link>
+      <button
+        onClick={handleLogout}
+        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
+      >
+        Sign Out
+      </button>
+    </div>
+  );
 
   return (
     <nav className={`fixed top-0 left-0 right-0 bg-white/95 z-50 w-full bg-white shadow-sm transition-shadow duration-300 ${scrolled ? 'shadow-md' : ''}`}>
@@ -223,29 +289,9 @@ const Navbar = () => {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-80 bg-white rounded-md shadow-lg py-1 z-50"
+                      className="absolute right-0 mt-2 w-80 z-50"
                     >
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <h3 className="text-sm font-semibold text-gray-700">Notifications</h3>
-                      </div>
-                      <div className="max-h-96 overflow-y-auto">
-                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
-                          <p className="text-sm text-gray-600">Your booking for "Adventure Trek" has been confirmed.</p>
-                          <span className="text-xs text-gray-400 mt-1">2 hours ago</span>
-                        </div>
-                        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
-                          <p className="text-sm text-gray-600">New experience added in your wishlist location!</p>
-                          <span className="text-xs text-gray-400 mt-1">1 day ago</span>
-                        </div>
-                      </div>
-                      <div className="px-4 py-2 border-t border-gray-100">
-                        <Link
-                          to="/notifications"
-                          className="text-sm text-red-600 hover:text-red-700 transition-colors duration-200"
-                        >
-                          View all notifications
-                        </Link>
-                      </div>
+                      <NotificationContent />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -276,35 +322,9 @@ const Navbar = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50"
+                    className="absolute right-0 mt-2 w-48 z-50"
                   >
-                    <div className="px-4 py-2 text-sm text-gray-500">{user?.username}</div>
-                    {AuthService.getUserRole() === 'ROLE_ADMIN' && (
-                      <Link
-                        to="/admin/manage-experiences"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                      >
-                        Admin
-                      </Link>
-                    )}
-                    <Link
-                      to="/profile"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                    >
-                      Profile
-                    </Link>
-                    <Link
-                      to="/wishlist"
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                    >
-                      Wishlist
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                    >
-                      Sign Out
-                    </button>
+                    <ProfileContent />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -331,19 +351,52 @@ const Navbar = () => {
               className="md:hidden"
             >
               <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+                {/* Mobile Experiences Dropdown */}
                 <div className="py-2">
                   <button
-                    onClick={() => setCategoriesOpen(!categoriesOpen)}
+                    onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
                     className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
                   >
                     <span>Experiences</span>
-                    <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${districtOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileCategoriesOpen ? 'rotate-180' : ''}`} />
                   </button>
-                  {districtOpen && (
-                    <div className="mt-2 bg-gray-50 rounded-md">
-                      <District />
-                    </div>
-                  )}
+                  <AnimatePresence>
+                    {mobileCategoriesOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-2 bg-white rounded-md shadow-inner"
+                      >
+                        <Categories />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Mobile Locations Dropdown */}
+                <div className="py-2">
+                  <button
+                    onClick={() => setMobileDistrictOpen(!mobileDistrictOpen)}
+                    className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
+                  >
+                    <span>Locations</span>
+                    <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileDistrictOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <AnimatePresence>
+                    {mobileDistrictOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mt-2 bg-white rounded-md shadow-inner"
+                      >
+                        <District />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <Link
@@ -366,6 +419,73 @@ const Navbar = () => {
                 >
                   Contact Us
                 </Link>
+
+                {/* Mobile Notifications - Only shown when user is authenticated */}
+                {user && (
+                  <div className="py-2">
+                    <button
+                      onClick={() => setMobileNotificationOpen(!mobileNotificationOpen)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
+                    >
+                      <span>Notifications</span>
+                      <div className="flex items-center">
+                        <span className="bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center mr-2">
+                          2
+                        </span>
+                        <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileNotificationOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                    <AnimatePresence>
+                      {mobileNotificationOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="mt-2"
+                        >
+                          <NotificationContent />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {/* Mobile Profile Section */}
+                {user && (
+                  <div className="py-2">
+                    <button
+                      onClick={() => setMobileProfileOpen(!mobileProfileOpen)}
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
+                    >
+                      <span>Profile</span>
+                      <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileProfileOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    <AnimatePresence>
+                      {mobileProfileOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="mt-2"
+                        >
+                          <ProfileContent />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {/* Mobile Sign In Link - Only shown when user is not authenticated */}
+                {!user && (
+                  <Link
+                    to="/signin"
+                    className="block px-3 py-2 text-sm font-bold text-gray-700 hover:text-red-600 transition-colors duration-200"
+                  >
+                    Sign In
+                  </Link>
+                )}
               </div>
             </motion.div>
           )}

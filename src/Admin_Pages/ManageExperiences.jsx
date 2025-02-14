@@ -17,6 +17,7 @@ import ExperienceForm from './components/ExperienceForm';
 import CategoryManagement from './components/CategoryManagment';
 import ExperienceService from './ExperienceService';
 
+// TabPanel component for handling tab content visibility
 const TabPanel = ({ children, value, index, ...other }) => (
   <div
     role="tabpanel"
@@ -32,6 +33,7 @@ const TabPanel = ({ children, value, index, ...other }) => (
 );
 
 const ManageExperience = () => {
+  // State management for UI components and data
   const [activeTab, setActiveTab] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingExperience, setEditingExperience] = useState(null);
@@ -40,36 +42,97 @@ const ManageExperience = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
+  // Comprehensive form validation function aligned with backend requirements
   const validateFormData = (formData) => {
-    const requiredFields = ['title', 'description', 'price', 'category'];
-    const missing = requiredFields.filter(field => !formData.get(field));
+    // Define all required fields based on backend model
+    const requiredFields = [
+      'title',
+      'description',
+      'additionalInfo',
+      'price',
+      'discount',
+      'subCategoryIds',
+      'cityId',
+      'address'
+    ];
+
+    // Check for missing required fields
+    const missing = [];
+    for (const field of requiredFields) {
+      const value = formData.get(field);
+      if (field === 'subCategoryIds') {
+        // Special handling for subcategories array
+        const subcategoryIds = formData.getAll('subCategoryIds');
+        if (!subcategoryIds || subcategoryIds.length === 0) {
+          missing.push('subcategories');
+        }
+      } else if (!value || (typeof value === 'string' && value.trim() === '')) {
+        missing.push(field);
+      }
+    }
     
     if (missing.length > 0) {
       throw new Error(`Missing required fields: ${missing.join(', ')}`);
     }
 
+    // Validate price and discount
     const price = parseFloat(formData.get('price'));
     const discount = parseFloat(formData.get('discount') || '0');
 
     if (isNaN(price) || price < 0) {
-      throw new Error('Invalid price value');
+      throw new Error('Price must be greater than or equal to 0');
     }
 
     if (isNaN(discount) || discount < 0 || discount > 100) {
       throw new Error('Discount must be between 0 and 100');
     }
 
+    // Validate images
     const images = formData.getAll('images');
-    if (images.length === 0 && !formData.get('existingImages')) {
+    const existingImageUrls = formData.getAll('imageUrls');
+    const imagesToRemove = formData.getAll('removeImages');
+    
+    const totalImages = images.length + 
+      (existingImageUrls?.length || 0) - 
+      (imagesToRemove?.length || 0);
+
+    if (totalImages === 0) {
       throw new Error('At least one image is required');
+    }
+
+    if (totalImages > 5) {
+      throw new Error('Maximum 5 images allowed');
+    }
+
+    // Validate location data
+    const cityId = formData.get('cityId');
+    const address = formData.get('address');
+    if (!cityId || !address?.trim()) {
+      throw new Error('City and address are required');
+    }
+
+    // Validate coordinates if provided
+    const latitude = formData.get('latitude');
+    const longitude = formData.get('longitude');
+    if ((latitude && !longitude) || (!latitude && longitude)) {
+      throw new Error('Both latitude and longitude must be provided if one is specified');
+    }
+    
+    if (latitude && longitude) {
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      if (lat < 5.0 || lat > 10.0 || lng < 79.0 || lng > 82.0) {
+        throw new Error('Coordinates must be within Sri Lanka\'s boundaries');
+      }
     }
   };
 
+  // Handle creation of new experience
   const handleCreateExperience = async (formData) => {
     setIsSubmitting(true);
     setError(null);
     try {
-      // Log FormData contents
+      // Log FormData for debugging
       console.log('Creating experience with data:');
       for (let pair of formData.entries()) {
         if (pair[1] instanceof File) {
@@ -79,6 +142,7 @@ const ManageExperience = () => {
         }
       }
 
+      // Validate form data before submission
       validateFormData(formData);
 
       const response = await ExperienceService.createExperience(formData);
@@ -107,11 +171,12 @@ const ManageExperience = () => {
     }
   };
 
+  // Handle updating existing experience
   const handleUpdateExperience = async (formData) => {
     setIsSubmitting(true);
     setError(null);
     try {
-      // Log FormData contents
+      // Log FormData for debugging
       console.log('Updating experience with data:');
       for (let pair of formData.entries()) {
         if (pair[1] instanceof File) {
@@ -150,6 +215,7 @@ const ManageExperience = () => {
     }
   };
 
+  // UI event handlers
   const handleEdit = (experience) => {
     setError(null);
     setEditingExperience(experience);
@@ -157,7 +223,6 @@ const ManageExperience = () => {
   };
 
   const handleView = (experience) => {
-    // Implement view functionality
     console.log('Viewing experience:', experience);
   };
 
@@ -171,6 +236,7 @@ const ManageExperience = () => {
     setNotification({ ...notification, open: false });
   };
 
+  // Component render
   return (
     <Container maxWidth="xl">
       <Box sx={{ padding: 3 }}>

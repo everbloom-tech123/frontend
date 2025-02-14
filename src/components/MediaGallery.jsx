@@ -70,7 +70,8 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
               onError={(e) => {
                 console.error('Image loading error:', e);
                 setLoading(false);
-                e.target.src = '/placeholder-image.jpg';
+                // Fixed: Use the correct placeholder API endpoint
+                e.target.src = '/api/placeholder/800/600';
               }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -81,6 +82,7 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
         </motion.div>
       </AnimatePresence>
 
+      {/* Rest of the component remains the same */}
       {/* Navigation controls */}
       {allMedia.length > 1 && (
         <>
