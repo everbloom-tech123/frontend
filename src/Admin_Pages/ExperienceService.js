@@ -541,7 +541,17 @@ static async getSpecialExperiences() {
       throw error;
     }
   }
-  
+
+  static async getLimitedExperiences() {
+    try {
+        const response = await axios.get(`${config.API_BASE_URL}/public/api/products/limited`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching limited experiences:', error);
+        throw error;
+    }
+}
+
 }
 
 export default ExperienceService;
