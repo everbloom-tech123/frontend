@@ -1,5 +1,6 @@
 // src/contexts/AuthContext.js
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { tokenManager } from '../utils/TokenManager';
 import * as AuthService from '../services/AuthService';
 
 const AuthContext = createContext(null);
@@ -12,40 +13,37 @@ export const useAuth = () => {
   return context;
 };
 
-const formatUserData = (userData) => {
-  if (!userData) return null;
-  
-  return {
-    id: userData.id,
-    email: userData.email,
-    role: userData.role,
-    username: userData.username,
-    // Add any other necessary user fields
-  };
-};
-
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-    const storedUser = AuthService.getCurrentUser();
-    return formatUserData(storedUser);
-  });
+  const [user, setUser] = useState(() => tokenManager.getUser());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Initialize auth state
+  const logout = async () => {
+    try {
+      tokenManager.clearSession();
+      tokenManager.stopTokenCheck();
+      setUser(null);
+      window.dispatchEvent(new Event('auth-change'));
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  // Initialize auth state and start token check
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        if (AuthService.isAuthenticated()) {
+        if (tokenManager.isAuthenticated()) {
           const userProfile = await AuthService.getUserProfile();
-          const formattedUser = formatUserData(userProfile);
-          setUser(formattedUser);
+          setUser(userProfile);
           
-          // Add validation logging
+          // Start token expiration check
+          tokenManager.startTokenCheck(logout);
+          
           console.group('Auth Initialization');
-          console.log('Formatted User Data:', formattedUser);
-          console.log('Auth Token:', AuthService.getToken());
-          console.log('User Role:', formattedUser?.role);
+          console.log('User Profile:', userProfile);
+          console.log('Token Valid:', !tokenManager.isTokenExpired());
+          console.log('Token Remaining Time:', tokenManager.getTokenRemainingTime());
           console.groupEnd();
         } else {
           setUser(null);
@@ -53,14 +51,18 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
-        AuthService.logout();
-        setUser(null);
+        logout();
       } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
+
+    // Cleanup on unmount
+    return () => {
+      tokenManager.stopTokenCheck();
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -68,15 +70,21 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const response = await AuthService.login(email, password);
-      const formattedUser = formatUserData(response);
-      setUser(formattedUser);
       
-      // Add validation logging
-      console.group('Login Success');
-      console.log('Formatted User Data:', formattedUser);
-      console.log('Auth Token:', AuthService.getToken());
-      console.groupEnd();
+      // Store auth data using token manager
+      tokenManager.setToken(response.token);
+      tokenManager.setUser({
+        id: response.id,
+        username: response.username,
+        email: response.email,
+        role: response.role
+      });
+      tokenManager.setRole(response.role);
       
+      // Start token expiration check
+      tokenManager.startTokenCheck(logout);
+      
+      setUser(tokenManager.getUser());
       return response;
     } catch (err) {
       setError(err.message || 'Login failed');
@@ -86,38 +94,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      await AuthService.logout();
-      setUser(null);
-      // Force update isAuthenticated
-      window.dispatchEvent(new Event('auth-change'));
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  };
-
-  // Listen for auth changes
-  useEffect(() => {
-    const handleAuthChange = () => {
-      setUser(AuthService.getCurrentUser());
-    };
-
-    window.addEventListener('auth-change', handleAuthChange);
-    return () => window.removeEventListener('auth-change', handleAuthChange);
-  }, []);
-
   const value = {
     user,
     loading,
     error,
-    isAuthenticated: !!user,
+    isAuthenticated: tokenManager.isAuthenticated(),
     isAdmin: user?.role === 'ROLE_ADMIN',
     login,
     logout,
     clearError: () => setError(null),
-    // Add a new method to get formatted user data
-    getUserData: () => formatUserData(user)
   };
 
   if (loading) {

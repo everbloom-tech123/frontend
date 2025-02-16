@@ -1,6 +1,9 @@
-import React from 'react';
-import { HashRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+// src/App.js
+import React, { useEffect } from 'react';
+import { HashRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { tokenManager } from './utils/TokenManager';
+import axios from 'axios';
 
 // Import components
 import Navbar from './components/Navbar';
@@ -17,10 +20,42 @@ import ManageExperience from './Admin_Pages/ManageExperiences';
 import WishlistPage from './pages/WishlistPage';
 import ExperienceDetails from './pages/ExperienceDetails';
 import BookingPage from './pages/BookingPage';
-import ViewBySubPage from './pages/ViewBySubPage'; // Import the new page
+import ViewBySubPage from './pages/ViewBySubPage';
 import ContactForm from './pages/contactForm';
 import AboutUs from './pages/aboutUs';
 import ExperienceByLocation from './pages/ViewBydistrict';
+
+// Setup axios interceptors
+const setupAxiosInterceptors = (logoutCallback) => {
+  axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (error.response?.status === 401) {
+        tokenManager.clearSession();
+        logoutCallback();
+      }
+      return Promise.reject(error);
+    }
+  );
+};
+
+const MainLayout = ({ children }) => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setupAxiosInterceptors(() => {
+      logout();
+      navigate('/signin');
+    });
+
+    return () => {
+      // Cleanup if needed
+    };
+  }, [logout, navigate]);
+
+  return children;
+};
 
 const AdminLayout = () => {
   return (
@@ -29,9 +64,9 @@ const AdminLayout = () => {
         <Route 
           path="/manage-experiences" 
           element={
-            <ProtectedRoute role="ADMIN">
-              <ManageExperience />  {/* Updated component name */}
-            </ProtectedRoute>
+            <AdminRoute>
+              <ManageExperience />
+            </AdminRoute>
           } 
         />
       </Routes>
@@ -51,8 +86,9 @@ const PublicLayout = () => {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/viewall" element={<ViewAllExperiencesPage />} />
           <Route path="/experience/:id" element={<ExperienceDetails />} />
-          <Route path='/contact-us' element={<ContactForm />} />
-          <Route path='/about-us' element={<AboutUs />} />
+          <Route path="/contact-us" element={<ContactForm />} />
+          <Route path="/about-us" element={<AboutUs />} />
+          
           <Route 
             path="/wishlist" 
             element={
@@ -69,9 +105,10 @@ const PublicLayout = () => {
               </ProtectedRoute>
             } 
           />
-          <Route path="/viewby/:categoryId" element={<ViewBySubPage />} /> {/* Added route for ViewBySubPage */}
+          
+          <Route path="/viewby/:categoryId" element={<ViewBySubPage />} />
+          <Route path="/viewby/district/:districtId" element={<ExperienceByLocation />} />
           <Route path="*" element={<Navigate to="/home" replace />} />
-          <Route path="/viewby/:districtId" element={<ExperienceByLocation />} />
         </Routes>
       </main>
       <Footer />
@@ -83,20 +120,22 @@ const App = () => {
   return (
     <Router basename="/">
       <AuthProvider>
-        <div className="flex flex-col min-h-screen">
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route
-              path="/admin/*"
-              element={
-                <AdminRoute>
-                  <AdminLayout />
-                </AdminRoute>
-              }
-            />
-            <Route path="/*" element={<PublicLayout />} />
-          </Routes>
-        </div>
+        <MainLayout>
+          <div className="flex flex-col min-h-screen">
+            <Routes>
+              <Route path="/" element={<Navigate to="/home" replace />} />
+              <Route
+                path="/admin/*"
+                element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              />
+              <Route path="/*" element={<PublicLayout />} />
+            </Routes>
+          </div>
+        </MainLayout>
       </AuthProvider>
     </Router>
   );

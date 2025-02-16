@@ -206,6 +206,24 @@ class ExperienceService {
         }
     }
 
+    static async filterByLocation(districtId) {
+        try {
+            if (!districtId) {
+                throw new Error('District ID is required');
+            }
+        
+            console.log(`Filtering experiences by districtId:`, districtId);
+            const response = await axios.get(`${API_BASE_URL}/filter/location`, {
+                params: { districtId }
+            });
+            console.log('Experiences filtered by location successfully:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Error filtering experiences by location:', error.response?.data || error.message);
+            throw error;
+        }
+    }
+
     static async updateExperience(id, formData) {
         try {
             console.log(`Updating experience ${id} with data:`);
@@ -440,26 +458,6 @@ class ExperienceService {
         });
     }
 
-    static async filterByLocation(cityId = null, districtId = null) {
-        try {
-            if (!cityId && !districtId) {
-                throw new Error('Either cityId or districtId must be provided');
-            }
-        
-            console.log(`Filtering experiences by cityId: ${cityId} or districtId: ${districtId}`);
-            const params = {};
-            if (cityId) params.cityId = cityId;
-            if (districtId) params.districtId = districtId;
-        
-            const response = await axios.get(`${API_BASE_URL}/filter/location`, { params });
-            console.log('Experiences filtered by location successfully:', response.data);
-            return response.data;
-        } catch (error) {
-          console.error('Error filtering experiences by location:', error.response?.data || error.message);
-          throw error;
-      }
-  }
-
   static async uploadFile(file, type = 'image') {
       try {
           await this.validateFile(file, type);
@@ -522,6 +520,28 @@ class ExperienceService {
       if (size < 1024 * 1024) return (size / 1024).toFixed(2) + ' KB';
       return (size / (1024 * 1024)).toFixed(2) + ' MB';
   }
+
+  // ExperienceService.js
+static async getSpecialExperiences() {
+    try {
+      const response = await axios.get(`${config.API_BASE_URL}/public/api/products/special`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching special experiences:', error);
+      throw error;
+    }
+  }
+  
+  static async getMostPopularExperiences() {
+    try {
+      const response = await axios.get(`${config.API_BASE_URL}/public/api/products/most-popular`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching most popular experiences:', error);
+      throw error;
+    }
+  }
+  
 }
 
 export default ExperienceService;

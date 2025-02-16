@@ -94,7 +94,7 @@ const District = () => {
   // Updated navigation handler - Now redirects to /viewby/:districtId
   const handleDistrictClick = (district) => {
     setSelectedDistrict(district);
-    navigate(`/viewby/${district.id}`);  // Updated route pattern
+    navigate(`/viewby/district/${district.id}`);  // Updated route pattern
   };
 
   // Memoized filtering and pagination logic

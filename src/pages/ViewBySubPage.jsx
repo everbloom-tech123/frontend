@@ -6,12 +6,16 @@ import PlayfulSubcategories from '../components/PlayfulSubcategories';
 import CategoryService from '../Admin_Pages/CategoryService';
 import { CircularProgress, Chip, Box } from '@mui/material';
 
+const ITEMS_PER_PAGE = 20;
+
 const ViewBySubPage = () => {
    const { categoryId } = useParams();
-   const [searchParams] = useSearchParams();
+   const [searchParams, setSearchParams] = useSearchParams();
    const navigate = useNavigate();
 
    const subcategoryParam = searchParams.get('subcategory');
+   const currentPage = parseInt(searchParams.get('page')) || 1;
+   
    const initialSelectedSubcategories = subcategoryParam 
        ? subcategoryParam.split(',').map(sub => sub.trim())
        : [];
@@ -49,7 +53,6 @@ const ViewBySubPage = () => {
                    setExperiences(data);
                }
            } catch (err) {
-               console.error('Error fetching data:', err);
                setError(err.message || 'Failed to load experiences');
            } finally {
                setLoading(false);
@@ -59,26 +62,29 @@ const ViewBySubPage = () => {
        fetchData();
    }, [categoryId, selectedSubcategories]);
 
+   const handlePageChange = (newPage) => {
+       const params = new URLSearchParams(searchParams);
+       params.set('page', newPage.toString());
+       if (selectedSubcategories.length) {
+           params.set('subcategory', selectedSubcategories.join(','));
+       }
+       setSearchParams(params);
+   };
+
    const handleSubcategorySelect = (subcategoryName) => {
        setSelectedSubcategories(prev => {
            const newSelection = prev.includes(subcategoryName)
                ? prev.filter(sub => sub !== subcategoryName)
                : [...prev, subcategoryName];
            
-           // Create new URLSearchParams object
-           const newParams = new URLSearchParams(searchParams);
-           
+           const params = new URLSearchParams(searchParams);
            if (newSelection.length) {
-               newParams.set('subcategory', newSelection.join(','));
+               params.set('subcategory', newSelection.join(','));
            } else {
-               newParams.delete('subcategory');
+               params.delete('subcategory');
            }
-           
-           // Use absolute path with current categoryId
-           navigate({
-               pathname: `/experiences/category/${categoryId}`,
-               search: newParams.toString()
-           });
+           params.set('page', '1');
+           setSearchParams(params);
            
            return newSelection;
        });
@@ -86,22 +92,23 @@ const ViewBySubPage = () => {
 
    const handleClearFilters = () => {
        setSelectedSubcategories([]);
-       navigate(`/experiences/category/${categoryId}`);
+       setSearchParams({ page: '1' });
    };
 
-   const handleExperienceClick = (experience) => {
-       navigate(`/experience/${experience.id}`);
-   };
+   const paginatedExperiences = experiences.slice(
+       (currentPage - 1) * ITEMS_PER_PAGE,
+       currentPage * ITEMS_PER_PAGE
+   );
+   
+   const totalPages = Math.ceil(experiences.length / ITEMS_PER_PAGE);
 
    if (error) {
        return (
            <div className="text-center mt-8">
                <h2 className="text-2xl font-bold text-red-600">Error Loading Experiences</h2>
                <p className="text-gray-600 mt-2">{error}</p>
-               <button
-                   onClick={() => window.location.reload()}
-                   className="mt-4 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-               >
+               <button onClick={() => window.location.reload()} 
+                       className="mt-4 bg-red-600 text-white px-4 py-2 rounded">
                    Try Again
                </button>
            </div>
@@ -109,21 +116,12 @@ const ViewBySubPage = () => {
    }
 
    return (
-       <div className="bg-gray-50 min-h-screen mt-16">
-           <div className="container mx-auto px-4 py-12">
-               <button
-                   onClick={() => navigate('/experiences')}
-                   className="mb-6 flex items-center text-gray-600 hover:text-red-600 transition-colors"
-               >
-                   <svg
-                       className="w-5 h-5 mr-2"
-                       fill="none"
-                       strokeLinecap="round"
-                       strokeLinejoin="round"
-                       strokeWidth="2"
-                       viewBox="0 0 24 24"
-                       stroke="currentColor"
-                   >
+       <div className="min-h-screen">
+           <div className="container mx-auto px-4 py-8">
+               <button onClick={() => navigate('/experiences')}
+                       className="mb-6 flex items-center text-gray-600 hover:text-red-600">
+                   <svg className="w-5 h-5 mr-2" fill="none" strokeLinecap="round"
+                        strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
                        <path d="M15 19l-7-7 7-7" />
                    </svg>
                    Back to All Experiences
@@ -131,7 +129,7 @@ const ViewBySubPage = () => {
 
                {loading ? (
                    <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-                       <CircularProgress color="primary" />
+                       <CircularProgress />
                    </Box>
                ) : (
                    <>
@@ -153,41 +151,42 @@ const ViewBySubPage = () => {
                                        <div className="mt-4 flex flex-wrap gap-2 items-center">
                                            <span className="text-gray-600">Selected Filters:</span>
                                            {selectedSubcategories.map(sub => (
-                                               <Chip
-                                                   key={sub}
-                                                   label={sub}
-                                                   onDelete={() => handleSubcategorySelect(sub)}
-                                                   color="primary"
-                                                   variant="outlined"
-                                               />
+                                               <Chip key={sub} label={sub}
+                                                     onDelete={() => handleSubcategorySelect(sub)}
+                                                     color="primary" variant="outlined" />
                                            ))}
-                                           <Chip
-                                               label="Clear All"
-                                               onClick={handleClearFilters}
-                                               color="secondary"
-                                               variant="outlined"
-                                           />
+                                           <Chip label="Clear All" onClick={handleClearFilters}
+                                                 color="secondary" variant="outlined" />
                                        </div>
                                    )}
                                </div>
 
                                <ExperienceGrid
-                                   title={`Discover ${category.name} Experiences`}
-                                   subtitle={
-                                       selectedSubcategories.length > 0
-                                           ? experiences.length > 0
-                                               ? `Exploring ${selectedSubcategories.join(', ')} adventures...`
-                                               : `No experiences found for ${selectedSubcategories.join(', ')}`
-                                           : `Explore all ${category.name} adventures...`
-                                   }
-                                   experiences={experiences}
-                                   onExperienceClick={handleExperienceClick}
+                                   experiences={paginatedExperiences}
                                    isLoading={loading}
                                    columns={3}
                                    showPrice={true}
                                    showViewDetails={true}
                                    className="mt-8"
                                />
+
+                               {!loading && totalPages > 1 && (
+                                   <div className="flex justify-center items-center gap-2 mt-8">
+                                       {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                           <button
+                                               key={page}
+                                               onClick={() => handlePageChange(page)}
+                                               className={`px-4 py-2 rounded ${
+                                                   currentPage === page 
+                                                       ? 'bg-red-600 text-white' 
+                                                       : 'bg-gray-200 hover:bg-gray-300'
+                                               }`}
+                                           >
+                                               {page}
+                                           </button>
+                                       ))}
+                                   </div>
+                               )}
                            </>
                        )}
                    </>

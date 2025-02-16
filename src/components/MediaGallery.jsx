@@ -1,31 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPlay, FaChevronLeft, FaChevronRight, FaArrowLeft } from 'react-icons/fa';
+import { Play, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import ExperienceService from '../Admin_Pages/ExperienceService';
 
-const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideoPlaying, onBack }) => {
+const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
   const [loading, setLoading] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [error, setError] = useState(false);
+  const videoRef = useRef(null);
 
-  // Combine all media sources into one array
+  const processMediaUrl = (url) => {
+    if (!url) return null;
+    return url.startsWith('http') ? url : ExperienceService.getFileUrl(url);
+  };
+
   const allMedia = [
-    ...(media.imageUrl ? [media.imageUrl] : []),
-    ...(Array.isArray(media.imageUrls) ? media.imageUrls : []),
-    ...(media.videoUrl ? [media.videoUrl] : [])
+    ...(media.imageUrl ? [processMediaUrl(media.imageUrl)] : []),
+    ...(Array.isArray(media.imageUrls) ? media.imageUrls.map(processMediaUrl) : []),
+    ...(media.videoUrl ? [processMediaUrl(media.videoUrl)] : [])
   ].filter(Boolean);
 
-  // Don't render if no media available
   if (allMedia.length === 0) {
     return (
-      <div className="relative w-full h-[70vh] bg-gray-200 flex items-center justify-center">
-        <p className="text-gray-600">No media available</p>
+      <div className="relative w-full h-96 bg-gray-100 flex items-center justify-center rounded-lg">
+        <p className="text-gray-500">No media available</p>
       </div>
     );
   }
 
-  const isVideo = (mediaUrl) => media.videoUrl === mediaUrl;
+  const isVideo = (mediaUrl) => media.videoUrl && processMediaUrl(media.videoUrl) === mediaUrl;
+
+  const handleVideoPlay = () => {
+    if (videoRef.current) {
+      setIsPlaying(true);
+      setError(false);
+      videoRef.current.play().catch(error => {
+        console.error('Video playback error:', error);
+        setError(true);
+        setIsPlaying(false);
+      });
+    }
+  };
+
+  const handleVideoEnd = () => {
+    setIsPlaying(false);
+  };
 
   return (
-    <div className="relative w-full h-[70vh] bg-gray-200">
-      <AnimatePresence initial={false}>
+    <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
+      <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={activeMedia}
           initial={{ opacity: 0 }}
@@ -35,83 +58,90 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
           className="absolute inset-0 flex items-center justify-center"
         >
           {isVideo(allMedia[activeMedia]) ? (
-            <div className="w-full h-full bg-black flex items-center justify-center">
-              {isVideoPlaying ? (
-                <video
-                  src={allMedia[activeMedia]}
-                  className="w-full h-full object-contain"
-                  controls
-                  autoPlay
-                  onLoadStart={() => setLoading(true)}
-                  onLoadedData={() => setLoading(false)}
-                  onError={(e) => {
-                    console.error('Video loading error:', e);
-                    setLoading(false);
-                  }}
-                />
+            <div className="relative w-full h-full bg-black flex items-center justify-center">
+              {error ? (
+                <div className="text-white text-center">
+                  <p>Error playing video</p>
+                  <button 
+                    onClick={handleVideoPlay}
+                    className="mt-2 px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+                  >
+                    Try Again
+                  </button>
+                </div>
               ) : (
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={onVideoClick}
-                  className="text-white text-6xl hover:text-red-600 transition duration-300"
-                >
-                  <FaPlay />
-                </motion.button>
+                <>
+                  <video
+                    ref={videoRef}
+                    src={allMedia[activeMedia]}
+                    className="w-full h-full object-contain"
+                    controls={isPlaying}
+                    onEnded={handleVideoEnd}
+                    onLoadStart={() => setLoading(true)}
+                    onLoadedData={() => {
+                      setLoading(false);
+                      setError(false);
+                    }}
+                    onError={() => {
+                      setLoading(false);
+                      setError(true);
+                    }}
+                  />
+                  {!isPlaying && !error && (
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleVideoPlay}
+                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 hover:bg-opacity-50 transition-all"
+                    >
+                      <Play className="w-16 h-16 text-white" />
+                    </motion.button>
+                  )}
+                </>
               )}
             </div>
           ) : (
-            <motion.img
+            <img
               src={allMedia[activeMedia]}
-              alt={`Experience ${activeMedia + 1}`}
+              alt={`Media ${activeMedia + 1}`}
               className="w-full h-full object-contain"
               onLoadStart={() => setLoading(true)}
               onLoad={() => setLoading(false)}
               onError={(e) => {
-                console.error('Image loading error:', e);
                 setLoading(false);
-                // Fixed: Use the correct placeholder API endpoint
                 e.target.src = '/api/placeholder/800/600';
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
             />
           )}
         </motion.div>
       </AnimatePresence>
 
-      {/* Rest of the component remains the same */}
-      {/* Navigation controls */}
       {allMedia.length > 1 && (
         <>
           <button
             onClick={() => onMediaChange((activeMedia - 1 + allMedia.length) % allMedia.length)}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition duration-300"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all z-10"
           >
-            <FaChevronLeft />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={() => onMediaChange((activeMedia + 1) % allMedia.length)}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition duration-300"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all z-10"
           >
-            <FaChevronRight />
+            <ChevronRight className="w-6 h-6" />
           </button>
         </>
       )}
 
-      {/* Back button */}
       <button
         onClick={onBack}
-        className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition duration-300 z-10"
+        className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all z-20"
       >
-        <FaArrowLeft />
+        <ArrowLeft className="w-6 h-6" />
       </button>
 
-      {/* Media indicators */}
       {allMedia.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
           {allMedia.map((_, index) => (
             <button
               key={index}
@@ -125,9 +155,8 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onVideoClick, isVideo
         </div>
       )}
 
-      {/* Loading state indicator */}
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
         </div>
       )}

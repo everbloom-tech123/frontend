@@ -1,13 +1,43 @@
 // src/components/ProtectedRoute.js
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { tokenManager } from '../utils/TokenManager';
 
 export const ProtectedRoute = ({ children, role }) => {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  // Show loading spinner while checking authentication
+  // Combined useEffect for all token checks
+  useEffect(() => {
+    const handleTokenExpired = () => {
+      console.log('Token expired, logging out...');
+      logout();
+      navigate('/signin', { 
+        state: { from: location.pathname },
+        replace: true 
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && tokenManager.isTokenExpired()) {
+        console.log('Token expired on tab focus');
+        handleTokenExpired();
+      }
+    };
+
+    if (isAuthenticated) {
+      tokenManager.startTokenCheck(handleTokenExpired);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+    }
+
+    return () => {
+      tokenManager.stopTokenCheck();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isAuthenticated, logout, navigate, location.pathname]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
@@ -16,25 +46,18 @@ export const ProtectedRoute = ({ children, role }) => {
     );
   }
 
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
+  if (!isAuthenticated || tokenManager.isTokenExpired()) {
     return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
   }
 
-  // Check for role-based access
-  if (role === 'ROLE_ADMIN') {
-    // For admin routes, check if user has admin role
-    if (user?.role !== 'ROLE_ADMIN') {
-      console.log('User is not admin, redirecting to home');
-      return <Navigate to="/" replace />;
-    }
+  if (role === 'ROLE_ADMIN' && user?.role !== 'ROLE_ADMIN') {
+    console.log('User is not admin, redirecting to home');
+    return <Navigate to="/" replace />;
   }
 
-  // If all checks pass, render the protected content
   return children;
 };
 
-// Specific route for admin access
 export const AdminRoute = ({ children }) => {
   return (
     <ProtectedRoute role="ROLE_ADMIN">

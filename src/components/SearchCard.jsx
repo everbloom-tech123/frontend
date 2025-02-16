@@ -1,56 +1,70 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { MapPin, ChevronRight, Loader2 } from 'lucide-react';
+import ExperienceService from '../Admin_Pages/ExperienceService';
 
 const SearchCard = ({ experience, onClick }) => {
-    // Function to truncate description while preserving whole words
-    const truncateDescription = (text, maxLength = 100) => {
-        if (!text || text.length <= maxLength) return text;
-        const truncated = text.substr(0, maxLength);
-        return truncated.substr(0, truncated.lastIndexOf(' ')) + '...';
-    };
+  const [imageLoading, setImageLoading] = useState(true);
+  const mainImageUrl = experience.imageUrls?.[0] || experience.imageUrl;
+  
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(price);
+  };
 
-    // Format price to always show 2 decimal places
-    const formatPrice = (price) => {
-        return typeof price === 'number' ? `$${price.toFixed(2)}` : 'Price unavailable';
-    };
-
-    return (
-        <motion.div
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
-            className="group cursor-pointer rounded-xl bg-white/10 backdrop-blur-sm overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300"
-            onClick={() => onClick(experience)}
-        >
-            <div className="aspect-w-16 aspect-h-9 relative overflow-hidden">
-                <img
-                    src={`/public/api/products/files/${experience.firstImageUrl}`}
-                    alt={experience.title}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                    onError={(e) => {
-                        e.target.src = '/placeholder-image.jpg'; // Fallback image
-                        e.target.onerror = null;
-                    }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            </div>
-            
-            <div className="p-4">
-                <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">
-                    {experience.title}
-                </h3>
-                <p className="text-sm text-gray-300 mb-3 line-clamp-2">
-                    {truncateDescription(experience.description)}
-                </p>
-                <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-white">
-                        {formatPrice(experience.price)}
-                    </span>
-                    <span className="text-sm text-ceylon-pink-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        View Details →
-                    </span>
-                </div>
-            </div>
-        </motion.div>
-    );
+  return (
+    <motion.div
+      whileHover={{ scale: 1.01 }}
+      className="relative flex items-center gap-4 p-4 cursor-pointer rounded-xl bg-slate-700/50 hover:bg-slate-600/50 transition-all"
+      onClick={() => onClick(experience)}
+    >
+      <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-slate-600">
+        {imageLoading && mainImageUrl && (
+          <div className="absolute inset-0 flex items-center justify-center z-20">
+            <Loader2 className="w-4 h-4 text-red-600 animate-spin"/>
+          </div>
+        )}
+        {mainImageUrl && (
+          <img
+            src={ExperienceService.getImageUrl(mainImageUrl)}
+            alt={experience.title}
+            className={`h-full w-full object-cover ${imageLoading ? 'opacity-0' : 'opacity-100'}`}
+            onLoad={() => setImageLoading(false)}
+          />
+        )}
+        {experience.discount > 0 && (
+          <div className="absolute top-0 right-0 bg-red-500 px-2 py-1 text-xs font-semibold text-white">
+            -{experience.discount}%
+          </div>
+        )}
+      </div>
+      
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="text-lg font-semibold text-white truncate">
+            {experience.title}
+          </h3>
+          <span className="flex-shrink-0 text-xl font-bold text-white">
+            {formatPrice(experience.price)}
+          </span>
+        </div>
+        
+        <p className="mt-1.5 text-sm text-gray-300 line-clamp-2">
+          {experience.description}
+        </p>
+        
+        {experience.location && (
+          <div className="mt-2 flex items-center gap-2 text-sm text-gray-400">
+            <MapPin className="h-4 w-4" />
+            <span>{experience.location.city}</span>
+            <ChevronRight className="ml-auto h-5 w-5 text-red-400" />
+          </div>
+        )}
+      </div>
+    </motion.div>
+  );
 };
 
-export default SearchCard;
+export { SearchCard };
