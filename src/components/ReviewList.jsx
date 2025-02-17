@@ -1,4 +1,4 @@
-import React from 'react';
+/* import React from 'react';
 import { FaStar } from 'react-icons/fa';
 
 const ReviewList = ({ reviews }) => (
@@ -42,4 +42,4 @@ const ReviewList = ({ reviews }) => (
   </div>
 );
 
-export default ReviewList;
+export default ReviewList; */

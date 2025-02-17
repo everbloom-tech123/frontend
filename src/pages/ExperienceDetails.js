@@ -6,12 +6,12 @@ import { useAuth } from '../contexts/AuthContext';
 import * as AuthService from '../services/AuthService';
 import * as userService from '../services/userService';
 import MediaGallery from '../components/MediaGallery';
-import RatingInfo from '../components/RatingInfo';
 import ExperienceContent from '../components/ExperienceContent';
 import BookingCard from '../components/BookingCard';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 
 const ExperienceDetails = () => {
+  // Core state management
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -22,6 +22,7 @@ const ExperienceDetails = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
+  // API configuration
   const api = useMemo(() => {
     return axios.create({
       baseURL: config.API_BASE_URL || 'http://localhost:8080',
@@ -32,27 +33,7 @@ const ExperienceDetails = () => {
     });
   }, []);
 
-  const generateFakeReviews = useCallback((count) => {
-    const reviews = [];
-    for (let i = 0; i < count; i++) {
-      reviews.push({
-        id: i + 1,
-        user: `User${i + 1}`,
-        avatar: `https://i.pravatar.cc/150?img=${i + 1}`,
-        rating: Math.floor(Math.random() * 5) + 1,
-        comment: `This experience was ${['amazing', 'fantastic', 'wonderful', 'great', 'superb'][Math.floor(Math.random() * 5)]}! I would definitely recommend it to others.`,
-        date: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toLocaleDateString(),
-        replies: Math.random() > 0.5 ? [{
-          user: 'Host',
-          avatar: 'https://i.pravatar.cc/150?img=66',
-          comment: 'Thank you for your feedback!',
-          date: new Date(Date.now() - Math.floor(Math.random() * 1000000000)).toLocaleDateString()
-        }] : []
-      });
-    }
-    return reviews;
-  }, []);
-
+  // Fetch experience data
   useEffect(() => {
     let isMounted = true;
 
@@ -74,7 +55,6 @@ const ExperienceDetails = () => {
         const enhancedExperience = {
           ...response,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
-          reviews: generateFakeReviews(5),
           imageUrl: response.imageUrl ? ExperienceService.getImageUrl(response.imageUrl) : null,
           imageUrls: response.imageUrls ? response.imageUrls.map(url => 
             ExperienceService.getImageUrl(url)
@@ -101,8 +81,9 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api, generateFakeReviews]);
+  }, [id, api]);
 
+  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -124,6 +105,7 @@ const ExperienceDetails = () => {
     fetchCurrentUser();
   }, []);
 
+  // Event handlers
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
   }, []);
@@ -152,18 +134,6 @@ const ExperienceDetails = () => {
         }
       }
     });
-    /* navigate('/booking', {
-      state: {
-        userId: currentUser.id,
-        userEmail: currentUser.email,
-        experienceDetails: {
-          id: experience.id,        // Add this
-          title: experience.title,
-          price: experience.price,
-          imageUrl: experience.imageUrl,
-        }
-      }
-    }); */
   };
 
   const handleWishlistToggle = async () => {
@@ -176,6 +146,7 @@ const ExperienceDetails = () => {
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -186,6 +157,7 @@ const ExperienceDetails = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="text-center mt-8">
@@ -201,6 +173,7 @@ const ExperienceDetails = () => {
     );
   }
 
+  // No experience found state
   if (!experience) {
     return (
       <div className="text-center mt-8">
@@ -215,14 +188,15 @@ const ExperienceDetails = () => {
     );
   }
 
+  // Main render
   return (
     <div className="bg-gray-50 min-h-screen">
       <MediaGallery
-          media={experience}
-          activeMedia={activeMedia}
-          onMediaChange={handleMediaChange}
-          onVideoClick={handleVideoClick}
-          onBack={() => navigate(-1)}
+        media={experience}
+        activeMedia={activeMedia}
+        onMediaChange={handleMediaChange}
+        onVideoClick={handleVideoClick}
+        onBack={() => navigate(-1)}
       />
 
       <div className="container mx-auto px-4 py-8">
@@ -231,35 +205,29 @@ const ExperienceDetails = () => {
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="p-6">
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">{experience.title}</h1>
-                <RatingInfo
-                    rating={experience.rating}
-                    reviewCount={experience.reviews?.length}
-                    viewCount={experience.viewCount}
-                    className="mb-6"
-                />
                 <ExperienceContent
-                    experience={experience}
+                  experience={experience}
                 />
               </div>
             </div>
           </div>
 
           <div className="lg:w-1/4 mt-6 lg:mt-0">
-            <div className="sticky top-30"> {/* Increased from top-6 */}
-  <BookingCard
-    experience={experience}
-    isAuthenticated={isAuthenticated}
-    currentUser={currentUser}
-    isInWishlist={isInWishlist}
-    onBooking={handleBooking}
-    onWishlistToggle={handleWishlistToggle}
-  />
-</div>
+            <div className="sticky top-30">
+              <BookingCard
+                experience={experience}
+                isAuthenticated={isAuthenticated}
+                currentUser={currentUser}
+                isInWishlist={isInWishlist}
+                onBooking={handleBooking}
+                onWishlistToggle={handleWishlistToggle}
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
-    );
-    };
+  );
+};
 
-    export default ExperienceDetails;
+export default ExperienceDetails;

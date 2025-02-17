@@ -16,7 +16,7 @@ class ExperienceService {
         }
     }
 
-    static async getProductsByCategories() {
+    /* static async getProductsByCategories() {
         try {
             console.log('Fetching products organized by categories...');
             const response = await axios.get(`${API_BASE_URL}/categories`);
@@ -26,7 +26,7 @@ class ExperienceService {
             console.error('Error fetching products by categories:', error.response?.data || error.message);
             throw error;
         }
-    }
+    } */
 
     static async getExperience(id) {
         try {
@@ -175,7 +175,7 @@ class ExperienceService {
     }
 
     // Add this method to your ExperienceService class
-    static async getExperiencesByCategory(categoryId) {
+     static async getExperiencesByCategory(categoryId) {
         try {
             console.log('Fetching experiences for category:', categoryId);
             const response = await axios.get(`${API_BASE_URL}/filter/by-category`, {
