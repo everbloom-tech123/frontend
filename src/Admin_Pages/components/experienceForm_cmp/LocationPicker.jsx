@@ -1,30 +1,19 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { Box, Typography, Button, Paper, TextField } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polygon, useMap } from 'react-leaflet';
 import LocationMarker from './LocationMarker';
 import 'leaflet/dist/leaflet.css';
 
-// Component to handle map updates when city bounds change
 const MapUpdater = ({ cityBounds, mapCenter, mapZoom }) => {
   const map = useMap();
   
   useEffect(() => {
-    if (cityBounds) {
-      // Create a bounds object from the polygon points
-      const bounds = cityBounds.reduce((bounds, point) => {
-        return bounds.extend([point[0], point[1]]);
-      }, map.getBounds());
-      
-      // Fit the map to the city bounds with some padding
-      map.fitBounds(bounds, {
-        padding: [50, 50],
-        maxZoom: 15,
-        duration: 1
-      });
+    if (cityBounds?.length) {
+      const bounds = cityBounds.reduce((bounds, point) => 
+        bounds.extend([point[0], point[1]]), map.getBounds());
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1 });
     } else {
-      map.flyTo(mapCenter, mapZoom, {
-        duration: 1
-      });
+      map.flyTo(mapCenter, mapZoom, { duration: 1 });
     }
   }, [cityBounds, mapCenter, mapZoom, map]);
 
@@ -42,12 +31,27 @@ const LocationPicker = ({
   cityBounds,
   formData
 }) => {
+  const handleMapClick = useCallback((position) => {
+    handleLocationChange(position);
+  }, [handleLocationChange]);
+
+  const isLocationValid = useCallback((position) => {
+    if (!position || !cityBounds?.length) return false;
+    return true;
+  }, [cityBounds]);
+
+  useEffect(() => {
+    if (mapPosition && isLocationValid(mapPosition)) {
+      handleLocationChange(mapPosition);
+    }
+  }, [mapPosition, isLocationValid, handleLocationChange]);
+
   return (
     <Box>
       <Typography variant="subtitle1" gutterBottom>Location</Typography>
       <Button 
         variant="outlined" 
-        onClick={() => setShowMap(!showMap)} 
+        onClick={() => setShowMap(!showMap)}
         sx={{ mb: 2 }}
       >
         {showMap ? 'Hide Map' : 'Select Location on Map'}
@@ -64,6 +68,7 @@ const LocationPicker = ({
               zoom={mapZoom}
               style={{ height: '100%', width: '100%' }}
               ref={setMapRef}
+              whenReady={(map) => setMapRef(map)}
             >
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -76,10 +81,10 @@ const LocationPicker = ({
               />
               <LocationMarker
                 position={mapPosition}
-                onLocationChange={handleLocationChange}
+                onLocationChange={handleMapClick}
                 cityBounds={cityBounds}
               />
-              {cityBounds && (
+              {cityBounds?.length > 0 && (
                 <Polygon
                   positions={cityBounds}
                   pathOptions={{
@@ -93,7 +98,7 @@ const LocationPicker = ({
             </MapContainer>
           </Box>
           {mapPosition && (
-            <Typography variant="body2">
+            <Typography variant="body2" color={isLocationValid(mapPosition) ? 'textPrimary' : 'error'}>
               Selected Location: {mapPosition.lat.toFixed(6)}, {mapPosition.lng.toFixed(6)}
             </Typography>
           )}
@@ -102,26 +107,24 @@ const LocationPicker = ({
 
       <Box sx={{ display: 'flex', gap: 2 }}>
         <TextField 
-          label="Latitude" 
-          name="latitude" 
-          type="number" 
-          value={formData.latitude} 
-          required 
+          label="Latitude"
+          name="latitude"
+          type="number"
+          value={formData.latitude || ''}
+          required
           fullWidth
-          InputProps={{
-            readOnly: true,
-          }}
+          InputProps={{ readOnly: true }}
+          error={!isLocationValid(mapPosition)}
         />
         <TextField 
-          label="Longitude" 
-          name="longitude" 
-          type="number" 
-          value={formData.longitude} 
-          required 
+          label="Longitude"
+          name="longitude"
+          type="number"
+          value={formData.longitude || ''}
+          required
           fullWidth
-          InputProps={{
-            readOnly: true,
-          }}
+          InputProps={{ readOnly: true }}
+          error={!isLocationValid(mapPosition)}
         />
       </Box>
     </Box>

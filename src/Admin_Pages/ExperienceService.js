@@ -552,6 +552,28 @@ static async getSpecialExperiences() {
     }
 }
 
+static async filterBySubcategories(subcategoryIds) {
+    try {
+        // For logging and debugging purposes
+        console.log('Filtering experiences by subcategories:', subcategoryIds);
+        
+        // Convert the array to a comma-separated string to match the backend's expectation
+        const subcategoriesParam = subcategoryIds.join(',');
+        
+        const response = await axios.get(`${API_BASE_URL}/filter/by-subcategory`, {
+            params: { 
+                // Send as a single parameter value rather than an array
+                subcategories: subcategoriesParam
+            }
+        });
+        
+        console.log('Filtered experiences fetched successfully:', response.data);
+        return response.data;
+    } catch (error) {
+        console.error('Error filtering experiences by subcategories:', error);
+        throw error;
+    }
+}
 }
 
 export default ExperienceService;

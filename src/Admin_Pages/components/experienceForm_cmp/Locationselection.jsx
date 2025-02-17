@@ -1,23 +1,38 @@
-// src/components/experience/LocationSelection.js
 import React from 'react';
 import { FormControl, InputLabel, Select, MenuItem, TextField } from '@mui/material';
 
-// LocationSelection handles the selection of district and city,
-// with city selection being dependent on the selected district
 const LocationSelection = ({ 
   districts, 
   cities, 
   formData, 
-  handleChange 
+  handleChange,
+  onCityChange 
 }) => {
+  const handleDistrictChange = (event) => {
+    handleChange(event);
+    if (formData.cityId) {
+      handleChange({ 
+        target: { 
+          name: 'cityId', 
+          value: '' 
+        } 
+      });
+    }
+  };
+
+  const handleCitySelect = (event) => {
+    handleChange(event);
+    onCityChange?.(event.target.value);
+  };
+
   return (
     <>
       <FormControl required fullWidth>
         <InputLabel>District</InputLabel>
         <Select 
           name="districtId" 
-          value={formData.districtId} 
-          onChange={handleChange}
+          value={formData.districtId || ''} 
+          onChange={handleDistrictChange}
         >
           {districts.map(district => (
             <MenuItem key={district.id} value={district.id}>
@@ -35,8 +50,8 @@ const LocationSelection = ({
         <InputLabel>City</InputLabel>
         <Select 
           name="cityId" 
-          value={formData.cityId} 
-          onChange={handleChange}
+          value={formData.cityId || ''} 
+          onChange={handleCitySelect}
         >
           {cities.map(city => (
             <MenuItem key={city.id} value={city.id}>
@@ -49,12 +64,13 @@ const LocationSelection = ({
       <TextField
         label="Address"
         name="address"
-        value={formData.address}
+        value={formData.address || ''}
         onChange={handleChange}
         required
         multiline
         rows={2}
         fullWidth
+        error={!!formData.cityId && !formData.address}
       />
     </>
   );
