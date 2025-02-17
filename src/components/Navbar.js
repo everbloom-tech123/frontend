@@ -173,7 +173,7 @@ const Navbar = () => {
               <div className="w-8 h-8 bg-red-600 rounded-full mr-2 flex items-center justify-center">
                 <span className="text-white text-sm">CB</span>
               </div>
-              Ceylon Bucket
+              Ceylon Experience
             </Link>
           </div>
 
