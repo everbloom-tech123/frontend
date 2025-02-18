@@ -1,69 +1,41 @@
 import config from '../config';
 
-// Base URL for all booking-related API endpoints
 const API_URL = `${config.API_BASE_URL}/api/bookings`;
 
 class BookingService {
   /**
-   * Submits a new booking to the backend server
+   * Submits a new booking
    * @param {Object} bookingData - The booking information
-   * @param {string} bookingData.name - Customer's name
-   * @param {string} bookingData.phone - Contact phone number
-   * @param {string} bookingData.email - Contact email address
-   * @param {string} bookingData.description - Additional booking details or special requests
-   * @param {string} bookingData.bookedDate - The requested date for the booking
-   * @param {number} bookingData.productId - ID of the product being booked
-   * @param {number} bookingData.user - ID of the user making the booking
-   * @returns {Promise<Object>} The created booking object from the server
-   * @throws {Error} If the booking submission fails
+   * @returns {Promise<Object>} The created booking
    */
   static async submitBooking(bookingData) {
     try {
-      // Get the authentication token from local storage
       const token = localStorage.getItem('token');
-      
-      // Prepare the booking data including the new bookedDate field
-      const bookingPayload = {
-        name: bookingData.name,
-        phone: bookingData.phone,
-        email: bookingData.email,
-        description: bookingData.description,
-        bookedDate: bookingData.bookedDate, // Include the booked date in the request
-        productId: bookingData.productId,
-        user: bookingData.user
-      };
-
-      // Make the API request to create the booking
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(bookingPayload),
+        body: JSON.stringify(bookingData),
       });
 
-      // Handle non-successful responses
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to submit booking');
       }
 
-      // Parse and return the successful response
       return await response.json();
     } catch (error) {
-      // Log the error for debugging purposes
       console.error('Booking submission error:', error);
-      // Re-throw the error to be handled by the calling component
       throw error;
     }
   }
 
   /**
-   * Retrieves a booking by its ID
-   * @param {number} id - The booking ID to retrieve
+   * Retrieves a booking by ID
+   * @param {number} id - The booking ID
    * @returns {Promise<Object>} The booking details
-   * @throws {Error} If the booking retrieval fails
    */
   static async getBookingById(id) {
     try {
@@ -88,9 +60,8 @@ class BookingService {
 
   /**
    * Retrieves all bookings for a specific user
-   * @param {number} userId - The ID of the user whose bookings to retrieve
-   * @returns {Promise<Object>} The user's booking details
-   * @throws {Error} If the booking retrieval fails
+   * @param {number} userId - The user ID
+   * @returns {Promise<Array>} List of user's bookings
    */
   static async getBookingsByUser(userId) {
     try {
@@ -112,6 +83,126 @@ class BookingService {
       throw error;
     }
   }
+
+  /**
+   * Admin: Retrieves all bookings
+   * @returns {Promise<Array>} List of all bookings
+   */
+  static async getAllBookings() {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/admin/all`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to retrieve all bookings');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('All bookings retrieval error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Admin: Retrieves all pending bookings
+   * @returns {Promise<Array>} List of pending bookings
+   */
+  static async getPendingBookings() {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/admin/pending`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to retrieve pending bookings');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Pending bookings retrieval error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Admin: Retrieves bookings by status and optional date range
+   * @param {string} status - The booking status to filter by
+   * @param {string} [startDate] - Optional start date for filtering
+   * @param {string} [endDate] - Optional end date for filtering
+   * @returns {Promise<Array>} List of filtered bookings
+   */
+  static async getBookingsByStatus(status, startDate = null, endDate = null) {
+    try {
+      const token = localStorage.getItem('token');
+      let url = `${API_URL}/admin/status/${status}`;
+      
+      if (startDate && endDate) {
+        url += `?startDate=${startDate}&endDate=${endDate}`;
+      }
+
+      const response = await fetch(url, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to retrieve bookings by status');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Bookings by status retrieval error:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Admin: Responds to a booking (confirm or decline)
+   * @param {number} bookingId - The booking ID to respond to
+   * @param {Object} responseData - The response data
+   * @param {string} responseData.status - CONFIRMED or DECLINED
+   * @param {string} responseData.message - Response message
+   * @returns {Promise<Object>} The updated booking
+   */
+  // BookingService.js
+static async respondToBooking(bookingId, responseData) {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_URL}/admin/${bookingId}/respond`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        status: responseData.status,
+        message: responseData.message || ''  // Ensure message is never null
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to respond to booking');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Booking response error:', error);
+    throw error;
+  }
+}
 }
 
 export default BookingService;

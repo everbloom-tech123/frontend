@@ -28,17 +28,32 @@ class ExperienceService {
         }
     } */
 
-    static async getExperience(id) {
-        try {
-            console.log(`Fetching experience with id: ${id}`);
-            const response = await axios.get(`${API_BASE_URL}/${id}`);
-            console.log('Experience fetched successfully:', response.data);
-            return response.data;
-        } catch (error) {
-            console.error(`Error fetching experience ${id}:`, error.response?.data || error.message);
-            throw error;
+        static async getExperience(id) {
+            try {
+                console.log(`Fetching experience with id: ${id}`);
+                const response = await axios.get(`${API_BASE_URL}/${id}`);
+                
+                // Transform subcategories data to match the format expected by CategorySelection
+                const experience = response.data;
+                if (experience.subcategories) {
+                    experience.subCategoryIds = experience.subcategories.map(sub => sub.id);
+                    
+                    // Store the full subcategory data for reference if needed
+                    experience.subcategoryDetails = experience.subcategories.map(sub => ({
+                        id: sub.id,
+                        name: sub.name,
+                        categoryId: sub.categoryId,
+                        categoryName: sub.categoryName
+                    }));
+                }
+                
+                console.log('Experience fetched successfully:', experience);
+                return experience;
+            } catch (error) {
+                console.error(`Error fetching experience ${id}:`, error.response?.data || error.message);
+                throw error;
+            }
         }
-    }
 
     static async createExperience(formData) {
         try {

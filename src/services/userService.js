@@ -31,7 +31,7 @@ export const getCurrentUserProfile = async () => {
   }
 };
 
-export const getAllUsers = async () => {
+ const getAllUsers = async () => {
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/admin/all`, {

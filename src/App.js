@@ -16,7 +16,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import VerifyEmail from './pages/VerifyEmail';
 import ViewAllExperiencesPage from './pages/viewall';
-import ManageExperience from './Admin_Pages/ManageExperiences';
+import AdminDashboard from './Admin_Pages/ManageExperiences';
 import WishlistPage from './pages/WishlistPage';
 import ExperienceDetails from './pages/ExperienceDetails';
 import BookingPage from './pages/BookingPage';
@@ -65,7 +65,7 @@ const AdminLayout = () => {
           path="/manage-experiences" 
           element={
             <AdminRoute>
-              <ManageExperience />
+              <AdminDashboard />
             </AdminRoute>
           } 
         />
