@@ -1,45 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Stack, 
   FormControl, 
   InputLabel, 
   Select, 
   MenuItem, 
   Chip,
   Box,
-  Stack,
   OutlinedInput,
   FormHelperText,
-  Alert,
+  Alert
 } from '@mui/material';
-import CategoryService from '../../CategoryService';
 
-const CategorySelection = ({ categories, formData, handleChange }) => {
-  // We keep selectedCategory to track which category's subcategories to display
+const CategorySelection = ({ categories, formData, handleChange, isEditing }) => {
   const [selectedCategory, setSelectedCategory] = useState('');
-  // selectedSubcategories now maintains ALL selected subcategories across categories
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
-  // availableSubcategories shows only the subcategories for the current category
   const [availableSubcategories, setAvailableSubcategories] = useState([]);
   const [error, setError] = useState('');
 
-  // Initialize selections when editing an existing experience
+  // Initialize selections when component mounts or formData changes
   useEffect(() => {
     const initializeSelections = async () => {
       try {
+        // Set all selected subcategories from formData
         if (formData.subCategoryIds?.length > 0) {
-          // Set all selected subcategories from formData
           setSelectedSubcategories(formData.subCategoryIds);
 
-          // Find the first category that contains any of the selected subcategories
-          const firstCategory = categories.find(category => 
-            category.subcategories?.some(sub => 
+          // Find and set the initial category
+          for (const category of categories) {
+            const hasSubcategory = category.subcategories?.some(sub => 
               formData.subCategoryIds.includes(sub.id)
-            )
-          );
-
-          if (firstCategory) {
-            setSelectedCategory(firstCategory.id);
-            setAvailableSubcategories(firstCategory.subcategories || []);
+            );
+            if (hasSubcategory) {
+              setSelectedCategory(category.id);
+              setAvailableSubcategories(category.subcategories || []);
+              break;
+            }
           }
         }
       } catch (error) {
@@ -52,21 +48,19 @@ const CategorySelection = ({ categories, formData, handleChange }) => {
   }, [categories, formData.subCategoryIds]);
 
   // Handle category selection change
-  const handleCategoryChange = async (event) => {
+  const handleCategoryChange = (event) => {
     try {
       const categoryId = event.target.value;
       setSelectedCategory(categoryId);
       setError('');
 
-      // Fetch fresh category data for the selected category
-      const categoryData = await CategoryService.getCategoryById(categoryId);
-      if (categoryData) {
-        // Update available subcategories for the selected category
-        setAvailableSubcategories(categoryData.subcategories || []);
+      const selectedCategoryData = categories.find(cat => cat.id === categoryId);
+      if (selectedCategoryData) {
+        setAvailableSubcategories(selectedCategoryData.subcategories || []);
       }
     } catch (error) {
-      console.error('Error fetching category details:', error);
-      setError('Failed to load subcategories for this category');
+      console.error('Error handling category change:', error);
+      setError('Failed to update category selection');
     }
   };
 
@@ -108,7 +102,7 @@ const CategorySelection = ({ categories, formData, handleChange }) => {
     });
   };
 
-  // Get detailed information about a subcategory
+  // Get subcategory info for display
   const getSubcategoryInfo = (id) => {
     let info = { name: 'Unknown', categoryName: 'Unknown Category' };
     
@@ -143,7 +137,7 @@ const CategorySelection = ({ categories, formData, handleChange }) => {
         </Alert>
       )}
 
-      {/* Display all selected subcategories as chips above the selects */}
+      {/* Display all selected subcategories as chips */}
       {selectedSubcategories.length > 0 && (
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {selectedSubcategories.map((id) => {
@@ -163,7 +157,8 @@ const CategorySelection = ({ categories, formData, handleChange }) => {
         </Box>
       )}
 
-      <FormControl required fullWidth>
+      {/* Category Selector */}
+      <FormControl required={!isEditing} fullWidth>
         <InputLabel>Category</InputLabel>
         <Select
           value={selectedCategory}
@@ -181,7 +176,8 @@ const CategorySelection = ({ categories, formData, handleChange }) => {
         </FormHelperText>
       </FormControl>
 
-      <FormControl required fullWidth disabled={!selectedCategory}>
+      {/* Subcategory Selector */}
+      <FormControl required={!isEditing} fullWidth disabled={!selectedCategory}>
         <InputLabel>Subcategories</InputLabel>
         <Select
           multiple
@@ -220,7 +216,9 @@ const CategorySelection = ({ categories, formData, handleChange }) => {
           ))}
         </Select>
         <FormHelperText>
-          Select subcategories from this category
+          {isEditing 
+            ? 'Optionally select additional subcategories' 
+            : 'Select subcategories from this category'}
         </FormHelperText>
       </FormControl>
     </Stack>

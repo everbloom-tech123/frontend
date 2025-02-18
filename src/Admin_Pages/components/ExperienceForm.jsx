@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Stack, Alert } from '@mui/material';
 
-// Import all component pieces - keeping original structure
+// Import all component pieces
 import BasicInformation from './experienceForm_cmp/Basicinfo';
 import PricingSection from './experienceForm_cmp/PricingSection';
 import CategorySelection from './experienceForm_cmp/categoryselection';
@@ -36,6 +36,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     special: false,
     mostPopular: false,
     cityId: '',
+    districtId: '',
     address: '',
     latitude: '',
     longitude: ''
@@ -69,17 +70,24 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       ]);
 
       if (experience) {
+        // Transform sub_category array to subCategoryIds
+        const subCategoryIds = experience.sub_category 
+          ? experience.sub_category.map(sub => sub.id) 
+          : [];
+
         setFormData({
           ...experience,
-          subCategoryIds: experience.subCategoryIds || [],
+          subCategoryIds: subCategoryIds,
           images: [],
           video: null,
           imageUrls: experience.imageUrls || [],
           videoUrl: experience.videoUrl || '',
           special: experience.special || false,
-          mostPopular: experience.mostPopular || false,
+          mostPopular: experience.most_popular || false,
           imagesToRemove: [],
-          removeVideo: false
+          removeVideo: false,
+          cityId: experience.city?.id || '',
+          districtId: experience.city?.district?.id || ''
         });
 
         if (experience.imageUrls) {
@@ -266,7 +274,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }));
   };
 
-  // Form submission handler with proper FormData construction
+  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -282,11 +290,14 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Properly append subcategory IDs
-      if (!formData.subCategoryIds || formData.subCategoryIds.length === 0) {
-        throw new Error('At least one subcategory is required');
+      // Handle subcategories with preservation logic
+      if (!experience && (!formData.subCategoryIds || formData.subCategoryIds.length === 0)) {
+        throw new Error('At least one subcategory is required for new experiences');
       }
-      formData.subCategoryIds.forEach(id => {
+
+      // Use existing or new subcategories
+      const subcategoryIds = formData.subCategoryIds || [];
+      subcategoryIds.forEach(id => {
         submitData.append('subCategoryIds', id.toString());
       });
       
@@ -297,7 +308,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('cityId', formData.cityId.toString());
       submitData.append('address', formData.address.trim());
       
-      // Add coordinates if they exist
       if (formData.latitude && formData.longitude) {
         submitData.append('latitude', formData.latitude.toString());
         submitData.append('longitude', formData.longitude.toString());
@@ -321,24 +331,20 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         });
       }
 
-      // If editing, handle image removal
       if (experience && formData.imagesToRemove?.length > 0) {
         formData.imagesToRemove.forEach(url => {
           submitData.append('removeImages', url);
         });
       }
 
-      // Handle video
       if (formData.video) {
         submitData.append('video', formData.video);
       }
 
-      // If editing and video should be removed
       if (experience && formData.removeVideo) {
         submitData.append('removeVideo', 'true');
       }
 
-      // Add boolean flags
       submitData.append('special', formData.special ? 'true' : 'false');
       submitData.append('mostPopular', formData.mostPopular ? 'true' : 'false');
 
@@ -370,6 +376,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           categories={categories}
           formData={formData}
           handleChange={handleChange}
+          isEditing={!!experience}
         />
         
         <LocationSelection 
