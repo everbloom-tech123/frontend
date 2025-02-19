@@ -8,10 +8,9 @@ import * as userService from '../services/userService';
 import MediaGallery from '../components/MediaGallery';
 import ExperienceContent from '../components/ExperienceContent';
 import BookingCard from '../components/BookingCard';
-import ExperienceService from '../Admin_Pages/ExperienceService';
+import ExperienceService from '../services/ExperienceService';
 
 const ExperienceDetails = () => {
-  // Core state management
   const { id } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
@@ -22,7 +21,6 @@ const ExperienceDetails = () => {
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
 
-  // API configuration
   const api = useMemo(() => {
     return axios.create({
       baseURL: config.API_BASE_URL || 'http://localhost:8080',
@@ -33,7 +31,6 @@ const ExperienceDetails = () => {
     });
   }, []);
 
-  // Fetch experience data
   useEffect(() => {
     let isMounted = true;
 
@@ -43,7 +40,6 @@ const ExperienceDetails = () => {
       try {
         setLoading(true);
         setError(null);
-
         const response = await ExperienceService.getExperience(id);
         
         if (!isMounted) return;
@@ -59,7 +55,13 @@ const ExperienceDetails = () => {
           imageUrls: response.imageUrls ? response.imageUrls.map(url => 
             ExperienceService.getImageUrl(url)
           ) : [],
-          videoUrl: response.videoUrl ? ExperienceService.getVideoUrl(response.videoUrl) : null
+          videoUrl: response.videoUrl ? ExperienceService.getVideoUrl(response.videoUrl) : null,
+          subcategoryDetails: response.subcategories?.map(sub => ({
+            id: sub.id,
+            name: sub.name,
+            categoryId: sub.categoryId,
+            categoryName: sub.categoryName
+          })) || []
         };
 
         setExperience(enhancedExperience);
@@ -81,9 +83,8 @@ const ExperienceDetails = () => {
     return () => {
       isMounted = false;
     };
-  }, [id, api]);
+  }, [id]);
 
-  // Fetch current user data
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -105,7 +106,6 @@ const ExperienceDetails = () => {
     fetchCurrentUser();
   }, []);
 
-  // Event handlers
   const handleMediaChange = useCallback((index) => {
     setActiveMedia(index);
   }, []);
@@ -146,7 +146,6 @@ const ExperienceDetails = () => {
     }
   };
 
-  // Loading state
   if (loading) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
@@ -157,7 +156,6 @@ const ExperienceDetails = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="text-center mt-8">
@@ -173,7 +171,6 @@ const ExperienceDetails = () => {
     );
   }
 
-  // No experience found state
   if (!experience) {
     return (
       <div className="text-center mt-8">
@@ -188,7 +185,6 @@ const ExperienceDetails = () => {
     );
   }
 
-  // Main render
   return (
     <div className="bg-gray-50 min-h-screen">
       <MediaGallery

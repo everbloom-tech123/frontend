@@ -122,21 +122,7 @@ const HomePage = () => {
 
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">
-          <ImageGrid/>
-        </div>
-
-        {mostPopularExperiences.length > 0 && (
-            <ExperienceGrid
-              title="Most Popular Experiences"
-              subtitle="Top-rated experiences loved by our community"
-              experiences={mostPopularExperiences}
-              columns={3}
-              onExperienceClick={handleExperienceClick}
-              isLoading={loading}
-            />
-          )}
-
-{specialExperiences.length > 0 && (
+        {specialExperiences.length > 0 && (
             <ExperienceGrid
               title="Special Experiences"
               subtitle="Exclusive offers and unique experiences"
@@ -146,6 +132,24 @@ const HomePage = () => {
               isLoading={loading}
             />
           )}
+
+{mostPopularExperiences.length > 0 && (
+            <ExperienceGrid
+              title="Most Popular Experiences"
+              subtitle="Top-rated experiences loved by our community"
+              experiences={mostPopularExperiences}
+              columns={3}
+              onExperienceClick={handleExperienceClick}
+              isLoading={loading}
+            />
+          )}
+          
+          <ImageGrid/>
+        </div>
+
+        
+
+
 
       </div>
     </div>

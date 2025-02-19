@@ -1,60 +1,5 @@
-/* import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import ReviewList from './ReviewList';
-import { Box, Typography, Paper } from '@mui/material';
-import { LocationOn } from '@mui/icons-material';
-
-const TabContent = ({ selectedTab, experience }) => (
-  <AnimatePresence mode="wait">
-    <motion.div
-      key={selectedTab}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
-      className="mt-4"
-    >
-      {selectedTab === 'description' && (
-        <p className="text-gray-600 leading-relaxed">{experience.description}</p>
-      )}
-      {selectedTab === 'additional info' && (
-        <div
-          className="text-gray-600 leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: experience.additionalInfo }}
-        />
-      )}
-      {selectedTab === 'reviews' && <ReviewList reviews={experience.reviews} />}
-      {selectedTab === 'location' && (
-        <div className="space-y-4">
-          <Paper elevation={1} className="p-4">
-            <Box className="flex items-center space-x-2">
-              <LocationOn color="primary" />
-              <Typography variant="subtitle1" className="font-medium">
-                {experience.address}
-              </Typography>
-            </Box>
-          </Paper>
-          <div className="w-full h-[400px] rounded-lg overflow-hidden">
-            <iframe
-              title="Location Map"
-              width="100%"
-              height="100%"
-              frameBorder="0"
-              style={{ border: 0 }}
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${experience.longitude-0.01}%2C${experience.latitude-0.01}%2C${experience.longitude+0.01}%2C${experience.latitude+0.01}&layer=mapnik&marker=${experience.latitude}%2C${experience.longitude}`}
-            />
-          </div>
-        </div>
-      )}
-    </motion.div>
-  </AnimatePresence>
-);
-
-export default TabContent; */
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import ReviewList from './ReviewList';
 import { Box, Typography, Paper, Divider } from '@mui/material';
 import { LocationOn, AccessTime, Category, Info, Star } from '@mui/icons-material';
 
@@ -62,13 +7,11 @@ const ExperienceContent = ({ experience }) => {
   const {
     description,
     additionalInfo,
-    reviews,
     address,
     latitude,
     longitude,
     duration,
-    category,
-    subcategory,
+    subcategoryDetails,
     special,
     rating
   } = experience;
@@ -80,7 +23,6 @@ const ExperienceContent = ({ experience }) => {
       transition={{ duration: 0.3 }}
       className="space-y-8"
     >
-      {/* Overview Section */}
       <section className="space-y-4">
         <Typography variant="h5" className="font-bold">
           Experience Overview
@@ -92,7 +34,6 @@ const ExperienceContent = ({ experience }) => {
         </Paper>
       </section>
 
-      {/* Key Details Section */}
       <section className="space-y-4">
         <Typography variant="h5" className="font-bold">
           Key Details
@@ -113,10 +54,10 @@ const ExperienceContent = ({ experience }) => {
             <Category className="text-gray-500" />
             <div>
               <Typography variant="subtitle2" className="font-semibold">
-                Category
+                Subcategories
               </Typography>
               <Typography className="text-gray-600">
-                {category} {subcategory && `- ${subcategory}`}
+                {subcategoryDetails ? subcategoryDetails.map(sub => sub.name).join(', ') : 'Not specified'}
               </Typography>
             </div>
           </Box>
@@ -136,7 +77,6 @@ const ExperienceContent = ({ experience }) => {
         </Paper>
       </section>
 
-      {/* Location Section */}
       <section className="space-y-4">
         <Typography variant="h5" className="font-bold">
           Location
@@ -165,7 +105,6 @@ const ExperienceContent = ({ experience }) => {
         </Paper>
       </section>
 
-      {/* Additional Information Section */}
       {additionalInfo && (
         <section className="space-y-4">
           <Typography variant="h5" className="font-bold">
@@ -179,28 +118,6 @@ const ExperienceContent = ({ experience }) => {
                 dangerouslySetInnerHTML={{ __html: additionalInfo }}
               />
             </Box>
-          </Paper>
-        </section>
-      )}
-
-      {/* Reviews Section */}
-      {reviews && reviews.length > 0 && (
-        <section className="space-y-4">
-          <Typography variant="h5" className="font-bold">
-            Reviews
-          </Typography>
-          <Paper elevation={1} className="p-6">
-            <Box className="flex items-center space-x-2 mb-4">
-              <Star className="text-yellow-500" />
-              <Typography variant="h6">
-                {rating} out of 5
-              </Typography>
-              <Typography variant="body2" className="text-gray-500">
-                ({reviews.length} reviews)
-              </Typography>
-            </Box>
-            <Divider className="mb-4" />
-            <ReviewList reviews={reviews} />
           </Paper>
         </section>
       )}
