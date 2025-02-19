@@ -21,82 +21,86 @@ const ExperienceContent = ({ experience }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="space-y-8"
+      className="space-y-10"
     >
-      <section className="space-y-4">
-        <Typography variant="h5" className="font-bold">
-          Experience Overview
+      <section>
+        <Typography variant="h5" className="font-bold mb-4 text-gray-900">
+          About This Experience
         </Typography>
-        <Paper elevation={1} className="p-6">
-          <Typography className="text-gray-700 leading-relaxed whitespace-pre-line">
+        <Paper elevation={0} className="p-8 bg-white rounded-xl shadow-sm">
+          <Typography className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
             {description}
           </Typography>
         </Paper>
       </section>
 
-      <section className="space-y-4">
-        <Typography variant="h5" className="font-bold">
-          Key Details
+      <section>
+        <Typography variant="h5" className="font-bold mb-4 text-gray-900">
+          Experience Details
         </Typography>
-        <Paper elevation={1} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Box className="flex items-start space-x-3">
-            <AccessTime className="text-gray-500" />
-            <div>
-              <Typography variant="subtitle2" className="font-semibold">
-                Duration
-              </Typography>
-              <Typography className="text-gray-600">
-                {duration || 'Duration not specified'}
-              </Typography>
-            </div>
-          </Box>
-          {sub_category && sub_category.length > 0 && (
-            <Box className="flex items-start space-x-3">
-              <div className="w-full">
-                <Typography variant="subtitle2" className="font-semibold mb-2">
-                  Subcategories
-                </Typography>
-                <div className="flex flex-wrap gap-2">
-                  {sub_category.map(sub => (
-                    <span
-                      key={sub.id}
-                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
-                    >
-                      {sub.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </Box>
-          )}
-          {special && (
-            <Box className="flex items-start space-x-3">
-              <Star className="text-yellow-500" />
+        <Paper elevation={0} className="p-8 bg-white rounded-xl shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Box className="flex items-start gap-4">
+              <AccessTime className="text-gray-400 mt-1" />
               <div>
-                <Typography variant="subtitle2" className="font-semibold">
-                  Special Experience
+                <Typography variant="subtitle1" className="font-semibold text-gray-900 mb-1">
+                  Duration
                 </Typography>
-                <Typography className="text-gray-600">
-                  This is a featured experience with exclusive benefits
+                <Typography className="text-gray-600 text-lg">
+                  {duration || 'Duration not specified'}
                 </Typography>
               </div>
             </Box>
-          )}
+            
+            {sub_category && sub_category.length > 0 && (
+              <Box className="flex items-start gap-4">
+                <div className="w-full">
+                  <Typography variant="subtitle1" className="font-semibold text-gray-900 mb-3">
+                    Categories
+                  </Typography>
+                  <div className="flex flex-wrap gap-2">
+                    {sub_category.map(sub => (
+                      <span
+                        key={sub.id}
+                        className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium"
+                      >
+                        {sub.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </Box>
+            )}
+            
+            {special && (
+              <Box className="flex items-start gap-4">
+                <Star className="text-amber-400 mt-1" />
+                <div>
+                  <Typography variant="subtitle1" className="font-semibold text-gray-900 mb-1">
+                    Premium Experience
+                  </Typography>
+                  <Typography className="text-gray-600 text-lg">
+                    Exclusive features and benefits included
+                  </Typography>
+                </div>
+              </Box>
+            )}
+          </div>
         </Paper>
       </section>
 
-      <section className="space-y-4">
-        <Typography variant="h5" className="font-bold">
+      <section>
+        <Typography variant="h5" className="font-bold mb-4 text-gray-900">
           Location
         </Typography>
-        <Paper elevation={1} className="p-6 space-y-4">
-          <Box className="flex items-center space-x-3">
+        <Paper elevation={0} className="p-8 bg-white rounded-xl shadow-sm space-y-6">
+          <Box className="flex items-center gap-4">
             <LocationOn className="text-red-500" />
-            <Typography variant="subtitle1" className="font-medium">
+            <Typography variant="subtitle1" className="font-medium text-gray-900">
               {address}
             </Typography>
           </Box>
-          <div className="w-full h-[400px] rounded-lg overflow-hidden">
+          <div className="w-full h-[400px] rounded-xl overflow-hidden border border-gray-100">
             <iframe
               title="Location Map"
               width="100%"
@@ -107,22 +111,22 @@ const ExperienceContent = ({ experience }) => {
               allowFullScreen
             />
           </div>
-          <Typography variant="caption" className="text-gray-500 block mt-2">
-            View location on map: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+          <Typography variant="caption" className="text-gray-500 block">
+            Coordinates: {latitude.toFixed(6)}, {longitude.toFixed(6)}
           </Typography>
         </Paper>
       </section>
 
       {additionalInfo && (
-        <section className="space-y-4">
-          <Typography variant="h5" className="font-bold">
+        <section>
+          <Typography variant="h5" className="font-bold mb-4 text-gray-900">
             Additional Information
           </Typography>
-          <Paper elevation={1} className="p-6">
-            <Box className="flex items-start space-x-3">
-              <Info className="text-gray-500 mt-1" />
+          <Paper elevation={0} className="p-8 bg-white rounded-xl shadow-sm">
+            <Box className="flex items-start gap-4">
+              <Info className="text-gray-400 mt-1" />
               <div
-                className="text-gray-700 leading-relaxed prose max-w-none"
+                className="text-gray-700 leading-relaxed prose max-w-none text-lg"
                 dangerouslySetInnerHTML={{ __html: additionalInfo }}
               />
             </Box>

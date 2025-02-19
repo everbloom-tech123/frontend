@@ -173,6 +173,7 @@ const ExperienceDetails = () => {
 
   if (!experience) {
     return (
+
       <div className="text-center mt-8">
         <h2 className="text-2xl font-bold mb-4">Experience Not Found</h2>
         <button 
@@ -186,6 +187,7 @@ const ExperienceDetails = () => {
   }
 
   return (
+    <div className="container mx-auto px-4 pt-16 pb-8">
     <div className="bg-gray-50 min-h-screen">
       <MediaGallery
         media={experience}
@@ -222,6 +224,7 @@ const ExperienceDetails = () => {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 };
