@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Box, Typography, Paper, Divider } from '@mui/material';
-import { LocationOn, AccessTime, Category, Info, Star } from '@mui/icons-material';
+import { Box, Typography, Paper } from '@mui/material';
+import { LocationOn, AccessTime, Info, Star } from '@mui/icons-material';
 
 const ExperienceContent = ({ experience }) => {
   const {
@@ -11,7 +11,7 @@ const ExperienceContent = ({ experience }) => {
     latitude,
     longitude,
     duration,
-    subcategoryDetails,
+    sub_category,
     special,
     rating
   } = experience;
@@ -50,17 +50,25 @@ const ExperienceContent = ({ experience }) => {
               </Typography>
             </div>
           </Box>
-          <Box className="flex items-start space-x-3">
-            <Category className="text-gray-500" />
-            <div>
-              <Typography variant="subtitle2" className="font-semibold">
-                Subcategories
-              </Typography>
-              <Typography className="text-gray-600">
-                {subcategoryDetails ? subcategoryDetails.map(sub => sub.name).join(', ') : 'Not specified'}
-              </Typography>
-            </div>
-          </Box>
+          {sub_category && sub_category.length > 0 && (
+            <Box className="flex items-start space-x-3">
+              <div className="w-full">
+                <Typography variant="subtitle2" className="font-semibold mb-2">
+                  Subcategories
+                </Typography>
+                <div className="flex flex-wrap gap-2">
+                  {sub_category.map(sub => (
+                    <span
+                      key={sub.id}
+                      className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+                    >
+                      {sub.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Box>
+          )}
           {special && (
             <Box className="flex items-start space-x-3">
               <Star className="text-yellow-500" />

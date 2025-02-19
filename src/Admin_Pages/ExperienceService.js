@@ -16,18 +16,6 @@ class ExperienceService {
         }
     }
 
-    /* static async getProductsByCategories() {
-        try {
-            console.log('Fetching products organized by categories...');
-            const response = await axios.get(`${API_BASE_URL}/categories`);
-            console.log('Products by categories fetched successfully:', response.data);
-            return response.data;
-        } catch (error) {
-            console.error('Error fetching products by categories:', error.response?.data || error.message);
-            throw error;
-        }
-    } */
-
         static async getExperience(id) {
             try {
                 console.log(`Fetching experience with id: ${id}`);
