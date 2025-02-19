@@ -198,7 +198,7 @@ const BookingPage = () => {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="mb-8">
             <h1 className="text-2xl font-bold text-gray-800 mb-2">{experienceDetails.title}</h1>
-            <p className="text-gray-600">Complete your booking details below</p>
+            <p className="text-gray-600">Complete your booking details below ; )</p>
           </div>
 
           {error && (
