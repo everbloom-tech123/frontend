@@ -116,18 +116,16 @@ const HomePage = () => {
             />
           )}
 
-          {specialExperiences.length > 0 && (
-            <ExperienceGrid
-              title="Special Experiences"
-              subtitle="Exclusive offers and unique experiences"
-              experiences={specialExperiences}
-              columns={3}
-              onExperienceClick={handleExperienceClick}
-              isLoading={loading}
-            />
-          )}
+          <Header/>
+        </div>
+      </div>
 
-          {mostPopularExperiences.length > 0 && (
+      <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
+        <div className="relative mb-16">
+          <ImageGrid/>
+        </div>
+
+        {mostPopularExperiences.length > 0 && (
             <ExperienceGrid
               title="Most Popular Experiences"
               subtitle="Top-rated experiences loved by our community"
@@ -138,14 +136,17 @@ const HomePage = () => {
             />
           )}
 
-          <Header/>
-        </div>
-      </div>
+{specialExperiences.length > 0 && (
+            <ExperienceGrid
+              title="Special Experiences"
+              subtitle="Exclusive offers and unique experiences"
+              experiences={specialExperiences}
+              columns={3}
+              onExperienceClick={handleExperienceClick}
+              isLoading={loading}
+            />
+          )}
 
-      <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
-        <div className="relative mb-16">
-          <ImageGrid/>
-        </div>
       </div>
     </div>
   );
