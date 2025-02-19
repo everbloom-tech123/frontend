@@ -76,7 +76,46 @@ const HomePage = () => {
       
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">
-          {allExperiences.length > 0 && (
+          
+
+          {/* {featuredExperiences.length > 0 && (
+            <ExperienceGrid
+              title="Featured Experiences"
+              subtitle="Explore Our Curated Selection of Exclusive Experiences"
+              experiences={featuredExperiences}
+              columns={3}
+              onExperienceClick={handleExperienceClick}
+              isLoading={loading}
+            />
+          )} */}
+
+          {specialExperiences.length > 0 && (
+            <ExperienceGrid
+              title="Special Experiences"
+              subtitle="Exclusive offers and unique experiences"
+              experiences={specialExperiences}
+              columns={3}
+              onExperienceClick={handleExperienceClick}
+              isLoading={loading}
+            />
+          )}
+
+          {mostPopularExperiences.length > 0 && (
+            <ExperienceGrid
+              title="Most Popular Experiences"
+              subtitle="Top-rated experiences loved by our community"
+              experiences={mostPopularExperiences}
+              columns={3}
+              onExperienceClick={handleExperienceClick}
+              isLoading={loading}
+            />
+          )}
+
+          <Header/>
+        </div>
+      </div>
+
+      {allExperiences.length > 0 && (
             <div className="mb-12">
               <div className="flex justify-between items-center mb-6">
                 <div className="flex flex-col items-start">
@@ -105,52 +144,10 @@ const HomePage = () => {
             </div>
           )}
 
-          {featuredExperiences.length > 0 && (
-            <ExperienceGrid
-              title="Featured Experiences"
-              subtitle="Explore Our Curated Selection of Exclusive Experiences"
-              experiences={featuredExperiences}
-              columns={3}
-              onExperienceClick={handleExperienceClick}
-              isLoading={loading}
-            />
-          )}
-
-          <Header/>
-        </div>
-      </div>
-
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">
-        {specialExperiences.length > 0 && (
-            <ExperienceGrid
-              title="Special Experiences"
-              subtitle="Exclusive offers and unique experiences"
-              experiences={specialExperiences}
-              columns={3}
-              onExperienceClick={handleExperienceClick}
-              isLoading={loading}
-            />
-          )}
-
-{mostPopularExperiences.length > 0 && (
-            <ExperienceGrid
-              title="Most Popular Experiences"
-              subtitle="Top-rated experiences loved by our community"
-              experiences={mostPopularExperiences}
-              columns={3}
-              onExperienceClick={handleExperienceClick}
-              isLoading={loading}
-            />
-          )}
-          
           <ImageGrid/>
         </div>
-
-        
-
-
-
       </div>
     </div>
   );

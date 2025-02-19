@@ -8,7 +8,7 @@ import * as userService from '../services/userService';
 import MediaGallery from '../components/MediaGallery';
 import ExperienceContent from '../components/ExperienceContent';
 import BookingCard from '../components/BookingCard';
-import ExperienceService from '../services/ExperienceService';
+import ExperienceService from '../Admin_Pages/ExperienceService';
 
 const ExperienceDetails = () => {
   const { id } = useParams();

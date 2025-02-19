@@ -6,7 +6,7 @@ import ExperienceGrid from '../components/ExperienceGrid';
 import PlayfulCategories from '../components/PlayfulCategories';
 import { CircularProgress, Box, Chip } from '@mui/material';
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 15;
 
 const ViewAllExperiencesPage = () => {
     const navigate = useNavigate();
