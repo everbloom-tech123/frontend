@@ -171,7 +171,7 @@ const ExperienceDetails = () => {
     );
   }
 
-  if (!experience) {
+  /* if (!experience) {
     return (
 
       <div className="text-center mt-8">
@@ -184,17 +184,17 @@ const ExperienceDetails = () => {
         </button>
       </div>
     );
-  }
+  } */
 
   return (
-    <div className="container mx-auto px-4 pt-16 pb-8">
-    <div className="bg-gray-50 min-h-screen">
+    
+    <div className="bg-gray-50 min-h-screen px-4 py-8">
       <MediaGallery
         media={experience}
         activeMedia={activeMedia}
         onMediaChange={handleMediaChange}
         onVideoClick={handleVideoClick}
-        onBack={() => navigate(-1)}
+        //onBack={() => navigate(-1)}
       />
 
       <div className="container mx-auto px-4 py-8">
@@ -224,7 +224,6 @@ const ExperienceDetails = () => {
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

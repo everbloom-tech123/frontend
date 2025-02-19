@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 
-const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
+const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
   const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState(false);
@@ -22,8 +22,8 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
 
   if (allMedia.length === 0) {
     return (
-      <div className="relative w-full h-96 bg-gray-100 flex items-center justify-center rounded-lg">
-        <p className="text-gray-500">No media available</p>
+      <div className="relative w-full h-[600px] bg-gray-50 flex items-center justify-center rounded-none">
+        <p className="text-gray-400 text-lg font-medium">No media available</p>
       </div>
     );
   }
@@ -47,24 +47,24 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
   };
 
   return (
-    <div className="relative w-full h-96 bg-gray-100 rounded-lg overflow-hidden">
+    <div className="relative w-full h-[600px] bg-gray-50">
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={activeMedia}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.3 }}
+          transition={{ duration: 0.5 }}
           className="absolute inset-0 flex items-center justify-center"
         >
           {isVideo(allMedia[activeMedia]) ? (
             <div className="relative w-full h-full bg-black flex items-center justify-center">
               {error ? (
                 <div className="text-white text-center">
-                  <p>Error playing video</p>
+                  <p className="text-lg mb-3">Error playing video</p>
                   <button 
                     onClick={handleVideoPlay}
-                    className="mt-2 px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+                    className="px-6 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
                   >
                     Try Again
                   </button>
@@ -92,9 +92,9 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
                       onClick={handleVideoPlay}
-                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 hover:bg-opacity-50 transition-all"
+                      className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 hover:bg-opacity-60 transition-all duration-300"
                     >
-                      <Play className="w-16 h-16 text-white" />
+                      <Play className="w-20 h-20 text-white" />
                     </motion.button>
                   )}
                 </>
@@ -109,7 +109,7 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
               onLoad={() => setLoading(false)}
               onError={(e) => {
                 setLoading(false);
-                e.target.src = '/api/placeholder/800/600';
+                console.error('Image load error:', e);
               }}
             />
           )}
@@ -120,34 +120,29 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
         <>
           <button
             onClick={() => onMediaChange((activeMedia - 1 + allMedia.length) % allMedia.length)}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all z-10"
+            className="absolute left-6 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-4 rounded-full hover:bg-white transition-all z-10 shadow-lg"
           >
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
             onClick={() => onMediaChange((activeMedia + 1) % allMedia.length)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-50 text-white p-3 rounded-full hover:bg-opacity-75 transition-all z-10"
+            className="absolute right-6 top-1/2 -translate-y-1/2 bg-white/90 text-gray-800 p-4 rounded-full hover:bg-white transition-all z-10 shadow-lg"
           >
             <ChevronRight className="w-6 h-6" />
           </button>
         </>
       )}
 
-      <button
-        onClick={onBack}
-        className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all z-20"
-      >
-        <ArrowLeft className="w-6 h-6" />
-      </button>
-
       {allMedia.length > 1 && (
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-10">
           {allMedia.map((_, index) => (
             <button
               key={index}
               onClick={() => onMediaChange(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
-                activeMedia === index ? 'bg-red-600 scale-125' : 'bg-white opacity-60 hover:opacity-100'
+              className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                activeMedia === index 
+                  ? 'bg-white scale-125 shadow-lg' 
+                  : 'bg-white/50 hover:bg-white/70'
               }`}
               aria-label={`Go to media ${index + 1}`}
             />
@@ -156,8 +151,8 @@ const MediaGallery = ({ media, activeMedia, onMediaChange, onBack }) => {
       )}
 
       {loading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-30">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-30">
+          <div className="animate-spin rounded-full h-14 w-14 border-4 border-white border-t-transparent" />
         </div>
       )}
     </div>
