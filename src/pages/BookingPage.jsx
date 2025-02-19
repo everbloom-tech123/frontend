@@ -192,6 +192,7 @@ const BookingPage = () => {
 
   // Main booking form render
   return (
+    <div className="container mx-auto px-4 pt-16 pb-8">
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg p-6">
@@ -325,6 +326,7 @@ const BookingPage = () => {
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 };
