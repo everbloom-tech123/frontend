@@ -76,22 +76,9 @@ const HomePage = () => {
       
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">
-          
-
-          {/* {featuredExperiences.length > 0 && (
-            <ExperienceGrid
-              title="Featured Experiences"
-              subtitle="Explore Our Curated Selection of Exclusive Experiences"
-              experiences={featuredExperiences}
-              columns={3}
-              onExperienceClick={handleExperienceClick}
-              isLoading={loading}
-            />
-          )} */}
-
           {specialExperiences.length > 0 && (
             <ExperienceGrid
-              title="Special Experiences"
+              title="Special Experiences :"
               subtitle="Exclusive offers and unique experiences"
               experiences={specialExperiences}
               columns={3}
@@ -116,33 +103,35 @@ const HomePage = () => {
       </div>
 
       {allExperiences.length > 0 && (
-            <div className="mb-12">
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex flex-col items-start">
-                  <h1 className="text-5xl font-extrabold mb-2 leading-tight tracking-tight">
-                    All Experiences
-                    <span className="text-red-200 mx-2">:</span>
-                  </h1>
-                  <p className="text-sm font-semibold text-gray-500">
-                    Explore all our amazing experiences
-                  </p>
-                </div>
-                <button
-                  onClick={() => navigate('/viewall')}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                >
-                  View All
-                </button>
+        <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
+          <div className="relative mb-16">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex flex-col items-start">
+                <h1 className="text-5xl font-extrabold mb-2 leading-tight tracking-tight">
+                  All Experiences
+                  <span className="text-red-200 mx-2"></span>
+                </h1>
+                <p className="text-sm font-semibold text-gray-500">
+                  Explore all our amazing experiences
+                </p>
               </div>
-              <ExperienceGrid
-                experiences={allExperiences}
-                columns={3}
-                onExperienceClick={handleExperienceClick}
-                isLoading={loading}
-                showHeader={false}
-              />
+              <button
+                onClick={() => navigate('/viewall')}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                View All
+              </button>
             </div>
-          )}
+            <ExperienceGrid
+              experiences={allExperiences}
+              columns={3}
+              onExperienceClick={handleExperienceClick}
+              isLoading={loading}
+              showHeader={false}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">

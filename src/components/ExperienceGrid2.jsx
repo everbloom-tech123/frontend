@@ -134,7 +134,7 @@ const ExperienceCard = ({
  );
 };
 
-const ExperienceGrid = ({
+const ExperienceGrid2 = ({
  title,
  subtitle,
  experiences,
@@ -145,12 +145,9 @@ const ExperienceGrid = ({
  className = '',
  onExperienceClick,
  filterOptions = null,
- isLoading = false,
- isViewAll = false
+ isLoading = false
 }) => {
  const navigate = useNavigate();
- const showViewAll = !isViewAll && experiences.length > 6;
- const displayedExperiences = isViewAll ? experiences : experiences.slice(0, 6);
 
  const containerVariants = {
    hidden: { opacity: 0 },
@@ -189,14 +186,6 @@ const ExperienceGrid = ({
            )}
          </div>
        </div>
-       {showViewAll && (
-         <button
-           onClick={() => navigate('/viewall')}
-           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-         >
-           View All
-         </button>
-       )}
      </div>
 
      <div
@@ -211,7 +200,7 @@ const ExperienceGrid = ({
                <Skeleton variant="rectangular" className="aspect-[4/5]"/>
              </div>
            ))
-         : displayedExperiences.map(experience => (
+         : experiences.map(experience => (
              <ExperienceCard
                key={experience.id}
                experience={experience}
@@ -233,4 +222,4 @@ const ExperienceGrid = ({
  );
 };
 
-export default ExperienceGrid;
+export default ExperienceGrid2;

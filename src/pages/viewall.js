@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 import CategoryService from '../Admin_Pages/CategoryService';
-import ExperienceGrid from '../components/ExperienceGrid';
+import ExperienceGrid2 from '../components/ExperienceGrid2';
 import PlayfulCategories from '../components/PlayfulCategories';
 import { CircularProgress, Box, Chip } from '@mui/material';
 
@@ -145,7 +145,7 @@ const ViewAllExperiencesPage = () => {
                             )}
                         </div>
 
-                        <ExperienceGrid
+                        <ExperienceGrid2
                             title={selectedCategory ? `${selectedCategory.name} Experiences` : "All Experiences"}
                             subtitle="Discover amazing experiences waiting for you..."
                             experiences={paginatedExperiences}
