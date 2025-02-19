@@ -117,7 +117,7 @@ const ViewAllExperiencesPage = () => {
     }
 
     return (
-        <div className="min-h-screen py-16">
+        <div className="container mx-auto px-4 pt-16 pb-8">
             <div className="container mx-auto px-4 py-8">
                 {loading ? (
                     <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">

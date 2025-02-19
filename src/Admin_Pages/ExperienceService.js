@@ -294,55 +294,30 @@ class ExperienceService {
                 }
             }
 
-            const latitude = formData.get('latitude');
-            const longitude = formData.get('longitude');
-            
-            if (latitude || longitude) {
-                if (!latitude || !longitude) {
-                    throw new Error('Both latitude and longitude must be provided if one is specified');
-                }
-
-                const lat = parseFloat(latitude);
-                const lng = parseFloat(longitude);
-                
-                if (isNaN(lat) || isNaN(lng)) {
-                    throw new Error('Invalid coordinate values provided');
-                }
-
-                if (lat < 5.0 || lat > 10.0 || lng < 79.0 || lng > 82.0) {
-                    throw new Error(
-                        'Coordinates must be within Sri Lanka\'s boundaries\n' +
-                        'Latitude: 5.0-10.0\n' +
-                        'Longitude: 79.0-82.0'
-                    );
-                }
-            }
-
-            const existingImages = formData.get('removeImages') 
-                ? JSON.parse(formData.get('removeImages')) 
-                : [];
+            // Handle image validation
+            const removeImages = formData.get('removeImages');
+            const currentImageCount = parseInt(formData.get('currentImageCount') || '0');
             const newImages = formData.getAll('images');
             
-            const totalImagesAfterUpdate = newImages.length + 
-                (formData.get('currentImageCount') || 0) - 
-                existingImages.length;
+            // Calculate final image count
+            const removedImagesCount = removeImages ? JSON.parse(removeImages).length : 0;
+            const finalImageCount = currentImageCount - removedImagesCount + newImages.length;
 
-            if (totalImagesAfterUpdate === 0) {
-                throw new Error('Product must have at least one image');
+            if (finalImageCount === 0) {
+                throw new Error('Experience must have at least one image');
             }
-            if (totalImagesAfterUpdate > 5) {
+            if (finalImageCount > 5) {
                 throw new Error('Maximum 5 images allowed');
             }
 
+            // Validate new images
             for (const image of newImages) {
                 if (image instanceof File) {
                     if (!image.type.startsWith('image/')) {
                         throw new Error(`File "${image.name}" is not a valid image`);
                     }
                     if (image.size > 10 * 1024 * 1024) {
-                        throw new Error(
-                            `Image "${image.name}" exceeds maximum size of 10MB`
-                        );
+                        throw new Error(`Image "${image.name}" exceeds maximum size of 10MB`);
                     }
                 }
             }

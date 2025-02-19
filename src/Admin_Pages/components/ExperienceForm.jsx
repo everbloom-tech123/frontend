@@ -25,12 +25,12 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     additionalInfo: '',
     price: '',
     discount: '0',
-    subCategoryIds: [], // Array to store selected subcategory IDs
+    subCategoryIds: [], 
     tags: [],
     images: [],
-    imagesToRemove: [],
+    imageUrls: [],        // Existing image URLs
+    imagesToRemove: [],   // URLs of images to remove
     video: null,
-    imageUrls: [],
     videoUrl: '',
     removeVideo: false,
     special: false,
@@ -70,7 +70,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       ]);
 
       if (experience) {
-        // Transform sub_category array to subCategoryIds
         const subCategoryIds = experience.sub_category 
           ? experience.sub_category.map(sub => sub.id) 
           : [];
@@ -210,15 +209,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         URL.createObjectURL(file)
       );
       setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
-      setFormData(prev => ({ 
-        ...prev, 
+      setFormData(prev => ({
+        ...prev,
         images: [...Array.from(prev.images), ...Array.from(files)]
       }));
     } else if (name === 'video') {
       try {
         await ExperienceService.validateFile(files[0], 'video');
-        setFormData(prev => ({ 
-          ...prev, 
+        setFormData(prev => ({
+          ...prev,
           video: files[0],
           removeVideo: false
         }));
@@ -230,8 +229,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }
   };
 
-  const handleRemoveImage = (index, isExisting = false) => {
+  const handleRemoveImage = (index, isExisting) => {
     if (isExisting) {
+      // Remove existing image
       const imageUrl = formData.imageUrls[index];
       setFormData(prev => ({
         ...prev,
@@ -239,11 +239,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         imagesToRemove: [...prev.imagesToRemove, imageUrl]
       }));
     } else {
+      // Remove newly added image
+      const adjustedIndex = index - (formData.imageUrls?.length || 0);
       setFormData(prev => ({
         ...prev,
-        images: Array.from(prev.images).filter((_, i) => i !== index)
+        images: Array.from(prev.images).filter((_, i) => i !== adjustedIndex)
       }));
     }
+    
+    // Update preview URLs
     setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -290,21 +294,13 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
       
-      // Handle subcategories with preservation logic
-      if (!experience && (!formData.subCategoryIds || formData.subCategoryIds.length === 0)) {
-        throw new Error('At least one subcategory is required for new experiences');
-      }
-
-      // Use existing or new subcategories
+      // Handle subcategories
       const subcategoryIds = formData.subCategoryIds || [];
       subcategoryIds.forEach(id => {
         submitData.append('subCategoryIds', id.toString());
       });
       
       // Add location data
-      if (!formData.cityId) {
-        throw new Error('City selection is required');
-      }
       submitData.append('cityId', formData.cityId.toString());
       submitData.append('address', formData.address.trim());
       
@@ -320,11 +316,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         });
       }
 
-      // Handle media files
-      if (!formData.images.length && (!formData.imageUrls || formData.imageUrls.length === 0)) {
-        throw new Error('At least one image is required');
-      }
-
+      // Handle images
       if (formData.images?.length > 0) {
         formData.images.forEach(image => {
           submitData.append('images', image);
@@ -332,21 +324,24 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       }
 
       if (experience && formData.imagesToRemove?.length > 0) {
-        formData.imagesToRemove.forEach(url => {
-          submitData.append('removeImages', url);
-        });
+        submitData.append('removeImages', JSON.stringify(formData.imagesToRemove));
       }
 
+      // Handle video
       if (formData.video) {
         submitData.append('video', formData.video);
       }
-
       if (experience && formData.removeVideo) {
         submitData.append('removeVideo', 'true');
       }
 
       submitData.append('special', formData.special ? 'true' : 'false');
       submitData.append('mostPopular', formData.mostPopular ? 'true' : 'false');
+
+      // Add current image count for validation
+      if (experience) {
+        submitData.append('currentImageCount', formData.imageUrls.length.toString());
+      }
 
       await onSubmit(submitData);
     } catch (error) {

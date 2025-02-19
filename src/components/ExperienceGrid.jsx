@@ -180,7 +180,7 @@ const ExperienceGrid = ({
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-5xl font-extrabold mb-6 leading-tight tracking-tight">
               {title}
-              <span className="text-red-200 mx-2">:</span>
+              
             </h1>
             {subtitle && (
               <p className="text-sm font-semibold max-w-xl text-gray-500 leading-snug hover:text-black-600 transition-colors duration-300">

@@ -1,73 +1,87 @@
-// src/components/experience/MediaUpload.js
 import React from 'react';
-import { Box, Typography, Alert, IconButton } from '@mui/material';
-import { Close as CloseIcon } from '@mui/icons-material';
 
-// MediaUpload handles both image and video uploads for the experience
-// including preview functionality and file validation
 const MediaUpload = ({ 
   handleFileChange, 
+  handleRemoveImage,
+  handleRemoveVideo,
   imageError, 
   videoError,
   previewUrls,
-  handleRemoveImage,
-  formData
+  formData,
+  isEditing
 }) => {
+  // Helper function to determine if an image is from existing images
+  const isExistingImage = (index) => {
+    const existingImagesCount = formData.imageUrls?.length || 0;
+    return index < existingImagesCount;
+  };
+
   return (
-    <>
-      <Box>
-        <Typography variant="subtitle1" gutterBottom>
-          Images (Maximum 5)
-        </Typography>
+    <div className="space-y-6">
+      {/* Image Upload Section */}
+      <div>
+        <h3 className="text-lg font-medium mb-2">Images (Maximum 5)</h3>
         <input
           type="file"
           name="images"
           onChange={handleFileChange}
           multiple
           accept="image/*"
+          className="mb-2"
         />
-        {imageError && <Alert severity="error">{imageError}</Alert>}
-        <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+        {imageError && (
+          <div className="text-red-500 mb-2">{imageError}</div>
+        )}
+        <div className="flex gap-2 flex-wrap">
           {previewUrls.map((url, index) => (
-            <Box key={index} sx={{ position: 'relative' }}>
+            <div key={index} className="relative">
               <img
                 src={url}
                 alt={`Preview ${index + 1}`}
-                style={{ width: 100, height: 100, objectFit: 'cover' }}
+                className="w-24 h-24 object-cover rounded"
               />
-              <IconButton
-                size="small"
-                sx={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  right: 0, 
-                  bgcolor: 'background.paper' 
-                }}
-                onClick={() => handleRemoveImage(index)}
+              <button
+                type="button"
+                className="absolute top-0 right-0 bg-white rounded-full p-1 shadow-md"
+                onClick={() => handleRemoveImage(index, isExistingImage(index))}
               >
-                <CloseIcon />
-              </IconButton>
-            </Box>
+                <span className="sr-only">Remove image</span>
+                ✕
+              </button>
+            </div>
           ))}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <Box>
-        <Typography variant="subtitle1" gutterBottom>Video</Typography>
+      {/* Video Upload Section */}
+      <div>
+        <h3 className="text-lg font-medium mb-2">Video</h3>
         <input
           type="file"
           name="video"
           onChange={handleFileChange}
           accept="video/*"
+          className="mb-2"
         />
-        {videoError && <Alert severity="error">{videoError}</Alert>}
-        {formData.video && (
-          <Typography variant="body2" sx={{ mt: 1 }}>
-            Selected video: {formData.video.name}
-          </Typography>
+        {videoError && (
+          <div className="text-red-500 mb-2">{videoError}</div>
         )}
-      </Box>
-    </>
+        {(formData.video || formData.videoUrl) && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm">
+              {formData.video ? formData.video.name : 'Current video'}
+            </span>
+            <button
+              type="button"
+              className="text-red-500 text-sm"
+              onClick={handleRemoveVideo}
+            >
+              Remove
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 
