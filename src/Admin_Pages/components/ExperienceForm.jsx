@@ -338,7 +338,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       }
 
       submitData.append('special', formData.special ? 'true' : 'false');
-      submitData.append('mostPopular', formData.mostPopular ? 'true' : 'false');
+      submitData.append('most_popular', formData.mostPopular ? 'true' : 'false');
 
       // Add current image count for validation
       if (experience) {

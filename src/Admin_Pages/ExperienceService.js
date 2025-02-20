@@ -137,7 +137,7 @@ class ExperienceService {
                 }
             }
 
-            ['special', 'mostPopular'].forEach(flag => {
+            ['special', 'most_popular'].forEach(flag => {
                 if (!formData.has(flag)) {
                     formData.append(flag, 'false');
                 }
