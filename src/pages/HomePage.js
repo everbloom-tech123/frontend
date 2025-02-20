@@ -78,7 +78,7 @@ const HomePage = () => {
         <div className="relative mb-16">
           {specialExperiences.length > 0 && (
             <ExperienceGrid
-              title="Special Experiences :"
+              title="Featured Experiences :"
               subtitle="Exclusive offers and unique experiences"
               experiences={specialExperiences}
               columns={3}
