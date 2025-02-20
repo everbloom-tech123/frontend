@@ -1,39 +1,70 @@
-// src/components/experience/BasicInformation.js
 import React from 'react';
-import { TextField, Stack } from '@mui/material';
+import {
+  Stack,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Typography
+} from '@mui/material';
 
-// BasicInformation component handles the core information fields of the experience
-// including title, description, and additional information
 const BasicInformation = ({ formData, handleChange }) => {
   return (
-    <Stack spacing={3}>
+    <Stack spacing={2}>
+      <Typography variant="h6">Basic Information</Typography>
+      
       <TextField
+        fullWidth
         label="Title"
         name="title"
         value={formData.title}
         onChange={handleChange}
         required
-        fullWidth
       />
+      
       <TextField
+        fullWidth
         label="Description"
         name="description"
         value={formData.description}
         onChange={handleChange}
-        required
         multiline
         rows={4}
-        fullWidth
+        required
       />
+      
       <TextField
+        fullWidth
         label="Additional Information"
         name="additionalInfo"
         value={formData.additionalInfo}
         onChange={handleChange}
         multiline
         rows={3}
-        fullWidth
       />
+
+      <Stack direction="row" spacing={2}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.special}
+              onChange={handleChange}
+              name="special"
+            />
+          }
+          label="Mark as Special"
+        />
+        
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={formData.mostPopular}
+              onChange={handleChange}
+              name="mostPopular"
+            />
+          }
+          label="Mark as Most Popular"
+        />
+      </Stack>
     </Stack>
   );
 };
