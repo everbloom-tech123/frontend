@@ -229,6 +229,7 @@ class ExperienceService {
 
     static async updateExperience(id, formData) {
         try {
+            // Log update operation
             console.log(`Updating experience ${id} with data:`);
             for (let pair of formData.entries()) {
                 const value = pair[1] instanceof File 
@@ -236,7 +237,8 @@ class ExperienceService {
                     : pair[1];
                 console.log(`${pair[0]}: ${value}`);
             }
-
+    
+            // Validate required fields
             const requiredFields = [
                 'title',
                 'description',
@@ -247,14 +249,15 @@ class ExperienceService {
                 'cityId',
                 'address'
             ];
-
+    
             for (const field of requiredFields) {
                 const value = formData.get(field);
                 if (!value || (typeof value === 'string' && value.trim() === '')) {
                     throw new Error(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
                 }
             }
-
+    
+            // Validate numeric fields
             const numericValidations = {
                 price: {
                     min: 0,
@@ -268,7 +271,7 @@ class ExperienceService {
                     required: true
                 }
             };
-
+    
             for (const [field, rules] of Object.entries(numericValidations)) {
                 const value = formData.get(field);
                 if (rules.required || value) {
@@ -281,7 +284,7 @@ class ExperienceService {
                     }
                 }
             }
-
+    
             // Handle image validation
             const removeImages = formData.get('removeImages');
             const currentImageCount = parseInt(formData.get('currentImageCount') || '0');
@@ -290,14 +293,14 @@ class ExperienceService {
             // Calculate final image count
             const removedImagesCount = removeImages ? JSON.parse(removeImages).length : 0;
             const finalImageCount = currentImageCount - removedImagesCount + newImages.length;
-
+    
             if (finalImageCount === 0) {
                 throw new Error('Experience must have at least one image');
             }
             if (finalImageCount > 5) {
                 throw new Error('Maximum 5 images allowed');
             }
-
+    
             // Validate new images
             for (const image of newImages) {
                 if (image instanceof File) {
@@ -309,7 +312,8 @@ class ExperienceService {
                     }
                 }
             }
-
+    
+            // Validate video if present
             const newVideo = formData.get('video');
             if (newVideo instanceof File && newVideo.name) {
                 if (!newVideo.type.startsWith('video/')) {
@@ -319,13 +323,15 @@ class ExperienceService {
                     throw new Error('Video file size exceeds maximum allowed size of 500MB');
                 }
             }
-
-            ['special', 'mostPopular'].forEach(flag => {
+    
+            // Ensure boolean flags are present
+            ['special', 'most_popular'].forEach(flag => {
                 if (!formData.has(flag)) {
                     formData.append(flag, 'false');
                 }
             });
-
+    
+            // Make API request
             const response = await axios.put(`${API_BASE_URL}/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
@@ -338,7 +344,7 @@ class ExperienceService {
                     console.log(`Upload progress: ${percentCompleted}%`);
                 }
             });
-
+    
             return response.data;
         } catch (error) {
             console.error(`Error updating experience ${id}:`, error);
@@ -355,7 +361,7 @@ class ExperienceService {
                     'Update timed out. Please check your connection and try again.'
                 );
             }
-
+    
             throw error;
         }
     }
