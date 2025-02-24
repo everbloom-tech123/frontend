@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import ExperienceService from '../Admin_Pages/ExperienceService';
@@ -6,7 +6,7 @@ import ExperienceService from '../Admin_Pages/ExperienceService';
 const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
   const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState(null);
   const videoRef = useRef(null);
 
   const processMediaUrl = (url) => {
@@ -20,6 +20,57 @@ const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
     ...(media.videoUrl ? [processMediaUrl(media.videoUrl)] : [])
   ].filter(Boolean);
 
+  // Log all media URLs for debugging
+  useEffect(() => {
+    console.log('All media URLs:', allMedia);
+  }, [allMedia]);
+
+  const isVideo = (mediaUrl) => media.videoUrl && processMediaUrl(media.videoUrl) === mediaUrl;
+
+  // Test video URL validity
+  const testVideoUrl = async (url) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      console.log(`Video URL ${url} - Status: ${response.status}, Content-Type: ${response.headers.get('Content-Type')}`);
+      return response.ok && response.headers.get('Content-Type')?.startsWith('video/');
+    } catch (err) {
+      console.error('Error testing video URL:', err);
+      return false;
+    }
+  };
+
+  // Check video validity when active media changes
+  useEffect(() => {
+    if (allMedia.length > 0 && isVideo(allMedia[activeMedia])) {
+      testVideoUrl(allMedia[activeMedia]).then(isValid => {
+        if (!isValid) {
+          setError('Video URL is invalid or not a video file');
+        }
+      });
+    }
+  }, [activeMedia, allMedia]);
+
+  const handleVideoPlay = () => {
+    if (videoRef.current) {
+      setIsPlaying(true);
+      setError(null);
+      console.log('Attempting to play video:', allMedia[activeMedia]);
+      videoRef.current.play()
+        .then(() => console.log('Video playing successfully'))
+        .catch(error => {
+          console.error('Video playback error:', error);
+          setError(`Failed to play video: ${error.message}`);
+          setIsPlaying(false);
+        });
+    }
+  };
+
+  const handleVideoEnd = () => {
+    setIsPlaying(false);
+    console.log('Video playback ended');
+  };
+
+  // Early return after all hooks
   if (allMedia.length === 0) {
     return (
       <div className="relative w-full h-[600px] bg-gray-50 flex items-center justify-center rounded-none">
@@ -27,24 +78,6 @@ const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
       </div>
     );
   }
-
-  const isVideo = (mediaUrl) => media.videoUrl && processMediaUrl(media.videoUrl) === mediaUrl;
-
-  const handleVideoPlay = () => {
-    if (videoRef.current) {
-      setIsPlaying(true);
-      setError(false);
-      videoRef.current.play().catch(error => {
-        console.error('Video playback error:', error);
-        setError(true);
-        setIsPlaying(false);
-      });
-    }
-  };
-
-  const handleVideoEnd = () => {
-    setIsPlaying(false);
-  };
 
   return (
     <div className="relative w-full h-[600px] bg-gray-50">
@@ -61,8 +94,8 @@ const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
             <div className="relative w-full h-full bg-black flex items-center justify-center">
               {error ? (
                 <div className="text-white text-center">
-                  <p className="text-lg mb-3">Error playing video</p>
-                  <button 
+                  <p className="text-lg mb-3">{error}</p>
+                  <button
                     onClick={handleVideoPlay}
                     className="px-6 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
                   >
@@ -75,16 +108,18 @@ const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
                     ref={videoRef}
                     src={allMedia[activeMedia]}
                     className="w-full h-full object-contain"
-                    controls={isPlaying}
+                    controls={true}
                     onEnded={handleVideoEnd}
                     onLoadStart={() => setLoading(true)}
                     onLoadedData={() => {
                       setLoading(false);
-                      setError(false);
+                      setError(null);
+                      console.log('Video loaded successfully');
                     }}
-                    onError={() => {
+                    onError={(e) => {
                       setLoading(false);
-                      setError(true);
+                      setError(`Video load error: ${e.target.error.message}`);
+                      console.error('Video element error:', e.target.error);
                     }}
                   />
                   {!isPlaying && !error && (
@@ -105,7 +140,6 @@ const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
               src={allMedia[activeMedia]}
               alt={`Media ${activeMedia + 1}`}
               className="w-full h-full object-contain"
-              onLoadStart={() => setLoading(true)}
               onLoad={() => setLoading(false)}
               onError={(e) => {
                 setLoading(false);
@@ -140,8 +174,8 @@ const MediaGallery = ({ media, activeMedia, onMediaChange }) => {
               key={index}
               onClick={() => onMediaChange(index)}
               className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
-                activeMedia === index 
-                  ? 'bg-white scale-125 shadow-lg' 
+                activeMedia === index
+                  ? 'bg-white scale-125 shadow-lg'
                   : 'bg-white/50 hover:bg-white/70'
               }`}
               aria-label={`Go to media ${index + 1}`}

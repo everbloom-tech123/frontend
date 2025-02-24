@@ -88,10 +88,10 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
               {experience.discount > 0 ? (
                 <>
                   <Typography variant="h6" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
-                    ${experience.price}
+                    LKR{experience.price}
                   </Typography>
                   <Typography variant="h6" color="primary">
-                    ${finalPrice.toFixed(2)}
+                    LKR{finalPrice.toFixed(2)}
                   </Typography>
                   <Chip 
                     label={`${experience.discount}% OFF`}
@@ -101,7 +101,7 @@ const ExperienceDetails = ({ experience, open, onClose }) => {
                 </>
               ) : (
                 <Typography variant="h6">
-                  ${experience.price}
+                  LKR{experience.price}
                 </Typography>
               )}
             </Box>

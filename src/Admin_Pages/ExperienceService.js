@@ -229,142 +229,142 @@ class ExperienceService {
 
     static async updateExperience(id, formData) {
         try {
-            // Log update operation
-            console.log(`Updating experience ${id} with data:`);
-            for (let pair of formData.entries()) {
-                const value = pair[1] instanceof File 
-                    ? `${pair[1].name} (${(pair[1].size / 1024 / 1024).toFixed(2)}MB)`
-                    : pair[1];
-                console.log(`${pair[0]}: ${value}`);
+          // Log update operation
+          console.log(`Updating experience ${id} with data:`);
+          for (let pair of formData.entries()) {
+            const value = pair[1] instanceof File
+              ? `${pair[1].name} (${(pair[1].size / 1024 / 1024).toFixed(2)}MB)`
+              : pair[1];
+            console.log(`${pair[0]}: ${value}`);
+          }
+    
+          // Validate required fields
+          const requiredFields = [
+            'title',
+            'description',
+            'additionalInfo',
+            'price',
+            'discount',
+            'subCategoryIds',
+            'cityId',
+            'address'
+          ];
+    
+          for (const field of requiredFields) {
+            const value = formData.get(field);
+            if (!value || (typeof value === 'string' && value.trim() === '')) {
+              throw new Error(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
             }
+          }
     
-            // Validate required fields
-            const requiredFields = [
-                'title',
-                'description',
-                'additionalInfo',
-                'price',
-                'discount',
-                'subCategoryIds',
-                'cityId',
-                'address'
-            ];
-    
-            for (const field of requiredFields) {
-                const value = formData.get(field);
-                if (!value || (typeof value === 'string' && value.trim() === '')) {
-                    throw new Error(`${field.charAt(0).toUpperCase() + field.slice(1)} is required`);
-                }
+          // Validate numeric fields
+          const numericValidations = {
+            price: {
+              min: 0,
+              message: 'Price must be greater than or equal to 0',
+              required: true
+            },
+            discount: {
+              min: 0,
+              max: 100,
+              message: 'Discount must be between 0 and 100',
+              required: true
             }
+          };
     
-            // Validate numeric fields
-            const numericValidations = {
-                price: {
-                    min: 0,
-                    message: 'Price must be greater than or equal to 0',
-                    required: true
-                },
-                discount: {
-                    min: 0,
-                    max: 100,
-                    message: 'Discount must be between 0 and 100',
-                    required: true
-                }
-            };
-    
-            for (const [field, rules] of Object.entries(numericValidations)) {
-                const value = formData.get(field);
-                if (rules.required || value) {
-                    const numValue = parseFloat(value);
-                    if (isNaN(numValue)) {
-                        throw new Error(`${field} must be a valid number`);
-                    }
-                    if (numValue < rules.min || (rules.max && numValue > rules.max)) {
-                        throw new Error(rules.message);
-                    }
-                }
+          for (const [field, rules] of Object.entries(numericValidations)) {
+            const value = formData.get(field);
+            if (rules.required || value) {
+              const numValue = parseFloat(value);
+              if (isNaN(numValue)) {
+                throw new Error(`${field} must be a valid number`);
+              }
+              if (numValue < rules.min || (rules.max && numValue > rules.max)) {
+                throw new Error(rules.message);
+              }
             }
+          }
     
-            // Handle image validation
-            const removeImages = formData.get('removeImages');
-            const currentImageCount = parseInt(formData.get('currentImageCount') || '0');
-            const newImages = formData.getAll('images');
-            
-            // Calculate final image count
-            const removedImagesCount = removeImages ? JSON.parse(removeImages).length : 0;
-            const finalImageCount = currentImageCount - removedImagesCount + newImages.length;
+          // Handle image validation
+          const removeImages = formData.getAll('removeImages'); // Use getAll to get all values
+          const currentImageCount = parseInt(formData.get('currentImageCount') || '0');
+          const newImages = formData.getAll('images');
     
-            if (finalImageCount === 0) {
-                throw new Error('Experience must have at least one image');
+          // Calculate final image count
+          const removedImagesCount = removeImages.length; // No JSON.parse needed
+          const finalImageCount = currentImageCount - removedImagesCount + newImages.length;
+    
+          if (finalImageCount === 0) {
+            throw new Error('Experience must have at least one image');
+          }
+          if (finalImageCount > 5) {
+            throw new Error('Maximum 5 images allowed');
+          }
+    
+          // Validate new images
+          for (const image of newImages) {
+            if (image instanceof File) {
+              if (!image.type.startsWith('image/')) {
+                throw new Error(`File "${image.name}" is not a valid image`);
+              }
+              if (image.size > 10 * 1024 * 1024) {
+                throw new Error(`Image "${image.name}" exceeds maximum size of 10MB`);
+              }
             }
-            if (finalImageCount > 5) {
-                throw new Error('Maximum 5 images allowed');
+          }
+    
+          // Validate video if present
+          const newVideo = formData.get('video');
+          if (newVideo instanceof File && newVideo.name) {
+            if (!newVideo.type.startsWith('video/')) {
+              throw new Error('Invalid video file type');
             }
-    
-            // Validate new images
-            for (const image of newImages) {
-                if (image instanceof File) {
-                    if (!image.type.startsWith('image/')) {
-                        throw new Error(`File "${image.name}" is not a valid image`);
-                    }
-                    if (image.size > 10 * 1024 * 1024) {
-                        throw new Error(`Image "${image.name}" exceeds maximum size of 10MB`);
-                    }
-                }
+            if (newVideo.size > 500 * 1024 * 1024) {
+              throw new Error('Video file size exceeds maximum allowed size of 500MB');
             }
+          }
     
-            // Validate video if present
-            const newVideo = formData.get('video');
-            if (newVideo instanceof File && newVideo.name) {
-                if (!newVideo.type.startsWith('video/')) {
-                    throw new Error('Invalid video file type');
-                }
-                if (newVideo.size > 500 * 1024 * 1024) {
-                    throw new Error('Video file size exceeds maximum allowed size of 500MB');
-                }
+          // Ensure boolean flags are present
+          ['special', 'most_popular'].forEach(flag => {
+            if (!formData.has(flag)) {
+              formData.append(flag, 'false');
             }
+          });
     
-            // Ensure boolean flags are present
-            ['special', 'most_popular'].forEach(flag => {
-                if (!formData.has(flag)) {
-                    formData.append(flag, 'false');
-                }
-            });
+          // Make API request
+          const response = await axios.put(`${API_BASE_URL}/${id}`, formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+            timeout: 180000,
+            onUploadProgress: (progressEvent) => {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total
+              );
+              console.log(`Upload progress: ${percentCompleted}%`);
+            }
+          });
     
-            // Make API request
-            const response = await axios.put(`${API_BASE_URL}/${id}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                timeout: 180000,
-                onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total
-                    );
-                    console.log(`Upload progress: ${percentCompleted}%`);
-                }
-            });
-    
-            return response.data;
+          return response.data;
         } catch (error) {
-            console.error(`Error updating experience ${id}:`, error);
-            
-            if (error.response) {
-                const errorMessage = error.response.data.message || 
-                                   error.response.data.error || 
-                                   'Server error occurred';
-                throw new Error(`Update failed: ${errorMessage}`);
-            }
-            
-            if (error.code === 'ECONNABORTED') {
-                throw new Error(
-                    'Update timed out. Please check your connection and try again.'
-                );
-            }
+          console.error(`Error updating experience ${id}:`, error);
     
-            throw error;
+          if (error.response) {
+            const errorMessage = error.response.data.message ||
+                                 error.response.data.error ||
+                                 'Server error occurred';
+            throw new Error(`Update failed: ${errorMessage}`);
+          }
+    
+          if (error.code === 'ECONNABORTED') {
+            throw new Error(
+              'Update timed out. Please check your connection and try again.'
+            );
+          }
+    
+          throw error;
         }
-    }
+      }
 
     static async deleteExperience(id) {
         try {

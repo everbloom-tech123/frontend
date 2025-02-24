@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaShoppingCart } from 'react-icons/fa';
-import { ChevronDown, Bell, Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import * as AuthService from '../services/AuthService';
 import Categories from './CategoryList';
 import District from './DistrictList';
@@ -12,12 +12,10 @@ const Navbar = () => {
   const [activeItem, setActiveItem] = useState('home');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [notificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [districtOpen, setDistrictOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [mobileDistrictOpen, setMobileDistrictOpen] = useState(false);
-  const [mobileNotificationOpen, setMobileNotificationOpen] = useState(false);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -36,10 +34,8 @@ const Navbar = () => {
     setDropdownOpen(false);
     setCategoriesOpen(false);
     setDistrictOpen(false);
-    setNotificationDropdownOpen(false);
     setMobileCategoriesOpen(false);
     setMobileDistrictOpen(false);
-    setMobileNotificationOpen(false);
     setMobileProfileOpen(false);
   }, [location]);
 
@@ -101,32 +97,6 @@ const Navbar = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
-  const NotificationContent = () => (
-    <div className="bg-white rounded-md shadow-lg py-1">
-      <div className="px-4 py-2 border-b border-gray-100">
-        <h3 className="text-sm font-semibold text-gray-700">Notifications</h3>
-      </div>
-      <div className="max-h-96 overflow-y-auto">
-        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
-          <p className="text-sm text-gray-600">Your booking for "Adventure Trek" has been confirmed.</p>
-          <span className="text-xs text-gray-400 mt-1">2 hours ago</span>
-        </div>
-        <div className="px-4 py-3 hover:bg-gray-50 transition-colors duration-200">
-          <p className="text-sm text-gray-600">New experience added in your wishlist location!</p>
-          <span className="text-xs text-gray-400 mt-1">1 day ago</span>
-        </div>
-      </div>
-      <div className="px-4 py-2 border-t border-gray-100">
-        <Link
-          to="/notifications"
-          className="text-sm text-red-600 hover:text-red-700 transition-colors duration-200"
-        >
-          View all notifications
-        </Link>
-      </div>
-    </div>
-  );
 
   const ProfileContent = () => (
     <div className="bg-white rounded-md shadow-lg py-1">
@@ -235,13 +205,6 @@ const Navbar = () => {
               </div>
 
               <Link
-                to="/viewall"
-                className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
-              >
-                View All
-              </Link>
-
-              <Link
                 to="/about-us"
                 className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
               >
@@ -268,35 +231,6 @@ const Navbar = () => {
                 0
               </span>
             </Link>
-
-            {/* Notification Icon - Only shown when user is authenticated */}
-            {user && (
-              <div className="relative">
-                <button
-                  onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
-                  className="text-gray-700 hover:text-red-600 transition-colors duration-200 relative"
-                >
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                    2
-                  </span>
-                </button>
-
-                <AnimatePresence>
-                  {notificationDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute right-0 mt-2 w-80 z-50"
-                    >
-                      <NotificationContent />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
 
             <div className="relative">
               {user ? (
@@ -420,64 +354,6 @@ const Navbar = () => {
                   Contact Us
                 </Link>
 
-                {/* Mobile Notifications - Only shown when user is authenticated */}
-                {user && (
-                  <div className="py-2">
-                    <button
-                      onClick={() => setMobileNotificationOpen(!mobileNotificationOpen)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
-                    >
-                      <span>Notifications</span>
-                      <div className="flex items-center">
-                        <span className="bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center mr-2">
-                          2
-                        </span>
-                        <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileNotificationOpen ? 'rotate-180' : ''}`} />
-                      </div>
-                    </button>
-                    <AnimatePresence>
-                      {mobileNotificationOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="mt-2"
-                        >
-                          <NotificationContent />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {/* Mobile Profile Section */}
-                {user && (
-                  <div className="py-2">
-                    <button
-                      onClick={() => setMobileProfileOpen(!mobileProfileOpen)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
-                    >
-                      <span>Profile</span>
-                      <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileProfileOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    <AnimatePresence>
-                      {mobileProfileOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="mt-2"
-                        >
-                          <ProfileContent />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                )}
-
-                {/* Mobile Sign In Link - Only shown when user is not authenticated */}
                 {!user && (
                   <Link
                     to="/signin"

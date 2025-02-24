@@ -99,7 +99,7 @@ const ExperienceList = ({ onEdit, onView, refreshList }) => {
                 </TableCell>
                 <TableCell>{experience.title}</TableCell>
                 <TableCell>{experience.category?.name}</TableCell>
-                <TableCell>${experience.price}</TableCell>
+                <TableCell>LKR{experience.price}</TableCell>
                 <TableCell>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                     {experience.tags?.map((tag, index) => (

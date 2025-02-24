@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import config from '../config';
 import { useAuth } from '../contexts/AuthContext';
-import * as AuthService from '../services/AuthService';
 import * as userService from '../services/userService';
 import MediaGallery from '../components/MediaGallery';
 import ExperienceContent from '../components/ExperienceContent';
@@ -41,7 +40,7 @@ const ExperienceDetails = () => {
         setLoading(true);
         setError(null);
         const response = await ExperienceService.getExperience(id);
-        
+
         if (!isMounted) return;
 
         if (!response) {
@@ -52,7 +51,7 @@ const ExperienceDetails = () => {
           ...response,
           viewCount: Math.floor(Math.random() * 10000) + 1000,
           imageUrl: response.imageUrl ? ExperienceService.getImageUrl(response.imageUrl) : null,
-          imageUrls: response.imageUrls ? response.imageUrls.map(url => 
+          imageUrls: response.imageUrls ? response.imageUrls.map(url =>
             ExperienceService.getImageUrl(url)
           ) : [],
           videoUrl: response.videoUrl ? ExperienceService.getVideoUrl(response.videoUrl) : null,
@@ -64,6 +63,7 @@ const ExperienceDetails = () => {
           })) || []
         };
 
+        console.log('Processed video URL:', enhancedExperience.videoUrl); // Debug video URL
         setExperience(enhancedExperience);
 
       } catch (err) {
@@ -111,12 +111,12 @@ const ExperienceDetails = () => {
   }, []);
 
   const handleVideoClick = useCallback(() => {
-    // Video playback handling remains unchanged
+    // No change needed here, handled in MediaGallery
   }, []);
 
   const handleBooking = () => {
     if (!currentUser) {
-      navigate('/signin', { 
+      navigate('/signin', {
         state: { from: `/experience/${id}` }
       });
       return;
@@ -138,7 +138,7 @@ const ExperienceDetails = () => {
 
   const handleWishlistToggle = async () => {
     if (!currentUser) {
-      navigate('/signin', { 
+      navigate('/signin', {
         state: { from: `/experience/${id}` }
       });
     } else {
@@ -161,7 +161,7 @@ const ExperienceDetails = () => {
       <div className="text-center mt-8">
         <h2 className="text-2xl font-bold mb-4 text-red-600">Oops!</h2>
         <p className="text-gray-600 mb-4">{error}</p>
-        <button 
+        <button
           onClick={() => navigate(-1)}
           className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-full transition duration-300"
         >
@@ -171,30 +171,13 @@ const ExperienceDetails = () => {
     );
   }
 
-  /* if (!experience) {
-    return (
-
-      <div className="text-center mt-8">
-        <h2 className="text-2xl font-bold mb-4">Experience Not Found</h2>
-        <button 
-          onClick={() => navigate(-1)}
-          className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-full transition duration-300"
-        >
-          Go Back
-        </button>
-      </div>
-    );
-  } */
-
   return (
-    
     <div className="bg-gray-50 min-h-screen px-4 py-8">
       <MediaGallery
         media={experience}
         activeMedia={activeMedia}
         onMediaChange={handleMediaChange}
         onVideoClick={handleVideoClick}
-        //onBack={() => navigate(-1)}
       />
 
       <div className="container mx-auto px-4 py-8">

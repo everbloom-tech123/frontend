@@ -25,11 +25,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     additionalInfo: '',
     price: '',
     discount: '0',
-    subCategoryIds: [], 
+    subCategoryIds: [],
     tags: [],
     images: [],
-    imageUrls: [],        // Existing image URLs
-    imagesToRemove: [],   // URLs of images to remove
+    imageUrls: [],
+    imagesToRemove: [],
     video: null,
     videoUrl: '',
     removeVideo: false,
@@ -41,6 +41,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     latitude: '',
     longitude: ''
   });
+
+  // Store the original image count for accurate validation
+  const [originalImageCount, setOriginalImageCount] = useState(0);
 
   // UI state management
   const [categories, setCategories] = useState([]);
@@ -70,8 +73,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       ]);
 
       if (experience) {
-        const subCategoryIds = experience.sub_category 
-          ? experience.sub_category.map(sub => sub.id) 
+        const subCategoryIds = experience.sub_category
+          ? experience.sub_category.map(sub => sub.id)
           : [];
 
         setFormData({
@@ -89,8 +92,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           districtId: experience.city?.district?.id || ''
         });
 
+        // Set the original image count from the loaded experience
+        setOriginalImageCount(experience.imageUrls?.length || 0);
+
         if (experience.imageUrls) {
-          setPreviewUrls(experience.imageUrls.map(url => 
+          setPreviewUrls(experience.imageUrls.map(url =>
             ExperienceService.getImageUrl(url)
           ));
         }
@@ -107,8 +113,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     initializeForm();
   }, [experience]);
 
-
-  
   // Fetch cities when district changes
   useEffect(() => {
     if (formData.districtId) {
@@ -130,7 +134,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
             setCityBounds(boundaries.bounds);
             setMapCenter(boundaries.center);
             setMapZoom(13);
-            
+
             if (mapRef) {
               mapRef.flyTo(boundaries.center, 13);
             }
@@ -198,7 +202,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
   const handleFileChange = async (e) => {
     const { name, files } = e.target;
-    
+
     if (name === 'images') {
       const totalImages = previewUrls.length + files.length;
       if (totalImages > 5) {
@@ -207,7 +211,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       }
 
       setImageError('');
-      const newPreviewUrls = Array.from(files).map(file => 
+      const newPreviewUrls = Array.from(files).map(file =>
         URL.createObjectURL(file)
       );
       setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
@@ -248,7 +252,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         images: Array.from(prev.images).filter((_, i) => i !== adjustedIndex)
       }));
     }
-    
+
     // Update preview URLs
     setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
@@ -285,32 +289,32 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     e.preventDefault();
     setSubmitError('');
     setIsLoading(true);
-    
+
     try {
       const submitData = new FormData();
-      
+
       // Add basic form fields
       submitData.append('title', formData.title.trim());
       submitData.append('description', formData.description.trim());
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
-      
+
       // Handle subcategories
       const subcategoryIds = formData.subCategoryIds || [];
       subcategoryIds.forEach(id => {
         submitData.append('subCategoryIds', id.toString());
       });
-      
+
       // Add location data
       submitData.append('cityId', formData.cityId.toString());
       submitData.append('address', formData.address.trim());
-      
+
       if (formData.latitude && formData.longitude) {
         submitData.append('latitude', formData.latitude.toString());
         submitData.append('longitude', formData.longitude.toString());
       }
-      
+
       // Add tags
       if (formData.tags?.length > 0) {
         formData.tags.forEach(tag => {
@@ -325,8 +329,11 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         });
       }
 
+      // Handle images to remove - send each URL as a separate removeImages parameter
       if (experience && formData.imagesToRemove?.length > 0) {
-        submitData.append('removeImages', JSON.stringify(formData.imagesToRemove));
+        formData.imagesToRemove.forEach(url => {
+          submitData.append('removeImages', url);
+        });
       }
 
       // Handle video
@@ -340,9 +347,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('special', formData.special ? 'true' : 'false');
       submitData.append('most_popular', formData.mostPopular ? 'true' : 'false');
 
-      // Add current image count for validation
+      // Add original image count for validation
       if (experience) {
-        submitData.append('currentImageCount', formData.imageUrls.length.toString());
+        submitData.append('currentImageCount', originalImageCount.toString());
       }
 
       await onSubmit(submitData);
@@ -359,31 +366,31 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       <Stack spacing={3}>
         {submitError && <Alert severity="error">{submitError}</Alert>}
 
-        <BasicInformation 
-          formData={formData} 
-          handleChange={handleChange} 
+        <BasicInformation
+          formData={formData}
+          handleChange={handleChange}
         />
-        
-        <PricingSection 
-          formData={formData} 
-          handleChange={handleChange} 
+
+        <PricingSection
+          formData={formData}
+          handleChange={handleChange}
         />
-        
-        <CategorySelection 
+
+        <CategorySelection
           categories={categories}
           formData={formData}
           handleChange={handleChange}
           isEditing={!!experience}
         />
-        
-        <LocationSelection 
+
+        <LocationSelection
           districts={districts}
           cities={cities}
           formData={formData}
           handleChange={handleChange}
         />
-        
-        <LocationPicker 
+
+        <LocationPicker
           showMap={showMap}
           setShowMap={setShowMap}
           mapCenter={mapCenter}
@@ -394,8 +401,8 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           cityBounds={cityBounds}
           formData={formData}
         />
-        
-        <MediaUpload 
+
+        <MediaUpload
           handleFileChange={handleFileChange}
           handleRemoveImage={handleRemoveImage}
           handleRemoveVideo={handleRemoveVideo}
@@ -405,16 +412,16 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           formData={formData}
           isEditing={!!experience}
         />
-        
-        <TagsInput 
+
+        <TagsInput
           newTag={newTag}
           setNewTag={setNewTag}
           handleAddTag={handleAddTag}
           handleRemoveTag={handleRemoveTag}
           formData={formData}
         />
-        
-        <FormActions 
+
+        <FormActions
           onCancel={onCancel}
           isLoading={isLoading}
           experience={experience}

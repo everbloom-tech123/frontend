@@ -62,11 +62,11 @@ const BookingCard = ({
       <div className="flex justify-between items-center mb-6">
         <div>
           <p className="text-3xl font-bold text-gray-800">
-            ${discountedPrice.toFixed(2)}
+            LKR{discountedPrice.toFixed(2)}
           </p>
           {discount > 0 && (
             <p className="text-sm text-gray-500 line-through">
-              ${originalPrice.toFixed(2)}
+              LKR{originalPrice.toFixed(2)}
             </p>
           )}
         </div>
