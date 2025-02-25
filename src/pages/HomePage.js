@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import ExperienceGrid from '../components/ExperienceGrid';
-import CategoryService from '../Admin_Pages/CategoryService';
 import ExperienceService from '../Admin_Pages/ExperienceService';
 import Header from '../components/traveTips';
 import ModernHero from '../components/modernHero';
 import DestinationExplorer from '../components/Destination';
 import ImageGrid from '../components/imageLayout';
+import HomepageCategoriesSection from '../components/HomepageCategoriesSection'; // Import the component
 
 const HomePage = () => {
   const [featuredExperiences, setFeaturedExperiences] = useState([]);
   const [specialExperiences, setSpecialExperiences] = useState([]);
   const [mostPopularExperiences, setMostPopularExperiences] = useState([]);
   const [allExperiences, setAllExperiences] = useState([]);
-  const [categories, setCategories] = useState([]);
+  const [filteredExperiences, setFilteredExperiences] = useState([]);
+  const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -29,14 +29,11 @@ const HomePage = () => {
         const experiences = await ExperienceService.getLimitedExperiences();
         if (Array.isArray(experiences)) {
           setAllExperiences(experiences);
+          setFilteredExperiences(experiences); // Initialize filtered experiences with all
           setFeaturedExperiences(experiences.filter(exp => exp.featured));
           setSpecialExperiences(experiences.filter(exp => exp.special));
           setMostPopularExperiences(experiences.filter(exp => exp.most_popular));
         }
-
-        const categories = await CategoryService.getAllCategories();
-        setCategories(Array.isArray(categories) ? categories : []);
-
       } catch (err) {
         console.error('Error loading homepage data:', err);
         setError('Failed to load data');
@@ -47,6 +44,19 @@ const HomePage = () => {
 
     fetchData();
   }, []);
+
+  const handleCategorySelect = (categoryName) => {
+    setActiveCategory(categoryName);
+    
+    if (categoryName === 'All') {
+      setFilteredExperiences(allExperiences);
+    } else {
+      const filtered = allExperiences.filter(exp => 
+        exp.categories?.some(cat => cat.name === categoryName)
+      );
+      setFilteredExperiences(filtered);
+    }
+  };
 
   const handleExperienceClick = (experience) => {
     navigate(`/experience/${experience.id}`);
@@ -73,6 +83,12 @@ const HomePage = () => {
         <ModernHero/>
       </div>
       <DestinationExplorer/>
+      
+      {/* This is where we call the HomepageCategoriesSection component */}
+      <HomepageCategoriesSection 
+        onCategorySelect={handleCategorySelect}
+        activeCategory={null}
+      /> 
       
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">
@@ -102,17 +118,19 @@ const HomePage = () => {
         </div>
       </div>
 
-      {allExperiences.length > 0 && (
+      {filteredExperiences.length > 0 && (
         <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
           <div className="relative mb-16">
             <div className="flex justify-between items-center mb-6">
               <div className="flex flex-col items-start">
                 <h1 className="text-5xl font-extrabold mb-2 leading-tight tracking-tight">
-                  All Experiences
+                  {activeCategory === 'All' ? 'All Experiences' : `${activeCategory} Experiences`}
                   <span className="text-red-200 mx-2"></span>
                 </h1>
                 <p className="text-sm font-semibold text-gray-500">
-                  Explore all our amazing experiences
+                  {activeCategory === 'All' 
+                    ? 'Explore all our amazing experiences' 
+                    : `Discover our ${activeCategory.toLowerCase()} experiences`}
                 </p>
               </div>
               <button
@@ -123,7 +141,7 @@ const HomePage = () => {
               </button>
             </div>
             <ExperienceGrid
-              experiences={allExperiences}
+              experiences={filteredExperiences}
               columns={3}
               onExperienceClick={handleExperienceClick}
               isLoading={loading}

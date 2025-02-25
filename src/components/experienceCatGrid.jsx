@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Skeleton } from '@mui/material';
 import { Loader2 } from 'lucide-react';
-import ExperienceService from '../Admin_Pages/ExperienceService';
+import ExperienceService from '../Admin_Pages/ExperienceService'; // Ensure correct path
 
 const styles = `
   .ribbon-container {
@@ -90,7 +90,7 @@ const ExperienceCard = ({
       <motion.div
         className="relative bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden group hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300"
         variants={itemVariants}
-        whileHover={{y: -5}}
+        whileHover={{ y: -5 }}
         onClick={() => onExperienceClick && onExperienceClick(experience)}
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/50 to-black/80 z-10"/>
@@ -113,16 +113,14 @@ const ExperienceCard = ({
           )}
 
           <div className="relative z-20 h-full">
-            {/* Most Popular Ribbon */}
             {experience.most_popular && (
               <div className="ribbon-container">
-                <div className="ribbon">⭐ MOST POPULAR</div>
+                <div className="ribbon">MOST POPULAR</div>
               </div>
             )}
 
-            {/* Discount Badge */}
             {experience.discount > 0 && (
-              <div className="absolute top-14 left-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-lg">
+              <div className="absolute top-2 left-2 bg-red-600 text-white px-2 py-0.5 rounded-full text-xs font-bold shadow-sm">
                 {experience.discount}% OFF
               </div>
             )}
@@ -201,10 +199,11 @@ const ExperienceCard = ({
   );
 };
 
-const ExperienceGrid = ({
+// Main ExperienceCatGrid component
+const ExperienceCatGrid = ({
   title,
   subtitle,
-  experiences,
+  experiences = [], // Use this as the source of truth
   layout = 'grid',
   columns = 4,
   showPrice = true,
@@ -213,12 +212,17 @@ const ExperienceGrid = ({
   onExperienceClick,
   filterOptions = null,
   isLoading = false,
-  isViewAll = false
+  categoryIds = [], // This is only used if we need to fetch data directly
+  fetchData = false // New prop to decide if this component should fetch data itself
 }) => {
   const navigate = useNavigate();
-  const showViewAll = !isViewAll && experiences.length > 6;
-  const displayedExperiences = isViewAll ? experiences : experiences.slice(0, 6);
+  const [displayExperiences, setDisplayExperiences] = useState(experiences);
+  const [loading, setLoading] = useState(isLoading);
+  const [error, setError] = useState(null);
 
+  console.log(`ExperienceCatGrid rendering with ${experiences.length} experiences`);
+
+  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -235,6 +239,38 @@ const ExperienceGrid = ({
       transition: { type: 'spring', stiffness: 100 }
     }
   };
+
+  // Only fetch if explicitly told to do so via the fetchData prop
+  useEffect(() => {
+    // Always update state with the experiences passed as props
+    setDisplayExperiences(experiences);
+    
+    // Only fetch data if explicitly instructed to do so and categoryIds are provided
+    if (fetchData && categoryIds && categoryIds.length > 0) {
+      const fetchExperiences = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          console.log('Component is fetching experiences for categories:', categoryIds);
+          const data = await ExperienceService.getExperiencesByCategories(categoryIds);
+          setDisplayExperiences(data);
+          console.log('Component fetched experiences:', data.length);
+        } catch (err) {
+          setError('Failed to load experiences');
+          console.error('Error fetching experiences in component:', err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchExperiences();
+    }
+  }, [experiences, categoryIds, fetchData]);
+
+  // Update loading state based on prop changes
+  useEffect(() => {
+    setLoading(isLoading);
+  }, [isLoading]);
 
   return (
     <motion.section
@@ -256,42 +292,43 @@ const ExperienceGrid = ({
             )}
           </div>
         </div>
-        {showViewAll && (
-          <button
-            onClick={() => navigate('/viewall')}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            View All
-          </button>
-        )}
       </div>
+
+      {error && (
+        <div className="text-center py-4 text-red-600">
+          {error}
+        </div>
+      )}
 
       <div
         className={`
-          grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4
+          grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-${columns} gap-4
           ${layout === 'scroll' ? 'flex overflow-x-auto space-x-4 pb-4 hide-scrollbar' : ''}
         `}
       >
-        {isLoading
-          ? Array(8).fill(0).map((_, index) => (
-              <div key={index}>
-                <Skeleton variant="rectangular" className="aspect-[4/5]"/>
-              </div>
-            ))
-          : displayedExperiences.map(experience => (
-              <ExperienceCard
-                key={experience.id}
-                experience={experience}
-                onExperienceClick={onExperienceClick}
-                showPrice={showPrice}
-                showViewDetails={showViewDetails}
-                itemVariants={itemVariants}
-              />
-            ))
-        }
+        {loading ? (
+          // Show skeleton loaders while loading
+          Array(8).fill(0).map((_, index) => (
+            <div key={index}>
+              <Skeleton variant="rectangular" className="aspect-[4/5]" />
+            </div>
+          ))
+        ) : (
+          // Show the experiences
+          displayExperiences && displayExperiences.map((experience) => (
+            <ExperienceCard
+              key={experience.id}
+              experience={experience}
+              onExperienceClick={onExperienceClick}
+              showPrice={showPrice}
+              showViewDetails={showViewDetails}
+              itemVariants={itemVariants}
+            />
+          ))
+        )}
       </div>
 
-      {experiences.length === 0 && !isLoading && (
+      {displayExperiences && displayExperiences.length === 0 && !loading && (
         <div className="text-center py-4">
           <p className="text-gray-600">No experiences found</p>
         </div>
@@ -300,4 +337,4 @@ const ExperienceGrid = ({
   );
 };
 
-export default ExperienceGrid;
+export default ExperienceCatGrid;

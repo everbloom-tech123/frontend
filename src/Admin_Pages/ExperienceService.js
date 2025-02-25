@@ -558,6 +558,53 @@ static async filterBySubcategories(subcategoryIds) {
         throw error;
     }
 }
+
+static async getExperiencesByCategories(categoryIds) {
+    try {
+        // Check if we have valid category IDs
+        if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
+            console.log('No valid category IDs provided, returning empty array');
+            return [];
+        }
+        
+        // Filter out any undefined, null, or NaN values
+        const validIds = categoryIds.filter(id => id !== undefined && id !== null && !isNaN(id));
+        
+        if (validIds.length === 0) {
+            console.log('No valid category IDs after filtering, returning empty array');
+            return [];
+        }
+        
+        console.log('Fetching experiences by categories with valid IDs:', validIds);
+        
+        // Create URLSearchParams instance
+        const params = new URLSearchParams();
+        
+        // Add each categoryId as a separate 'categoryIds' parameter
+        validIds.forEach(id => params.append('categoryIds', id.toString()));
+        
+        // Make the request with properly formatted parameters
+        const response = await axios.get(`${API_BASE_URL}/filter/by-categories`, { params });
+        
+        // Log success and return data
+        console.log('Experiences by categories fetched successfully:', response.data);
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching experiences by categories:', error.response?.data || error.message);
+        
+        // Handle 404 more gracefully
+        if (error.response?.status === 404) {
+            console.warn('No experiences found for the specified categories');
+            return []; 
+        }
+        
+        // Log the full error for debugging
+        console.error('Full error object:', error);
+        
+        throw new Error('Failed to fetch experiences by categories');
+    }
+}
+
 }
 
 export default ExperienceService;

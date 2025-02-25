@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ExperienceList from './components/ExperienceList';
 import ExperienceForm from './components/ExperienceForm';
 import CategoryManagement from './components/CategoryManagment';
+import HomepageCategoryAdmin from './managehomecat'; // Import the new component
 import UserManagement from './components/UserManagment';
 import BookingManagement from './components/Admin_booking';
 import ExperienceService from './ExperienceService';
@@ -9,6 +10,7 @@ import ExperienceService from './ExperienceService';
 const AdminDashboard = () => {
   // State
   const [activeMainTab, setActiveMainTab] = useState(0);
+  const [activeCategoryTab, setActiveCategoryTab] = useState(0); // Add state for category sub-tabs
   const [showForm, setShowForm] = useState(false);
   const [editingExperience, setEditingExperience] = useState(null);
   const [refreshList, setRefreshList] = useState(false);
@@ -16,7 +18,7 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
-  // Handlers
+  // Existing handlers...
   const handleCreateExperience = async (formData) => {
     setIsSubmitting(true);
     try {
@@ -130,8 +132,38 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Categories Tab */}
-          {activeMainTab === 1 && <CategoryManagement />}
+          {/* Categories Tab with Sub-tabs */}
+          {activeMainTab === 1 && (
+            <div>
+              {/* Sub-tabs for Categories */}
+              <div className="mb-6 border-b">
+                <div className="flex">
+                  <button
+                    className={`px-4 py-2 font-medium text-sm ${
+                      activeCategoryTab === 0
+                        ? 'border-b-2 border-blue-500 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    onClick={() => setActiveCategoryTab(0)}
+                  >
+                    All Categories
+                  </button>
+                  <button
+                    className={`px-4 py-2 font-medium text-sm ${
+                      activeCategoryTab === 1
+                        ? 'border-b-2 border-blue-500 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    onClick={() => setActiveCategoryTab(1)}
+                  >
+                    Homepage Categories
+                  </button>
+                </div>
+              </div>
+
+              {activeCategoryTab === 0 ? <CategoryManagement /> : <HomepageCategoryAdmin />}
+            </div>
+          )}
 
           {/* Users Tab */}
           {activeMainTab === 2 && <UserManagement />}
