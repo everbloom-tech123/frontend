@@ -6,7 +6,7 @@ import Header from '../components/traveTips';
 import ModernHero from '../components/modernHero';
 import DestinationExplorer from '../components/Destination';
 import ImageGrid from '../components/imageLayout';
-import HomepageCategoriesSection from '../components/HomepageCategoriesSection'; // Import the component
+import HomepageCategoriesSection from '../components/HomepageCategoriesSection';
 
 const HomePage = () => {
   const [featuredExperiences, setFeaturedExperiences] = useState([]);
@@ -79,33 +79,48 @@ const HomePage = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <div className="pt-16">
-        <ModernHero/>
-      </div>
-      <DestinationExplorer/>
+      {/* Hero Section */}
+      <section className="w-full">
+        <ModernHero />
+      </section>
       
-      {/* This is where we call the HomepageCategoriesSection component */}
+      {/* Destination Explorer Section */}
+      <section className="w-full py-20 bg-white">
+        <div className="container mx-auto px-8">
+          <DestinationExplorer />
+        </div>
+      </section>
       
+      {/* Categories Section - Separate section */}
+      <section className="w-full py-16 bg-gray-50">
+        <div className="container mx-auto px-8">
+          <HomepageCategoriesSection 
+            onCategorySelect={handleCategorySelect}
+            activeCategory={activeCategory}
+          />
+        </div>
+      </section>
       
-      <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
-        <div className="relative mb-16">
-          {specialExperiences.length > 0 && (
+      {/* Featured Experiences Section */}
+      {specialExperiences.length > 0 && (
+        <section className="w-full py-20 bg-white">
+          <div className="container mx-auto px-8">
             <ExperienceGrid
-              title="Featured Experiences :"
+              title="Featured Experiences"
               subtitle="Exclusive offers and unique experiences"
               experiences={specialExperiences}
               columns={3}
               onExperienceClick={handleExperienceClick}
               isLoading={loading}
             />
-          )}
+          </div>
+        </section>
+      )}
 
-<HomepageCategoriesSection 
-        onCategorySelect={handleCategorySelect}
-        activeCategory={activeCategory}
-      /> 
-
-          {mostPopularExperiences.length > 0 && (
+      {/* Most Popular Experiences Section */}
+      {mostPopularExperiences.length > 0 && (
+        <section className="w-full py-20 bg-gray-50">
+          <div className="container mx-auto px-8">
             <ExperienceGrid
               title="Most Popular Experiences"
               subtitle="Top-rated experiences loved by our community"
@@ -114,22 +129,27 @@ const HomePage = () => {
               onExperienceClick={handleExperienceClick}
               isLoading={loading}
             />
-          )}
-
-          <Header/>
+          </div>
+        </section>
+      )}
+      
+      {/* Travel Tips Section */}
+      <section className="w-full py-20 bg-white">
+        <div className="container mx-auto px-8">
+          <Header />
         </div>
-      </div>
-
+      </section>
+      
+      {/* Filtered Experiences Section */}
       {filteredExperiences.length > 0 && (
-        <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
-          <div className="relative mb-16">
-            <div className="flex justify-between items-center mb-6">
+        <section className="w-full py-20 bg-gray-50">
+          <div className="container mx-auto px-8">
+            <div className="flex justify-between items-center mb-8">
               <div className="flex flex-col items-start">
-                <h1 className="text-5xl font-extrabold mb-2 leading-tight tracking-tight">
+                <h1 className="text-5xl font-extrabold mb-3 leading-tight tracking-tight">
                   {activeCategory === 'All' ? 'All Experiences' : `${activeCategory} Experiences`}
-                  <span className="text-red-200 mx-2"></span>
                 </h1>
-                <p className="text-sm font-semibold text-gray-500">
+                <p className="text-lg font-semibold text-gray-500">
                   {activeCategory === 'All' 
                     ? 'Explore all our amazing experiences' 
                     : `Discover our ${activeCategory.toLowerCase()} experiences`}
@@ -137,7 +157,7 @@ const HomePage = () => {
               </div>
               <button
                 onClick={() => navigate('/viewall')}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-lg"
               >
                 View All
               </button>
@@ -150,14 +170,15 @@ const HomePage = () => {
               showHeader={false}
             />
           </div>
-        </div>
+        </section>
       )}
-
-      <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
-        <div className="relative mb-16">
-          <ImageGrid/>
+      
+      {/* Image Grid Section */}
+      <section className="w-full py-20 bg-white">
+        <div className="container mx-auto px-8">
+          <ImageGrid />
         </div>
-      </div>
+      </section>
     </div>
   );
 };

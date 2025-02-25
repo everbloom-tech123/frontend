@@ -24,7 +24,7 @@ const ImageGrid = ({ images = [
         <div className="mb-8">
           <div className="inline-block relative">
               <h1 className="text-5xl font-extrabold mb-6 leading-tight tracking-tight">
-                  Customer Gallery
+                  Gallery
               </h1>
 
           </div>

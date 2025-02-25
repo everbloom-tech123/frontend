@@ -181,31 +181,29 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
   return (
     <div className="relative mx-auto overflow-visible bg-white px-6 pt-12">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-5xl font-extrabold leading-tight tracking-tight">
-         
-        </h1>
+        
       </div>
 
       {/* PlayfulCategories component hidden per client request */}
       
       {/* Render a separate ExperienceGrid for each category to display */}
-      <div className="mt-8 space-y-16">
+      <div className="mt-6 space-y-8">
         {categoriesToDisplay.length === 0 ? (
-          <div className="py-8 text-center">Please select at least one category to view experiences</div>
+          <div className="py-4 text-center">No categories available</div>
         ) : (
           categoriesToDisplay.map(category => (
             <div key={category.id} className="category-section">
               {/* Experience Grid for this category */}
               {loadingExperiencesByCategory[category.id] ? (
-                <div className="py-8 text-center">Loading {category.name} experiences...</div>
+                <div className="py-4 text-center">Loading {category.name} experiences...</div>
               ) : errorByCategory[category.id] ? (
-                <div className="py-8 text-center text-red-600">{errorByCategory[category.id]}</div>
+                <div className="py-4 text-center text-red-600">{errorByCategory[category.id]}</div>
               ) : !experiencesByCategory[category.id] || experiencesByCategory[category.id].length === 0 ? (
-                <div className="py-8 text-center">No experiences found for {category.name}</div>
+                <div className="py-4 text-center">No experiences found for {category.name}</div>
               ) : (
                 <ExperienceGrid
                   title={`${category.name} Experiences`}
-                  experiences={experiencesByCategory[category.id] || []}
+                  experiences={(experiencesByCategory[category.id] || []).slice(0, 5)}
                   showPrice={true}
                   showViewDetails={true}
                   isLoading={false}
