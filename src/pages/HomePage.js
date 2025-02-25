@@ -85,10 +85,7 @@ const HomePage = () => {
       <DestinationExplorer/>
       
       {/* This is where we call the HomepageCategoriesSection component */}
-      <HomepageCategoriesSection 
-        onCategorySelect={handleCategorySelect}
-        activeCategory={null}
-      /> 
+      
       
       <div className="relative mx-auto overflow-visible bg-white px-6 pt-6">
         <div className="relative mb-16">
@@ -102,6 +99,11 @@ const HomePage = () => {
               isLoading={loading}
             />
           )}
+
+<HomepageCategoriesSection 
+        onCategorySelect={handleCategorySelect}
+        activeCategory={activeCategory}
+      /> 
 
           {mostPopularExperiences.length > 0 && (
             <ExperienceGrid

@@ -11,10 +11,10 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState(null);
   
-  // Add experience state
-  const [experiences, setExperiences] = useState([]);
-  const [loadingExperiences, setLoadingExperiences] = useState(false);
-  const [experienceError, setExperienceError] = useState(null);
+  // Change data structure to store experiences by category
+  const [experiencesByCategory, setExperiencesByCategory] = useState({});
+  const [loadingExperiencesByCategory, setLoadingExperiencesByCategory] = useState({});
+  const [errorByCategory, setErrorByCategory] = useState({});
 
   // Fetch homepage categories on mount
   useEffect(() => {
@@ -49,15 +49,11 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
         console.log('Processed homepage categories:', homepageCats);
         setHomepageCategories(homepageCats);
         
-        // Extract category IDs for fetching experiences
-        const categoryIds = homepageCats.map(cat => cat.id);
+        // Select all categories by default since selection UI is hidden
+        setSelectedCategoryIds(homepageCats.map(cat => cat.id));
         
-        if (Array.isArray(categoryIds) && categoryIds.length > 0) {
-          console.log('Extracted category IDs for fetching experiences:', categoryIds);
-          fetchExperiencesByCategories(categoryIds);
-        } else {
-          console.warn('No valid category IDs found, skipping experience fetch');
-        }
+        // Fetch experiences for each category
+        fetchExperiencesForAllCategories(homepageCats);
       } catch (err) {
         console.error('Error fetching homepage categories:', err.message, err.stack);
         setError('Failed to load categories: ' + err.message);
@@ -69,107 +65,103 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
     fetchCategories();
   }, []);
   
-  // Function to fetch experiences by category IDs
-  const fetchExperiencesByCategories = async (categoryIds) => {
-    try {
-      // Validate inputs
-      if (!categoryIds || !Array.isArray(categoryIds) || categoryIds.length === 0) {
-        console.warn('Invalid category IDs provided to fetchExperiencesByCategories:', categoryIds);
-        return;
-      }
-
-      // Make sure all IDs are numbers
-      const validIds = categoryIds.filter(id => id !== undefined && id !== null && !isNaN(parseInt(id)))
-                                 .map(id => parseInt(id));
-      
-      if (validIds.length === 0) {
-        console.warn('No valid category IDs after filtering, skipping fetch');
-        return;
-      }
-      
-      setLoadingExperiences(true);
-      setExperienceError(null);
-      
-      console.log('Fetching experiences for category IDs:', validIds);
-      
-      const fetchedExperiences = await ExperienceService.getExperiencesByCategories(validIds);
-      console.log('Fetched experiences:', fetchedExperiences);
-      
-      if (Array.isArray(fetchedExperiences)) {
-        setExperiences(fetchedExperiences);
-      } else {
-        console.error('Invalid response format:', fetchedExperiences);
-        setExperienceError('Received invalid data format from server');
-        setExperiences([]);
-      }
-    } catch (err) {
-      console.error('Error fetching experiences:', err.message, err.stack);
-      setExperienceError('Failed to load experiences: ' + err.message);
-      setExperiences([]);
-    } finally {
-      setLoadingExperiences(false);
+  // Fetch experiences for all categories
+  const fetchExperiencesForAllCategories = async (categories) => {
+    if (!categories || !Array.isArray(categories) || categories.length === 0) {
+      console.warn('No categories provided to fetch experiences for');
+      return;
     }
+    
+    // Initialize loading states for all categories
+    const newLoadingStates = {};
+    categories.forEach(category => {
+      newLoadingStates[category.id] = true;
+    });
+    setLoadingExperiencesByCategory(newLoadingStates);
+    
+    // Fetch experiences for each category in parallel
+    const fetchPromises = categories.map(category => 
+      fetchExperiencesForCategory(category)
+    );
+    
+    // Wait for all fetches to complete
+    await Promise.all(fetchPromises);
   };
-
-  // Handle category selection
-  const handleCategorySelect = (category) => {
+  
+  // Function to fetch experiences for a single category
+  const fetchExperiencesForCategory = async (category) => {
     if (!category || !category.id) {
-      console.error('Invalid category object received in handleCategorySelect:', category);
+      console.warn('Invalid category provided:', category);
       return;
     }
     
     const categoryId = category.id;
-    console.log('Category selected/deselected:', category.name, categoryId);
-
-    let newSelectedIds = [];
     
-    // Toggle category selection
-    if (selectedCategoryIds.includes(categoryId)) {
-      newSelectedIds = selectedCategoryIds.filter(id => id !== categoryId);
-    } else {
-      newSelectedIds = [...selectedCategoryIds, categoryId];
-    }
-
-    setSelectedCategoryIds(newSelectedIds);
-    console.log('New selected category IDs:', newSelectedIds);
-
-    if (externalOnCategorySelect) {
-      externalOnCategorySelect(category);
-    }
-    
-    // Fetch experiences based on selection
-    if (newSelectedIds.length > 0) {
-      fetchExperiencesByCategories(newSelectedIds);
-    } else if (homepageCategories.length > 0) {
-      // If no categories selected, show all homepage category experiences
-      const allCategoryIds = homepageCategories.map(cat => cat.id);
-      fetchExperiencesByCategories(allCategoryIds);
+    try {
+      console.log(`Fetching experiences for category: ${category.name} (ID: ${categoryId})`);
+      
+      // Update loading state for this category
+      setLoadingExperiencesByCategory(prevState => ({
+        ...prevState,
+        [categoryId]: true
+      }));
+      
+      // Clear any previous errors
+      setErrorByCategory(prevState => ({
+        ...prevState,
+        [categoryId]: null
+      }));
+      
+      // Use getExperiencesByCategories with a single ID since getExperiencesByCategory has issues
+      const experiences = await ExperienceService.getExperiencesByCategories([categoryId]);
+      
+      console.log(`Fetched ${experiences.length} experiences for category ${category.name}`);
+      
+      // Store experiences for this category
+      setExperiencesByCategory(prevState => ({
+        ...prevState,
+        [categoryId]: experiences || []
+      }));
+    } catch (err) {
+      console.error(`Error fetching experiences for category ${category.name}:`, err.message);
+      
+      // Store error for this category
+      setErrorByCategory(prevState => ({
+        ...prevState,
+        [categoryId]: `Failed to load ${category.name} experiences: ${err.message}`
+      }));
+      
+      // Initialize with empty array on error
+      setExperiencesByCategory(prevState => ({
+        ...prevState,
+        [categoryId]: []
+      }));
+    } finally {
+      // Update loading state
+      setLoadingExperiencesByCategory(prevState => ({
+        ...prevState,
+        [categoryId]: false
+      }));
     }
   };
 
-  // Get the title for the experience grid
-  const getExperienceGridTitle = () => {
-    if (selectedCategoryIds.length === 1) {
-      const selectedCategory = homepageCategories.find(cat => cat.id === selectedCategoryIds[0]);
-      return selectedCategory ? `${selectedCategory.name} Experiences` : "Experiences";
-    } else if (selectedCategoryIds.length > 1) {
-      return "Selected Experiences";
-    } else {
-      return "All Experiences";
-    }
+  // Category selection handlers removed as they're no longer needed
+
+  // Always display all categories since selection UI is hidden
+  const getCategoriesToDisplay = () => {
+    return homepageCategories;
   };
 
   // Log current state for debugging
   console.log('Rendering HomepageCategoriesSection with:', {
     categories: homepageCategories.length,
     selectedCategoryIds,
-    loadingCategories,
-    error,
-    experiences: experiences.length,
-    loadingExperiences
+    experiencesByCategory,
+    loadingExperiencesByCategory,
+    errorByCategory
   });
 
-  // Render loading, error, or empty states
+  // Render loading, error, or empty states for the entire component
   if (loadingCategories) {
     return <div className="p-6 text-center">Loading categories...</div>;
   }
@@ -182,38 +174,47 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
     return <div className="p-6 text-center">No categories available</div>;
   }
 
+  // Get categories to display
+  const categoriesToDisplay = getCategoriesToDisplay();
+
   // Main render
   return (
     <div className="relative mx-auto overflow-visible bg-white px-6 pt-12">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-5xl font-extrabold leading-tight tracking-tight">
-          Explore Experiences
+         
         </h1>
       </div>
 
-      <PlayfulCategories
-        categories={homepageCategories}
-        onCategorySelect={handleCategorySelect}
-        activeCategory={activeCategory}
-        selectedCategoryIds={selectedCategoryIds}
-      />
+      {/* PlayfulCategories component hidden per client request */}
       
-      {/* Experience Grid for all experiences */}
-      {loadingExperiences ? (
-        <div className="py-8 text-center">Loading experiences...</div>
-      ) : experienceError ? (
-        <div className="py-8 text-center text-red-600">{experienceError}</div>
-      ) : experiences.length === 0 ? (
-        <div className="py-8 text-center">No experiences found for selected categories</div>
-      ) : (
-        <ExperienceGrid
-          title={getExperienceGridTitle()}
-          experiences={experiences}
-          showPrice={true}
-          showViewDetails={true}
-          isLoading={false}
-        />
-      )}
+      {/* Render a separate ExperienceGrid for each category to display */}
+      <div className="mt-8 space-y-16">
+        {categoriesToDisplay.length === 0 ? (
+          <div className="py-8 text-center">Please select at least one category to view experiences</div>
+        ) : (
+          categoriesToDisplay.map(category => (
+            <div key={category.id} className="category-section">
+              {/* Experience Grid for this category */}
+              {loadingExperiencesByCategory[category.id] ? (
+                <div className="py-8 text-center">Loading {category.name} experiences...</div>
+              ) : errorByCategory[category.id] ? (
+                <div className="py-8 text-center text-red-600">{errorByCategory[category.id]}</div>
+              ) : !experiencesByCategory[category.id] || experiencesByCategory[category.id].length === 0 ? (
+                <div className="py-8 text-center">No experiences found for {category.name}</div>
+              ) : (
+                <ExperienceGrid
+                  title={`${category.name} Experiences`}
+                  experiences={experiencesByCategory[category.id] || []}
+                  showPrice={true}
+                  showViewDetails={true}
+                  isLoading={false}
+                />
+              )}
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
