@@ -145,8 +145,6 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
     }
   };
 
-  // Category selection handlers removed as they're no longer needed
-
   // Always display all categories since selection UI is hidden
   const getCategoriesToDisplay = () => {
     return homepageCategories;
@@ -179,11 +177,7 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
 
   // Main render
   return (
-    <div className="relative mx-auto overflow-visible bg-white px-6 pt-12">
-      <div className="flex justify-between items-center mb-6">
-        
-      </div>
-
+    <div className="relative mx-auto overflow-visible bg-white pt-4">
       {/* PlayfulCategories component hidden per client request */}
       
       {/* Render a separate ExperienceGrid for each category to display */}

@@ -97,7 +97,7 @@ const HomePage = () => {
             />
           )}
 
-          <div className="mb-8">
+          <div className="relative mb-16">
             <HomepageCategoriesSection 
               onCategorySelect={handleCategorySelect}
               activeCategory={activeCategory}
