@@ -10,7 +10,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 
-// Import pages
+// Import pages (standardized imports without .jsx)
 import HomePage from './pages/HomePage';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
@@ -40,17 +40,25 @@ const setupAxiosInterceptors = (logoutCallback) => {
 };
 
 const MainLayout = ({ children }) => {
-  const { logout } = useAuth();
+  const { logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Setup axios interceptors for auth token handling
     setupAxiosInterceptors(() => {
       logout();
       navigate('/signin');
     });
 
+    // Global auth state change listener
+    const handleAuthStateChanged = (event) => {
+      console.log('Auth state changed globally:', event.detail);
+    };
+    
+    window.addEventListener('auth-state-changed', handleAuthStateChanged);
+    
     return () => {
-      // Cleanup if needed
+      window.removeEventListener('auth-state-changed', handleAuthStateChanged);
     };
   }, [logout, navigate]);
 
@@ -75,6 +83,18 @@ const AdminLayout = () => {
 };
 
 const PublicLayout = () => {
+  const { isAuthenticated } = useAuth();
+  
+  // Force re-render when auth state changes
+  useEffect(() => {
+    const handleAuthStateChanged = () => {
+      console.log('Auth state changed in PublicLayout');
+    };
+    
+    window.addEventListener('auth-state-changed', handleAuthStateChanged);
+    return () => window.removeEventListener('auth-state-changed', handleAuthStateChanged);
+  }, []);
+
   return (
     <div className="public-layout flex flex-col min-h-screen">
       <Navbar />
@@ -88,7 +108,14 @@ const PublicLayout = () => {
           <Route path="/experience/:id" element={<ExperienceDetails />} />
           <Route path="/contact-us" element={<ContactForm />} />
           <Route path="/about-us" element={<AboutUs />} />
-          
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <div>Dashboard Placeholder</div> {/* Replace with your Dashboard component */}
+              </ProtectedRoute>
+            } 
+          />
           <Route 
             path="/wishlist" 
             element={
@@ -105,7 +132,6 @@ const PublicLayout = () => {
               </ProtectedRoute>
             } 
           />
-          
           <Route path="/viewby/:categoryId" element={<ViewBySubPage />} />
           <Route path="/viewby/district/:districtId" element={<ExperienceByLocation />} />
           <Route path="*" element={<Navigate to="/home" replace />} />

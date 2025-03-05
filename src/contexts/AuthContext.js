@@ -1,123 +1,203 @@
 // src/contexts/AuthContext.js
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
 import { tokenManager } from '../utils/TokenManager';
 import * as AuthService from '../services/AuthService';
+import { GlobalStateManager, AUTH_STATE_CHANGED } from '../utils/GlobalStateManager';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext({
+  user: null,
+  loading: true,
+  error: null,
+  isAuthenticated: false,
+  isAdmin: false,
+  login: async () => {},
+  logout: () => {},
+  clearError: () => {},
+  syncAuthState: () => {},
+});
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => tokenManager.getUser());
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const logout = async () => {
+  const syncAuthState = () => {
+    console.log('Syncing auth state...');
     try {
-      tokenManager.clearSession();
-      tokenManager.stopTokenCheck();
-      setUser(null);
-      window.dispatchEvent(new Event('auth-change'));
+      const token = localStorage.getItem('token');
+      const userStr = localStorage.getItem('user');
+      let userData = null;
+      
+      try {
+        userData = userStr ? JSON.parse(userStr) : null;
+      } catch (parseError) {
+        console.error('Error parsing user data:', parseError);
+      }
+      
+      const isTokenValid = token && !tokenManager.isTokenExpired();
+      console.log('Sync check:', { 
+        token: token ? '[PRESENT]' : null, 
+        userData, 
+        isTokenValid,
+        tokenExpired: token ? tokenManager.isTokenExpired() : null
+      });
+
+      if (isTokenValid && userData) {
+        setUser(userData);
+        setIsAuthenticated(true);
+        tokenManager.startTokenCheck(() => {
+          console.log('Token expired, logging out');
+          handleLogout();
+        });
+        console.log('Auth synced - User authenticated:', userData);
+      } else {
+        if (!isTokenValid && token) {
+          console.log('Auth sync - Token invalid or expired');
+        }
+        if (!userData && userStr) {
+          console.log('Auth sync - User data invalid');
+        }
+        setUser(null);
+        setIsAuthenticated(false);
+        tokenManager.stopTokenCheck();
+        console.log('Auth cleared: no valid token or user');
+      }
     } catch (err) {
-      console.error('Logout error:', err);
+      console.error('Error syncing auth state:', err);
+      setUser(null);
+      setIsAuthenticated(false);
     }
   };
 
-  // Initialize auth state and start token check
   useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        if (tokenManager.isAuthenticated()) {
-          const userProfile = await AuthService.getUserProfile();
-          setUser(userProfile);
-          
-          // Start token expiration check
-          tokenManager.startTokenCheck(logout);
-          
-          console.group('Auth Initialization');
-          console.log('User Profile:', userProfile);
-          console.log('Token Valid:', !tokenManager.isTokenExpired());
-          console.log('Token Remaining Time:', tokenManager.getTokenRemainingTime());
-          console.groupEnd();
-        } else {
-          setUser(null);
-          console.log('No authenticated user found');
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-        logout();
-      } finally {
-        setLoading(false);
-      }
+    syncAuthState();
+    setLoading(false);
+
+    const handleAuthUpdate = () => {
+      console.log('Auth update event received');
+      syncAuthState();
     };
 
-    initializeAuth();
+    // Listen for both custom events and storage events
+    window.addEventListener('auth-update', handleAuthUpdate);
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'token' || e.key === 'user') {
+        console.log('Storage event:', e.key);
+        syncAuthState();
+      }
+    });
 
-    // Cleanup on unmount
+    // Also subscribe to GlobalStateManager events
+    const unsubscribe = GlobalStateManager.subscribe(AUTH_STATE_CHANGED, () => {
+      console.log('GlobalStateManager auth update received');
+      syncAuthState();
+    });
+
     return () => {
+      window.removeEventListener('auth-update', handleAuthUpdate);
+      window.removeEventListener('storage', () => {});
       tokenManager.stopTokenCheck();
+      unsubscribe();
     };
   }, []);
 
-  const login = async (email, password) => {
+  const handleLogin = async (email, password) => {
     setLoading(true);
     setError(null);
     try {
       const response = await AuthService.login(email, password);
       
-      // Store auth data using token manager
+      // Parse and store user data
+      const userData = {
+        id: response.id || 'unknown',
+        username: response.username || response.sub || email.split('@')[0],
+        email: response.email || email,
+        role: response.role || 'ROLE_USER',
+      };
+      
+      // Update token and user through tokenManager
       tokenManager.setToken(response.token);
-      tokenManager.setUser({
-        id: response.id,
-        username: response.username,
-        email: response.email,
-        role: response.role
-      });
-      tokenManager.setRole(response.role);
+      tokenManager.setUser(userData);
+      tokenManager.setRole(response.role || 'ROLE_USER');
       
       // Start token expiration check
-      tokenManager.startTokenCheck(logout);
+      tokenManager.startTokenCheck(() => {
+        console.log('Token expired, logging out');
+        handleLogout();
+      });
       
-      setUser(tokenManager.getUser());
-      return response;
+      // Update state
+      setUser(userData);
+      setIsAuthenticated(true);
+      
+      // Notify other components
+      window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+        detail: { user: userData, isAuthenticated: true } 
+      }));
+      window.dispatchEvent(new CustomEvent('auth-update'));
+      GlobalStateManager.update(AUTH_STATE_CHANGED, {
+        isAuthenticated: true,
+        user: userData
+      });
+      
+      setLoading(false);
+      return userData;
     } catch (err) {
       setError(err.message || 'Login failed');
-      throw err;
-    } finally {
       setLoading(false);
+      throw err;
     }
   };
 
-  const value = {
+  const handleLogout = () => {
+    try {
+      tokenManager.clearSession();
+      tokenManager.stopTokenCheck();
+      setUser(null);
+      setIsAuthenticated(false);
+      
+      // Notify other components
+      window.dispatchEvent(new CustomEvent('auth-state-changed', { 
+        detail: { user: null, isAuthenticated: false } 
+      }));
+      window.dispatchEvent(new CustomEvent('auth-update'));
+      GlobalStateManager.update(AUTH_STATE_CHANGED, {
+        isAuthenticated: false,
+        user: null
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  const contextValue = useMemo(() => ({
     user,
     loading,
     error,
-    isAuthenticated: tokenManager.isAuthenticated(),
+    isAuthenticated,
     isAdmin: user?.role === 'ROLE_ADMIN',
-    login,
-    logout,
+    login: handleLogin,
+    logout: handleLogout,
     clearError: () => setError(null),
-  };
+    syncAuthState, // Expose sync function
+  }), [user, loading, error, isAuthenticated]);
 
-  if (loading) {
+  if (loading && !user && !error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ceylon-pink-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
       </div>
     );
   }
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 export default AuthProvider;

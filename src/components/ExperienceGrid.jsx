@@ -116,7 +116,7 @@ const ExperienceCard = ({
             {/* Most Popular Ribbon */}
             {experience.most_popular && (
               <div className="ribbon-container">
-                <div className="ribbon">⭐ MOST POPULAR</div>
+                <div className="ribbon">MOST POPULAR</div>
               </div>
             )}
 
@@ -145,20 +145,20 @@ const ExperienceCard = ({
                   </p>
                 )}
 
-                <div className="min-h-[24px]">
-                  {experience.tags && experience.tags.length > 0 && (
-                    <div className="flex gap-1">
-                      {experience.tags.slice(0, 2).map((tag, index) => (
-                        <span
-                          key={index}
-                          className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-medium"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
+<div className="min-h-[24px]">
+  {experience.tags && Array.isArray(experience.tags) && experience.tags.length > 0 ? (
+    <div className="flex gap-1">
+      {experience.tags.slice(0, 2).map((tag, index) => (
+        <span
+          key={index}
+          className="bg-white/20 text-white px-2 py-0.5 rounded-full text-xs font-medium"
+        >
+          {tag}
+        </span>
+      ))}
+    </div>
+  ) : null}
+</div>
 
                 {showPrice && (
                   <div className="pt-2 border-t border-white/20">

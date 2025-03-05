@@ -9,15 +9,11 @@ export const ProtectedRoute = ({ children, role }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Combined useEffect for all token checks
   useEffect(() => {
     const handleTokenExpired = () => {
       console.log('Token expired, logging out...');
       logout();
-      navigate('/signin', { 
-        state: { from: location.pathname },
-        replace: true 
-      });
+      navigate('/signin', { state: { from: location.pathname }, replace: true });
     };
 
     const handleVisibilityChange = () => {
@@ -38,6 +34,15 @@ export const ProtectedRoute = ({ children, role }) => {
     };
   }, [isAuthenticated, logout, navigate, location.pathname]);
 
+  console.log('ProtectedRoute check:', {
+    isAuthenticated,
+    user,
+    role,
+    tokenExpired: tokenManager.isTokenExpired(),
+    token: tokenManager.getToken(),
+    rawUser: localStorage.getItem('user'),
+  });
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
@@ -47,6 +52,7 @@ export const ProtectedRoute = ({ children, role }) => {
   }
 
   if (!isAuthenticated || tokenManager.isTokenExpired()) {
+    console.log('Redirecting to /signin due to auth failure', { isAuthenticated, tokenExpired: tokenManager.isTokenExpired() });
     return <Navigate to="/signin" state={{ from: location.pathname }} replace />;
   }
 
@@ -59,11 +65,7 @@ export const ProtectedRoute = ({ children, role }) => {
 };
 
 export const AdminRoute = ({ children }) => {
-  return (
-    <ProtectedRoute role="ROLE_ADMIN">
-      {children}
-    </ProtectedRoute>
-  );
+  return <ProtectedRoute role="ROLE_ADMIN">{children}</ProtectedRoute>;
 };
 
 export default ProtectedRoute;

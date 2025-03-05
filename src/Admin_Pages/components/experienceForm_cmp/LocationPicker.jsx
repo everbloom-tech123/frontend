@@ -4,20 +4,55 @@ import { MapContainer, TileLayer, Marker, Polygon, useMap } from 'react-leaflet'
 import LocationMarker from './LocationMarker';
 import 'leaflet/dist/leaflet.css';
 
+// Improved map updater with better bounds handling
 const MapUpdater = ({ cityBounds, mapCenter, mapZoom }) => {
   const map = useMap();
   
   useEffect(() => {
     if (cityBounds?.length) {
-      const bounds = cityBounds.reduce((bounds, point) => 
-        bounds.extend([point[0], point[1]]), map.getBounds());
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, duration: 1 });
+      try {
+        // Create a proper Leaflet bounds object from the city boundaries
+        const latLngs = cityBounds.map(point => [point[0], point[1]]);
+        map.fitBounds(latLngs, { 
+          padding: [50, 50], 
+          maxZoom: 15, 
+          duration: 1,
+          animate: true 
+        });
+      } catch (error) {
+        console.error("Error fitting bounds:", error);
+        map.flyTo(mapCenter, mapZoom, { duration: 1 });
+      }
     } else {
       map.flyTo(mapCenter, mapZoom, { duration: 1 });
     }
   }, [cityBounds, mapCenter, mapZoom, map]);
 
   return null;
+};
+
+// Function to check if a point is inside a polygon
+const isPointInPolygon = (point, polygon) => {
+  if (!point || !polygon || polygon.length < 3) return false;
+  
+  const x = point.lng;
+  const y = point.lat;
+  let inside = false;
+  
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    // Ensure we're using consistent lat/lng ordering
+    const xi = polygon[i][1]; // longitude
+    const yi = polygon[i][0]; // latitude
+    const xj = polygon[j][1];
+    const yj = polygon[j][0];
+    
+    const intersect = ((yi > y) !== (yj > y)) && 
+        (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    
+    if (intersect) inside = !inside;
+  }
+  
+  return inside;
 };
 
 const LocationPicker = ({ 
@@ -31,13 +66,22 @@ const LocationPicker = ({
   cityBounds,
   formData
 }) => {
+  // Improved handler with validation
   const handleMapClick = useCallback((position) => {
-    handleLocationChange(position);
-  }, [handleLocationChange]);
+    if (isLocationValid(position)) {
+      handleLocationChange(position);
+    } else {
+      // Optionally show an error message that location is outside boundaries
+      console.warn("Selected location is outside city boundaries");
+    }
+  }, [handleLocationChange, cityBounds]);
 
+  // Improved validation that actually checks boundaries
   const isLocationValid = useCallback((position) => {
     if (!position || !cityBounds?.length) return false;
-    return true;
+    
+    // Check if the position is within city boundaries
+    return isPointInPolygon(position, cityBounds);
   }, [cityBounds]);
 
   useEffect(() => {
@@ -45,6 +89,12 @@ const LocationPicker = ({
       handleLocationChange(mapPosition);
     }
   }, [mapPosition, isLocationValid, handleLocationChange]);
+
+  // Geocoding support could be added here in the future
+  // Example:
+  // const handleAddressSearch = (address) => {
+  //   // Implementation would depend on which geocoding service you use
+  // };
 
   return (
     <Box>
@@ -83,6 +133,7 @@ const LocationPicker = ({
                 position={mapPosition}
                 onLocationChange={handleMapClick}
                 cityBounds={cityBounds}
+                isLocationValid={isLocationValid}
               />
               {cityBounds?.length > 0 && (
                 <Polygon
@@ -100,6 +151,7 @@ const LocationPicker = ({
           {mapPosition && (
             <Typography variant="body2" color={isLocationValid(mapPosition) ? 'textPrimary' : 'error'}>
               Selected Location: {mapPosition.lat.toFixed(6)}, {mapPosition.lng.toFixed(6)}
+              {!isLocationValid(mapPosition) && " (Outside city boundaries)"}
             </Typography>
           )}
         </Paper>
@@ -115,6 +167,7 @@ const LocationPicker = ({
           fullWidth
           InputProps={{ readOnly: true }}
           error={!isLocationValid(mapPosition)}
+          helperText={!isLocationValid(mapPosition) ? "Location outside boundaries" : ""}
         />
         <TextField 
           label="Longitude"
@@ -125,6 +178,7 @@ const LocationPicker = ({
           fullWidth
           InputProps={{ readOnly: true }}
           error={!isLocationValid(mapPosition)}
+          helperText={!isLocationValid(mapPosition) ? "Location outside boundaries" : ""}
         />
       </Box>
     </Box>

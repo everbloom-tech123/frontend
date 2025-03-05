@@ -1,6 +1,8 @@
+// src/pages/SignIn.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../services/AuthService';
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -8,12 +10,12 @@ const SignIn = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { syncAuthState } = useAuth(); // Get sync function
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     
-    // Basic validation
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
@@ -24,6 +26,7 @@ const SignIn = () => {
     try {
       const response = await AuthService.login(email, password);
       console.log('Login successful:', response);
+      syncAuthState(); // Directly sync AuthContext
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
@@ -73,4 +76,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn; 
+export default SignIn;

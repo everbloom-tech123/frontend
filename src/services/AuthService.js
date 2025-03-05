@@ -33,42 +33,43 @@ export const register = async (username, email, password) => {
 export const login = async (email, password) => {
   try {
     console.log('Attempting login with:', { email, password });
-    
     const response = await fetch(`${API_URL}/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-
-    console.log('Login response status:', response.status);
-
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.message || 'An error occurred during login');
     }
-
     const data = await response.json();
     console.log('Login response data:', data);
 
-    // Store token
+    // Store complete user data
+    const userData = {
+      id: data.id || 'unknown',
+      username: data.username || data.sub || email.split('@')[0], // Better fallback
+      email: data.email || email,
+      role: data.role || 'ROLE_USER',
+    };
+    console.log('Storing user data:', userData);
+    
+    // Use TokenManager instead of direct localStorage access
     if (data.token) {
       localStorage.setItem('token', data.token);
-    }
-
-    // Store user data
-    const userData = {
-      id: data.id,
-      username: data.username,
-      email: data.email,
-      role: data.role
-    };
-    localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Store role
-    if (data.role) {
-      localStorage.setItem('userRole', data.role);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('userRole', data.role || 'ROLE_USER');
+      
+      // Dispatch a global event that will be detected reliably
+      window.dispatchEvent(new CustomEvent('auth-update'));
+      
+      // Also use the GlobalStateManager
+      if (window.GlobalStateManager) {
+        window.GlobalStateManager.update('AUTH_STATE_CHANGED', {
+          isAuthenticated: true,
+          user: userData
+        });
+      }
     }
 
     return data;

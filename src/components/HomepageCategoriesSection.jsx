@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CategoryService from '../Admin_Pages/CategoryService';
 import HomepageCategoryService from '../services/HomepageCategories';
 import ExperienceService from '../Admin_Pages/ExperienceService';
@@ -6,11 +7,11 @@ import PlayfulCategories from './PlayfulCategories';
 import ExperienceGrid from './ExperienceGrid';
 
 const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect, activeCategory }) => {
+  const navigate = useNavigate();
   const [homepageCategories, setHomepageCategories] = useState([]);
   const [selectedCategoryIds, setSelectedCategoryIds] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [error, setError] = useState(null);
-  
   // Change data structure to store experiences by category
   const [experiencesByCategory, setExperiencesByCategory] = useState({});
   const [loadingExperiencesByCategory, setLoadingExperiencesByCategory] = useState({});
@@ -150,6 +151,11 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
     return homepageCategories;
   };
 
+  // Handle view all button click - redirect to ViewBySubPage with category ID
+  const handleViewAllClick = (categoryId) => {
+    navigate(`/viewby/${categoryId}`);
+  };
+
   // Log current state for debugging
   console.log('Rendering HomepageCategoriesSection with:', {
     categories: homepageCategories.length,
@@ -187,6 +193,28 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
         ) : (
           categoriesToDisplay.map(category => (
             <div key={category.id} className="category-section">
+              {/* Category header with view all button */}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">{category.name} Experiences</h2>
+                <button 
+                  onClick={() => handleViewAllClick(category.id)}
+                  className="text-red-600 hover:text-red-800 font-medium flex items-center"
+                >
+                  View All
+                  <svg 
+                    className="w-5 h-5 ml-1" 
+                    fill="none" 
+                    strokeLinecap="round"
+                    strokeLinejoin="round" 
+                    strokeWidth="2" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+              
               {/* Experience Grid for this category */}
               {loadingExperiencesByCategory[category.id] ? (
                 <div className="py-4 text-center">Loading {category.name} experiences...</div>
@@ -196,7 +224,7 @@ const HomepageCategoriesSection = ({ onCategorySelect: externalOnCategorySelect,
                 <div className="py-4 text-center">No experiences found for {category.name}</div>
               ) : (
                 <ExperienceGrid
-                  title={`${category.name} Experiences`}
+                  title={null} // Remove title as we now have it in the header with view all button
                   experiences={(experiencesByCategory[category.id] || []).slice(0, 5)}
                   showPrice={true}
                   showViewDetails={true}
