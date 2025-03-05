@@ -1,6 +1,5 @@
 // src/config.js
 const config = {
-<<<<<<< HEAD
  //API_BASE_URL: 'https://api-n0ae.onrender.com'  // Always use production API
  //API_BASE_URL: 'http://localhost:8080'
 API_BASE_URL: 'http://ceylonnow.com:8080/backend'
@@ -25,11 +24,3 @@ const config = {
     axiosInstance: axiosInstance
 };
 export default config; */
-=======
-  API_BASE_URL: 'http://ceylonnow.com:8080/backend'  // Always use production API
-  //API_BASE_URL: 'http://localhost:8080'
-  //API_BASE_URL: 'https://fb31-43-252-15-106.ngrok-free.app'
-};
-
-export default config;
->>>>>>> 8a955039c2bcb401bcc7261c08df2825235ddd97
