@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Stack, Alert } from '@mui/material';
-
-// Import all component pieces
 import BasicInformation from './experienceForm_cmp/Basicinfo';
 import PricingSection from './experienceForm_cmp/PricingSection';
 import CategorySelection from './experienceForm_cmp/categoryselection';
@@ -10,15 +8,12 @@ import LocationPicker from './experienceForm_cmp/LocationPicker';
 import MediaUpload from './experienceForm_cmp/MediaUpload';
 import TagsInput from './experienceForm_cmp/Tagsinput';
 import FormActions from './experienceForm_cmp/FormActions';
-
-// Import utilities and services
-import { fetchCityBoundaries } from './utils/LocationUtilities';
+import { fetchDistrictBoundaries } from './utils/LocationUtilities';
 import CategoryService from '../CategoryService';
 import ExperienceService from '../ExperienceService';
 import districtService from '../../services/districtService';
 
 const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
-  // Initialize form state with all necessary fields
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -42,10 +37,7 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     longitude: ''
   });
 
-  // Store the original image count for accurate validation
   const [originalImageCount, setOriginalImageCount] = useState(0);
-
-  // UI state management
   const [categories, setCategories] = useState([]);
   const [cities, setCities] = useState([]);
   const [districts, setDistricts] = useState([]);
@@ -55,16 +47,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [submitError, setSubmitError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [boundaryWarning, setBoundaryWarning] = useState('');
 
-  // Map-related state
   const [showMap, setShowMap] = useState(false);
   const [mapPosition, setMapPosition] = useState(null);
-  const [cityBounds, setCityBounds] = useState(null);
-  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]);
+  const [districtBounds, setDistrictBounds] = useState(null);
+  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Sri Lanka center
   const [mapZoom, setMapZoom] = useState(8);
   const [mapRef, setMapRef] = useState(null);
 
-  // Initialize data and populate form when editing
   useEffect(() => {
     const initializeForm = async () => {
       await Promise.all([
@@ -92,7 +83,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           districtId: experience.city?.district?.id || ''
         });
 
-        // Set the original image count from the loaded experience
         setOriginalImageCount(experience.imageUrls?.length || 0);
 
         if (experience.imageUrls) {
@@ -113,44 +103,58 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     initializeForm();
   }, [experience]);
 
-  // Fetch cities when district changes
   useEffect(() => {
     if (formData.districtId) {
       fetchCitiesByDistrict(formData.districtId);
+      updateMapForDistrict(formData.districtId);
     } else {
       setCities([]);
       setFormData(prev => ({ ...prev, cityId: '' }));
+      setDistrictBounds(null);
+      setMapCenter([7.8731, 80.7718]);
+      setMapZoom(8);
+      setBoundaryWarning('');
     }
   }, [formData.districtId]);
 
-  // Update map when city changes
-  useEffect(() => {
-    const updateMapForCity = async () => {
-      if (formData.cityId) {
-        const selectedCity = cities.find(city => city.id === formData.cityId);
-        if (selectedCity) {
-          const boundaries = await fetchCityBoundaries(selectedCity.name);
-          if (boundaries) {
-            setCityBounds(boundaries.bounds);
-            setMapCenter(boundaries.center);
-            setMapZoom(13);
-
-            if (mapRef) {
-              mapRef.flyTo(boundaries.center, 13);
-            }
+  const updateMapForDistrict = async (districtId) => {
+    const selectedDistrict = districts.find(district => district.id === districtId);
+    if (selectedDistrict) {
+      try {
+        const boundaries = await fetchDistrictBoundaries(selectedDistrict.name);
+        console.log(`Boundaries for ${selectedDistrict.name} district:`, boundaries);
+        if (boundaries) {
+          setDistrictBounds(boundaries.bounds);
+          setMapCenter(boundaries.center);
+          setMapZoom(10);
+          if (mapRef) {
+            mapRef.flyTo(boundaries.center, 10);
           }
+          // Check if using Sri Lanka-wide fallback
+          const isDefaultBounds = boundaries.bounds.every(([lat, lng]) =>
+            lat === 5.9 || lat === 9.9 || lng === 79.6 || lng === 81.9
+          );
+          if (isDefaultBounds) {
+            setBoundaryWarning(`Exact boundaries for ${selectedDistrict.name} district not found. Using Sri Lanka-wide area.`);
+          } else {
+            setBoundaryWarning('');
+          }
+        } else {
+          setBoundaryWarning(`Failed to load boundaries for ${selectedDistrict.name} district.`);
+          setDistrictBounds(null);
+          setMapCenter([7.8731, 80.7718]);
+          setMapZoom(8);
         }
-      } else {
-        setCityBounds(null);
+      } catch (error) {
+        console.error(`Error fetching boundaries for ${selectedDistrict.name}:`, error);
+        setBoundaryWarning(`Error loading boundaries for ${selectedDistrict.name} district.`);
+        setDistrictBounds(null);
         setMapCenter([7.8731, 80.7718]);
         setMapZoom(8);
       }
-    };
+    }
+  };
 
-    updateMapForCity();
-  }, [formData.cityId, cities]);
-
-  // Data fetching functions
   const fetchCategories = async () => {
     try {
       const data = await CategoryService.getAllCategories();
@@ -181,7 +185,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }
   };
 
-  // Event handlers
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -237,7 +240,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
   const handleRemoveImage = (index, isExisting) => {
     if (isExisting) {
-      // Remove existing image
       const imageUrl = formData.imageUrls[index];
       setFormData(prev => ({
         ...prev,
@@ -245,15 +247,12 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         imagesToRemove: [...prev.imagesToRemove, imageUrl]
       }));
     } else {
-      // Remove newly added image
       const adjustedIndex = index - (formData.imageUrls?.length || 0);
       setFormData(prev => ({
         ...prev,
         images: Array.from(prev.images).filter((_, i) => i !== adjustedIndex)
       }));
     }
-
-    // Update preview URLs
     setPreviewUrls(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -284,7 +283,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     }));
   };
 
-  // Form submission handler
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -292,21 +290,15 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
 
     try {
       const submitData = new FormData();
-
-      // Add basic form fields
       submitData.append('title', formData.title.trim());
       submitData.append('description', formData.description.trim());
       submitData.append('additionalInfo', formData.additionalInfo?.trim() || '');
       submitData.append('price', formData.price.toString());
       submitData.append('discount', (formData.discount || '0').toString());
 
-      // Handle subcategories
       const subcategoryIds = formData.subCategoryIds || [];
-      subcategoryIds.forEach(id => {
-        submitData.append('subCategoryIds', id.toString());
-      });
+      subcategoryIds.forEach(id => submitData.append('subCategoryIds', id.toString()));
 
-      // Add location data
       submitData.append('cityId', formData.cityId.toString());
       submitData.append('address', formData.address.trim());
 
@@ -315,28 +307,18 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
         submitData.append('longitude', formData.longitude.toString());
       }
 
-      // Add tags
       if (formData.tags?.length > 0) {
-        formData.tags.forEach(tag => {
-          submitData.append('tags', tag.trim());
-        });
+        formData.tags.forEach(tag => submitData.append('tags', tag.trim()));
       }
 
-      // Handle images
       if (formData.images?.length > 0) {
-        formData.images.forEach(image => {
-          submitData.append('images', image);
-        });
+        formData.images.forEach(image => submitData.append('images', image));
       }
 
-      // Handle images to remove - send each URL as a separate removeImages parameter
       if (experience && formData.imagesToRemove?.length > 0) {
-        formData.imagesToRemove.forEach(url => {
-          submitData.append('removeImages', url);
-        });
+        formData.imagesToRemove.forEach(url => submitData.append('removeImages', url));
       }
 
-      // Handle video
       if (formData.video) {
         submitData.append('video', formData.video);
       }
@@ -347,7 +329,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
       submitData.append('special', formData.special ? 'true' : 'false');
       submitData.append('most_popular', formData.mostPopular ? 'true' : 'false');
 
-      // Add original image count for validation
       if (experience) {
         submitData.append('currentImageCount', originalImageCount.toString());
       }
@@ -365,31 +346,22 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
     <form onSubmit={handleSubmit}>
       <Stack spacing={3}>
         {submitError && <Alert severity="error">{submitError}</Alert>}
+        {boundaryWarning && <Alert severity="warning">{boundaryWarning}</Alert>}
 
-        <BasicInformation
-          formData={formData}
-          handleChange={handleChange}
-        />
-
-        <PricingSection
-          formData={formData}
-          handleChange={handleChange}
-        />
-
+        <BasicInformation formData={formData} handleChange={handleChange} />
+        <PricingSection formData={formData} handleChange={handleChange} />
         <CategorySelection
           categories={categories}
           formData={formData}
           handleChange={handleChange}
           isEditing={!!experience}
         />
-
         <LocationSelection
           districts={districts}
           cities={cities}
           formData={formData}
           handleChange={handleChange}
         />
-
         <LocationPicker
           showMap={showMap}
           setShowMap={setShowMap}
@@ -398,10 +370,9 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           setMapRef={setMapRef}
           mapPosition={mapPosition}
           handleLocationChange={handleLocationChange}
-          cityBounds={cityBounds}
+          districtBounds={districtBounds}
           formData={formData}
         />
-
         <MediaUpload
           handleFileChange={handleFileChange}
           handleRemoveImage={handleRemoveImage}
@@ -412,7 +383,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           formData={formData}
           isEditing={!!experience}
         />
-
         <TagsInput
           newTag={newTag}
           setNewTag={setNewTag}
@@ -420,7 +390,6 @@ const ExperienceForm = ({ experience, onSubmit, onCancel }) => {
           handleRemoveTag={handleRemoveTag}
           formData={formData}
         />
-
         <FormActions
           onCancel={onCancel}
           isLoading={isLoading}

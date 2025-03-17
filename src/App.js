@@ -24,6 +24,7 @@ import ViewBySubPage from './pages/ViewBySubPage';
 import ContactForm from './pages/contactForm';
 import AboutUs from './pages/aboutUs';
 import ExperienceByLocation from './pages/ViewBydistrict';
+import Discounted from './pages/Discounted';
 
 // Setup axios interceptors
 const setupAxiosInterceptors = (logoutCallback) => {
@@ -108,6 +109,7 @@ const PublicLayout = () => {
           <Route path="/experience/:id" element={<ExperienceDetails />} />
           <Route path="/contact-us" element={<ContactForm />} />
           <Route path="/about-us" element={<AboutUs />} />
+          <Route path="/sales" element={<Discounted />} />
           <Route 
             path="/dashboard" 
             element={

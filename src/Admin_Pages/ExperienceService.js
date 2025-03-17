@@ -559,6 +559,8 @@ static async filterBySubcategories(subcategoryIds) {
     }
 }
 
+
+
 static async getExperiencesByCategories(categoryIds) {
     try {
         // Check if we have valid category IDs
@@ -604,6 +606,18 @@ static async getExperiencesByCategories(categoryIds) {
         throw new Error('Failed to fetch experiences by categories');
     }
 }
+
+static async getDiscountedExperiences() {
+    try {
+      console.log('Fetching discounted experiences...');
+      const response = await axios.get(`${API_BASE_URL}/discounted`);
+      console.log('Discounted experiences fetched successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching discounted experiences:', error.response?.data || error.message);
+      throw new Error('Failed to fetch discounted experiences');
+    }
+  }
 
 }
 

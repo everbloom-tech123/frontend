@@ -1,4 +1,3 @@
-// src/utils/GlobalStateManager.js
 import { useEffect, useState } from 'react';
 
 // This creates a simple, global event system that any component can subscribe to

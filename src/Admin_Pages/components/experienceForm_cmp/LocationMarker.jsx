@@ -1,25 +1,15 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 
-const LocationMarker = ({ position, onLocationChange, cityBounds }) => {
+const LocationMarker = ({ position, onLocationChange }) => {
   const [marker, setMarker] = useState(position);
   
-  const isPointInPolygon = useCallback((point, polygon) => {
-    if (!polygon?.length) return true;
-    
-    const latLng = L.latLng(point.lat, point.lng);
-    const poly = L.polygon(polygon);
-    return poly.getBounds().contains(latLng);
-  }, []);
-
   useMapEvents({
     click(e) {
       const newPosition = e.latlng;
-      if (isPointInPolygon(newPosition, cityBounds)) {
-        setMarker(newPosition);
-        onLocationChange(newPosition);
-      }
+      setMarker(newPosition);
+      onLocationChange(newPosition);
     },
   });
 

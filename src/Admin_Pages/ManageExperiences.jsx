@@ -2,15 +2,14 @@ import React, { useState } from 'react';
 import ExperienceList from './components/ExperienceList';
 import ExperienceForm from './components/ExperienceForm';
 import CategoryManagement from './components/CategoryManagment';
-import HomepageCategoryAdmin from './managehomecat'; // Import the new component
+import HomepageCategoryAdmin from './managehomecat';
 import UserManagement from './components/UserManagment';
 import BookingManagement from './components/Admin_booking';
 import ExperienceService from './ExperienceService';
 
 const AdminDashboard = () => {
-  // State
   const [activeMainTab, setActiveMainTab] = useState(0);
-  const [activeCategoryTab, setActiveCategoryTab] = useState(0); // Add state for category sub-tabs
+  const [activeCategoryTab, setActiveCategoryTab] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editingExperience, setEditingExperience] = useState(null);
   const [refreshList, setRefreshList] = useState(false);
@@ -18,7 +17,6 @@ const AdminDashboard = () => {
   const [error, setError] = useState(null);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
-  // Existing handlers...
   const handleCreateExperience = async (formData) => {
     setIsSubmitting(true);
     try {
@@ -60,12 +58,10 @@ const AdminDashboard = () => {
   return (
     <div className="container mx-auto p-4">
       <div className="bg-white rounded-lg shadow-lg">
-        {/* Header */}
         <div className="p-6 border-b">
           <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
         </div>
 
-        {/* Main Tabs */}
         <div className="border-b">
           <div className="flex">
             {['Experiences', 'Categories', 'Users', 'Bookings'].map((tab, index) => (
@@ -84,9 +80,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Content */}
         <div className="p-4">
-          {/* Experiences Tab */}
           {activeMainTab === 0 && (
             <div>
               {!showForm && (
@@ -132,10 +126,8 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Categories Tab with Sub-tabs */}
           {activeMainTab === 1 && (
             <div>
-              {/* Sub-tabs for Categories */}
               <div className="mb-6 border-b">
                 <div className="flex">
                   <button
@@ -165,15 +157,11 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Users Tab */}
           {activeMainTab === 2 && <UserManagement />}
-
-          {/* Bookings Tab */}
           {activeMainTab === 3 && <BookingManagement />}
         </div>
       </div>
 
-      {/* Notification Toast */}
       {notification.show && (
         <div className={`fixed top-4 right-4 p-4 rounded shadow-lg ${
           notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
