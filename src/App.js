@@ -25,6 +25,7 @@ import ContactForm from './pages/contactForm';
 import AboutUs from './pages/aboutUs';
 import ExperienceByLocation from './pages/ViewBydistrict';
 import Discounted from './pages/Discounted';
+import UserBookingsPage from './pages/UserBookingPage';  // Make sure this file exists
 
 // Setup axios interceptors
 const setupAxiosInterceptors = (logoutCallback) => {
@@ -131,6 +132,14 @@ const PublicLayout = () => {
             element={
               <ProtectedRoute>
                 <BookingPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/My-Booking" 
+            element={
+              <ProtectedRoute>
+                <UserBookingsPage />
               </ProtectedRoute>
             } 
           />

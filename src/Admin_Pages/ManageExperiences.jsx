@@ -3,8 +3,11 @@ import ExperienceList from './components/ExperienceList';
 import ExperienceForm from './components/ExperienceForm';
 import CategoryManagement from './components/CategoryManagment';
 import HomepageCategoryAdmin from './managehomecat';
+import NavbarCategoryAdmin from './NavbarCategoryAdmin';
 import UserManagement from './components/UserManagment';
 import BookingManagement from './components/Admin_booking';
+import MerchantManagement from './components/MerchantManagement';
+import ReviewManagement from './ReviewManagment';
 import ExperienceService from './ExperienceService';
 
 const AdminDashboard = () => {
@@ -63,8 +66,8 @@ const AdminDashboard = () => {
         </div>
 
         <div className="border-b">
-          <div className="flex">
-            {['Experiences', 'Categories', 'Users', 'Bookings'].map((tab, index) => (
+          <div className="flex flex-wrap">
+            {['Experiences', 'Categories', 'Users', 'Bookings', 'Merchants', 'Reviews'].map((tab, index) => (
               <button
                 key={tab}
                 className={`px-6 py-3 font-medium text-sm ${
@@ -150,15 +153,29 @@ const AdminDashboard = () => {
                   >
                     Homepage Categories
                   </button>
+                  <button
+                    className={`px-4 py-2 font-medium text-sm ${
+                      activeCategoryTab === 2
+                        ? 'border-b-2 border-blue-500 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                    onClick={() => setActiveCategoryTab(2)}
+                  >
+                    Navbar Categories
+                  </button>
                 </div>
               </div>
 
-              {activeCategoryTab === 0 ? <CategoryManagement /> : <HomepageCategoryAdmin />}
+              {activeCategoryTab === 0 && <CategoryManagement />}
+              {activeCategoryTab === 1 && <HomepageCategoryAdmin />}
+              {activeCategoryTab === 2 && <NavbarCategoryAdmin />}
             </div>
           )}
 
           {activeMainTab === 2 && <UserManagement />}
           {activeMainTab === 3 && <BookingManagement />}
+          {activeMainTab === 4 && <MerchantManagement />}
+          {activeMainTab === 5 && <ReviewManagement />}
         </div>
       </div>
 

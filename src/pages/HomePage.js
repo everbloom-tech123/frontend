@@ -6,7 +6,7 @@ import Header from '../components/traveTips';
 import ModernHero from '../components/modernHero';
 import DestinationExplorer from '../components/Destination';
 import ImageGrid from '../components/imageLayout';
-import HomepageCategoriesSection from '../components/HomepageCategoriesSection'; // Import the component
+import HomepageCategoriesSection from '../components/HomepageCategoriesSection';
 
 const HomePage = () => {
   const [featuredExperiences, setFeaturedExperiences] = useState([]);
@@ -17,33 +17,49 @@ const HomePage = () => {
   const [activeCategory, setActiveCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasFetched, setHasFetched] = useState(false); // Flag to prevent duplicate fetches
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    let isMounted = true;
 
-        // Using the new limited experiences endpoint
+    const loadData = async () => {
+      if (hasFetched || !isMounted) return; // Skip if already fetched
+
+      setHasFetched(true); // Mark as fetched
+      setLoading(true);
+      setError(null);
+
+      try {
+        // Fetch experiences
+        console.log('Fetching limited experiences...');
         const experiences = await ExperienceService.getLimitedExperiences();
         if (Array.isArray(experiences)) {
           setAllExperiences(experiences);
-          setFilteredExperiences(experiences); // Initialize filtered experiences with all
+          setFilteredExperiences(experiences);
           setFeaturedExperiences(experiences.filter(exp => exp.featured));
           setSpecialExperiences(experiences.filter(exp => exp.special));
           setMostPopularExperiences(experiences.filter(exp => exp.most_popular));
+        } else {
+          console.error('Invalid experiences response:', experiences);
         }
       } catch (err) {
-        console.error('Error loading homepage data:', err);
+        console.error('Error loading data:', err);
+        console.error('Error details:', err.response?.data || err.message);
         setError('Failed to load data');
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchData();
-  }, []);
+    loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [hasFetched]);
 
   const handleCategorySelect = (categoryName) => {
     setActiveCategory(categoryName);
@@ -98,6 +114,7 @@ const HomePage = () => {
           )}
 
           <div className="relative mb-16">
+            {/* HomepageCategoriesSection now just needs the activeCategory prop */}
             <HomepageCategoriesSection 
               onCategorySelect={handleCategorySelect}
               activeCategory={activeCategory}
@@ -128,7 +145,7 @@ const HomePage = () => {
                   {activeCategory === 'All' ? 'All Experiences' : `${activeCategory} Experiences`}
                   <span className="text-red-200 mx-2"></span>
                 </h1>
-                <p className="text-sm font-semibold text-gray-500">
+                <p className="text-sm font-semibold text-gray-600">
                   {activeCategory === 'All' 
                     ? 'Explore all our amazing experiences' 
                     : `Discover our ${activeCategory.toLowerCase()} experiences`}

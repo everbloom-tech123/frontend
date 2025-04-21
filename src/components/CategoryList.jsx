@@ -2,10 +2,75 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryService from '../Admin_Pages/CategoryService';
 
+// Constants
 const ITEMS_PER_PAGE = 7;
+
+// CategoryItem component handles the display and interaction for each category
+const CategoryItem = ({ name, isSelected, isHovered, onClick, onMouseEnter, onMouseLeave }) => (
+  <div
+    className="group relative overflow-hidden"
+    onClick={onClick}
+    onMouseEnter={onMouseEnter}
+    onMouseLeave={onMouseLeave}
+  >
+    <div
+      className={`
+        flex items-center justify-between p-4 
+        rounded-lg cursor-pointer
+        transition-all duration-200 ease-in-out
+        ${isSelected ? 'bg-blue-100' : 
+          isHovered ? 'bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'}
+      `}
+    >
+      <div className="flex items-center gap-3">
+        <svg
+          className={`w-5 h-5 transition-colors duration-200 ${
+            isSelected ? 'text-blue-600' :
+            isHovered ? 'text-blue-500' : 'text-gray-400'
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+          />
+        </svg>
+        <span
+          className={`font-medium transition-colors duration-200 ${
+            isSelected ? 'text-blue-800' :
+            isHovered ? 'text-blue-700' : 'text-gray-700'
+          }`}
+        >
+          {name}
+        </span>
+      </div>
+      <svg
+        className={`w-5 h-5 transition-all duration-200 ${
+          isSelected ? 'text-blue-600 translate-x-1' :
+          isHovered ? 'text-blue-500 translate-x-1' : 'text-gray-400'
+        }`}
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 5l7 7-7 7"
+        />
+      </svg>
+    </div>
+  </div>
+);
 
 const Categories = () => {
   const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,6 +96,12 @@ const Categories = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery]);
+
+  // Updated click handler with selection logic
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category);
+    navigate(`/viewby/${category.id}`);
+  };
 
   const filteredAndPaginatedCategories = useMemo(() => {
     const filtered = categories.filter(category =>
@@ -103,53 +174,17 @@ const Categories = () => {
       </div>
 
       <div className="p-6">
-        <div className="space-y-2">
+        <div className="space-y-2 mb-6">
           {filteredAndPaginatedCategories.displayedCategories.map((category) => (
-            <div
+            <CategoryItem
               key={category.id}
-              className="group relative overflow-hidden"
+              name={category.name}
+              isSelected={selectedCategory?.id === category.id}
+              isHovered={hoveredId === category.id}
+              onClick={() => handleCategoryClick(category)}
               onMouseEnter={() => setHoveredId(category.id)}
               onMouseLeave={() => setHoveredId(null)}
-              onClick={() => navigate(`/viewby/${category.id}`)}
-            >
-              <div
-                className={`
-                  flex items-center justify-between p-4 
-                  rounded-lg cursor-pointer
-                  transition-all duration-200 ease-in-out
-                  ${hoveredId === category.id ? 'bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'}
-                `}
-              >
-                <div className="flex items-center gap-3">
-                  <svg
-                    className={`w-5 h-5 transition-colors duration-200 ${
-                      hoveredId === category.id ? 'text-blue-500' : 'text-gray-400'
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-                    />
-                  </svg>
-                  <span
-                    className={`font-medium transition-colors duration-200 ${
-                      hoveredId === category.id ? 'text-blue-700' : 'text-gray-700'
-                    }`}
-                  >
-                    {category.name}
-                  </span>
-                </div>
-                <ChevronIcon 
-                  hoveredId={hoveredId} 
-                  categoryId={category.id} 
-                />
-              </div>
-            </div>
+            />
           ))}
         </div>
 
@@ -200,24 +235,5 @@ const Categories = () => {
     </div>
   );
 };
-
-// Separate component for the chevron icon
-const ChevronIcon = ({ hoveredId, categoryId }) => (
-  <svg
-    className={`w-5 h-5 transition-all duration-200 ${
-      hoveredId === categoryId ? 'text-blue-500 translate-x-1' : 'text-gray-400'
-    }`}
-    fill="none"
-    stroke="currentColor"
-    viewBox="0 0 24 24"
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth={2}
-      d="M9 5l7 7-7 7"
-    />
-  </svg>
-);
 
 export default Categories;

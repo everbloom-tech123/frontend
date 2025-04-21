@@ -28,7 +28,7 @@ const ExperienceContent = ({ experience }) => {
           About This Experience
         </Typography>
         <Paper elevation={0} className="p-8 bg-white rounded-xl shadow-sm">
-          <Typography className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+          <Typography className="text-gray-700 leading-relaxed text-lg whitespace-pre-line text-justify">
             {description}
           </Typography>
         </Paper>

@@ -1,8 +1,10 @@
 // src/pages/VerifyEmail.js
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { verifyEmail, resendVerificationCode } from '../services/AuthService';
 
 const VerifyEmail = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [message, setMessage] = useState('');
@@ -22,7 +24,7 @@ const VerifyEmail = () => {
     try {
       await verifyEmail(email, verificationCode);
       setMessage('Email verified successfully');
-      // Optionally redirect user or update UI state here
+      navigate('/');
     } catch (err) {
       setError(err.message || 'Verification failed');
     } finally {

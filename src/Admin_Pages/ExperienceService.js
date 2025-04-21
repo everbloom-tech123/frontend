@@ -393,9 +393,13 @@ class ExperienceService {
 
     static getFileUrl(filename) {
         if (!filename) return '';
+        
+        // Files from DigitalOcean Spaces already have a full URL
         if (filename.startsWith('http')) {
             return filename;
         }
+        
+        // For any legacy paths that might not have the full URL
         const cleanPath = filename.startsWith('/') ? filename.substring(1) : filename;
         return `${API_BASE_URL}/files/${cleanPath}`;
     }
@@ -472,31 +476,38 @@ class ExperienceService {
   }
 
   static getImageUrl(imagePath) {
-      if (!imagePath) return '';
-      if (imagePath.startsWith('http')) {
-          return imagePath;
-      }
-      const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-      return `${API_BASE_URL}/files/${cleanPath}`;
-  }
+    if (!imagePath) return '';
+    
+    // Images from DigitalOcean Spaces already have a full URL
+    if (imagePath.startsWith('http')) {
+        return imagePath;
+    }
+    
+    // For any legacy paths that might not have the full URL
+    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
+    return `${API_BASE_URL}/files/${cleanPath}`;
+}
+
 
   static getVideoUrl(videoPath) {
-      if (!videoPath) {
-          console.log('No video path provided');
-          return '';
-      }
-      
-      if (videoPath.startsWith('http')) {
-          console.log('Using full URL:', videoPath);
-          return videoPath;
-      }
-      
-      const cleanPath = videoPath.startsWith('/') ? videoPath.substring(1) : videoPath;
-      const fullUrl = `${API_BASE_URL}/files/${cleanPath}`;
-      console.log('Constructed video URL:', fullUrl);
-      
-      return fullUrl;
-  }
+    if (!videoPath) {
+        console.log('No video path provided');
+        return '';
+    }
+    
+    // Videos from DigitalOcean Spaces already have a full URL
+    if (videoPath.startsWith('http')) {
+        console.log('Using full URL:', videoPath);
+        return videoPath;
+    }
+    
+    // For any legacy paths that might not have the full URL
+    const cleanPath = videoPath.startsWith('/') ? videoPath.substring(1) : videoPath;
+    const fullUrl = `${API_BASE_URL}/files/${cleanPath}`;
+    console.log('Constructed video URL:', fullUrl);
+    
+    return fullUrl;
+}
 
   static getFileSize(file) {
       const size = file.size;

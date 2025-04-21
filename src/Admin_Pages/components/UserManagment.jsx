@@ -8,7 +8,6 @@ import {
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import config from '../../config';
 
-// Admin Service Layer
 class AdminService {
   constructor() {
     this.apiUrl = `${config.API_BASE_URL}/api/v1/users/admin`;
@@ -31,12 +30,10 @@ class AdminService {
         method: 'GET',
         headers: this.#getAuthHeaders()
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to fetch users');
       }
-
       return await response.json();
     } catch (error) {
       console.error('Get all users error:', error);
@@ -51,12 +48,10 @@ class AdminService {
         headers: this.#getAuthHeaders(),
         body: JSON.stringify(userData)
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to create user');
       }
-
       return await response.json();
     } catch (error) {
       console.error('Create user error:', error);
@@ -71,12 +66,10 @@ class AdminService {
         headers: this.#getAuthHeaders(),
         body: JSON.stringify(userData)
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to update user');
       }
-
       return await response.json();
     } catch (error) {
       console.error('Update user error:', error);
@@ -90,12 +83,10 @@ class AdminService {
         method: 'DELETE',
         headers: this.#getAuthHeaders()
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to delete user');
       }
-
       return await response.json();
     } catch (error) {
       console.error('Delete user error:', error);
@@ -105,19 +96,15 @@ class AdminService {
 
   async changeUserRole(userId, newRole) {
     try {
-      const roleToSend = newRole.replace('ROLE_', '');
-      
-      const response = await fetch(`${this.apiUrl}/change-role/${userId}`, {
+      const roleToSend = newRole.replace('ROLE_', '');      
+      const response = await fetch(`${this.apiUrl}/change-role?userId=${userId}&newRole=${roleToSend}`, {
         method: 'POST',
-        headers: this.#getAuthHeaders(),
-        body: JSON.stringify({ newRole: roleToSend })
+        headers: this.#getAuthHeaders()
       });
-
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.message || 'Failed to change user role');
       }
-
       return await response.json();
     } catch (error) {
       console.error('Change user role error:', error);
@@ -128,7 +115,6 @@ class AdminService {
 
 const adminService = new AdminService();
 
-// User Management Component
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -141,11 +127,9 @@ const UserManagement = () => {
     password: '',
     role: 'ROLE_USER'
   });
-
   useEffect(() => {
     loadUsers();
   }, []);
-
   const loadUsers = async () => {
     try {
       const data = await adminService.getAllUsers();
@@ -173,7 +157,7 @@ const UserManagement = () => {
       username: user.username,
       email: user.email,
       role: user.roles[0] || 'ROLE_USER',
-      password: '' // Clear password field for security
+      password: '' 
     });
     setShowForm(true);
   };
@@ -334,8 +318,7 @@ const UserManagement = () => {
                         size="small"
                       >
                         <MenuItem value="ROLE_ADMIN">Admin</MenuItem>
-                        <MenuItem value="ROLE_CLIENT">Client</MenuItem>
-                        <MenuItem value="ROLE_CUSTOMER">Customer</MenuItem>
+                        <MenuItem value="ROLE_MERCHANT">Merchant</MenuItem>
                         <MenuItem value="ROLE_USER">User</MenuItem>
                       </Select>
                     </TableCell>

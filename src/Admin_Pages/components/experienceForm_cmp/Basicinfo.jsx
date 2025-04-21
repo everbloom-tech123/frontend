@@ -46,17 +46,6 @@ const BasicInformation = ({ formData, handleChange }) => {
         <FormControlLabel
           control={
             <Checkbox
-              checked={formData.special}
-              onChange={handleChange}
-              name="special"
-            />
-          }
-          label="Mark as Special"
-        />
-        
-        <FormControlLabel
-          control={
-            <Checkbox
               checked={formData.mostPopular}
               onChange={handleChange}
               name="mostPopular"

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import config from '../config';
 
-
 const API_URL = `${config.API_BASE_URL}/api/v1/users`;
 
 /* const API_URL = process.env.NODE_ENV === 'production'
@@ -31,7 +30,7 @@ export const getCurrentUserProfile = async () => {
   }
 };
 
- const getAllUsers = async () => {
+export const getAllUsers = async () => {
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(`${API_URL}/admin/all`, {
@@ -134,14 +133,6 @@ export const hasRole = (user, role) => {
 
 export const isAdmin = (user) => {
   return hasRole(user, 'ROLE_ADMIN');
-};
-
-export const isClient = (user) => {
-  return hasRole(user, 'ROLE_CLIENT');
-};
-
-export const isCustomer = (user) => {
-  return hasRole(user, 'ROLE_CUSTOMER');
 };
 
 export const isUser = (user) => {

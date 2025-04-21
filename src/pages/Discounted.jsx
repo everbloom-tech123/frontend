@@ -52,7 +52,7 @@ const Discounted = () => {
     >
       {/* Set page title using document.title */}
       {useEffect(() => {
-        document.title = "Discounted Experiences | Ceylon Odyssey";
+        document.title = "Discounted Experiences | Ceylonnow";
       }, [])}
 
       <div className="mb-12 text-center">
@@ -80,7 +80,7 @@ const Discounted = () => {
       ) : (
         <ExperienceGrid
           title="Discounted Experiences"
-          subtitle="Save big on these limited-time offers"
+          subtitle=""
           experiences={discountedExperiences}
           layout="grid"
           columns={4}
