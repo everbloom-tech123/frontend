@@ -58,6 +58,7 @@ class NavbarCategoryService {
    * @param {number} displayOrder - Optional display order (position in navbar)
    * @returns {Promise<Object>} Newly created navbar category object
    */
+  
   static async addCategoryToNavbar(categoryId, displayOrder = null) {
     try {
       const params = { categoryId };

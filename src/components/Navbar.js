@@ -15,28 +15,24 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [districtOpen, setDistrictOpen] = useState(false);
-  // Add missing state variables for districts
-  const [districtsOpen, setDistrictsOpen] = useState(false);
   const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false);
   const [mobileDistrictOpen, setMobileDistrictOpen] = useState(false);
-  const [mobileDistrictsOpen, setMobileDistrictsOpen] = useState(false);
   const [mobileProfileOpen, setMobileProfileOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [navbarCategories, setNavbarCategories] = useState([]);
-  // Add state for district data
-  const [navbarDistricts, setNavbarDistricts] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [isLoadingDistricts, setIsLoadingDistricts] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Cache duration: 30 minutes (in milliseconds)
+  const CACHE_DURATION = 30 * 60 * 1000;
 
   useEffect(() => {
     checkAuthStatus();
     setupScrollListener();
     fetchNavbarCategories();
-    fetchNavbarDistricts(); // Add function to fetch districts
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -45,10 +41,8 @@ const Navbar = () => {
     setDropdownOpen(false);
     setCategoriesOpen(false);
     setDistrictOpen(false);
-    setDistrictsOpen(false); // Reset districtsOpen state
     setMobileCategoriesOpen(false);
     setMobileDistrictOpen(false);
-    setMobileDistrictsOpen(false); // Reset mobileDistrictsOpen state
     setMobileProfileOpen(false);
   }, [location]);
 
@@ -63,27 +57,26 @@ const Navbar = () => {
   const fetchNavbarCategories = async () => {
     setIsLoadingCategories(true);
     try {
-      const categories = await NavbarCategoryService.getNavbarCategories();
-      setNavbarCategories(categories);
+      // Check if cached data exists and is still valid
+      const cachedData = localStorage.getItem('navbarCategories');
+      const cachedTimestamp = localStorage.getItem('navbarCategoriesTimestamp');
+      const currentTime = Date.now();
+
+      if (cachedData && cachedTimestamp && (currentTime - parseInt(cachedTimestamp, 10)) < CACHE_DURATION) {
+        // Use cached data
+        setNavbarCategories(JSON.parse(cachedData));
+      } else {
+        // Fetch new data
+        const categories = await NavbarCategoryService.getNavbarCategories();
+        setNavbarCategories(categories);
+        // Store in localStorage with timestamp
+        localStorage.setItem('navbarCategories', JSON.stringify(categories));
+        localStorage.setItem('navbarCategoriesTimestamp', currentTime.toString());
+      }
     } catch (error) {
       console.error('Error fetching navbar categories:', error);
     } finally {
       setIsLoadingCategories(false);
-    }
-  };
-
-  // Add function to fetch districts
-  const fetchNavbarDistricts = async () => {
-    setIsLoadingDistricts(true);
-    try {
-      // Replace this with your actual service call
-      // For example: const districts = await DistrictService.getDistricts();
-      const districts = []; // Placeholder, replace with actual data fetching
-      setNavbarDistricts(districts);
-    } catch (error) {
-      console.error('Error fetching navbar districts:', error);
-    } finally {
-      setIsLoadingDistricts(false);
     }
   };
 
@@ -124,15 +117,6 @@ const Navbar = () => {
 
   const handleCategoriesLeave = () => {
     setCategoriesOpen(false);
-  };
-
-  // Add missing handler functions for districts
-  const handleDistrictsEnter = () => {
-    setDistrictsOpen(true);
-  };
-
-  const handleDistrictsLeave = () => {
-    setDistrictsOpen(false);
   };
 
   const handleDistrictEnter = () => {
@@ -179,7 +163,6 @@ const Navbar = () => {
     </div>
   );
 
-  // Add missing NavbarCategoriesMenu component
   const NavbarCategoriesMenu = () => {
     return (
       <div
@@ -211,7 +194,6 @@ const Navbar = () => {
     );
   };
 
-  // Add missing MobileNavbarCategoriesMenu component
   const MobileNavbarCategoriesMenu = () => {
     return (
       <div className="py-2">
@@ -232,125 +214,6 @@ const Navbar = () => {
               className="mt-2 bg-white rounded-md shadow-inner"
             >
               <Categories />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
-  // Desktop Navbar Districts Menu
-  const NavbarDistrictsMenu = () => {
-    return (
-      <div
-        className="relative group"
-        onMouseEnter={handleDistrictsEnter}
-        onMouseLeave={handleDistrictsLeave}
-      >
-        <Link
-          to="/districts"
-          className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
-        >
-          <span>Districts</span>
-          <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${districtsOpen ? 'rotate-180' : ''}`} />
-        </Link>
-        <AnimatePresence>
-          {districtsOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-              className="absolute left-0 w-56 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
-            >
-              {isLoadingDistricts ? (
-                <div className="p-4 text-center">Loading districts...</div>
-              ) : navbarDistricts.length > 0 ? (
-                <div className="py-1">
-                  {navbarDistricts.map(district => (
-                    <Link
-                      key={district.id}
-                      to={`/district/${district.id}`}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-200"
-                      onClick={() => setDistrictsOpen(false)}
-                    >
-                      {district.name}
-                    </Link>
-                  ))}
-                  <div className="border-t border-gray-100 my-1"></div>
-                  <Link
-                    to="/districts"
-                    className="block px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
-                  >
-                    View All Districts
-                  </Link>
-                </div>
-              ) : (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  No districts available
-                </div>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
-  // Mobile Navbar Districts Menu
-  const MobileNavbarDistrictsMenu = () => {
-    return (
-      <div className="py-2">
-        <button
-          onClick={() => setMobileDistrictsOpen(!mobileDistrictsOpen)}
-          className="w-full flex items-center justify-between px-3 py-2 text-sm font-bold text-gray-700"
-        >
-          <span>Districts</span>
-          <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${mobileDistrictsOpen ? 'rotate-180' : ''}`} />
-        </button>
-        <AnimatePresence>
-          {mobileDistrictsOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="mt-2 bg-white rounded-md shadow-inner"
-            >
-              {isLoadingDistricts ? (
-                <div className="p-4 text-center">Loading districts...</div>
-              ) : navbarDistricts.length > 0 ? (
-                <div className="py-1">
-                  {navbarDistricts.map(district => (
-                    <Link
-                      key={district.id}
-                      to={`/district/${district.id}`}
-                      className="block px-4 py-2 ml-4 text-sm text-gray-700 hover:text-red-600 transition-colors duration-200"
-                      onClick={() => {
-                        setMobileDistrictsOpen(false);
-                        setIsMenuOpen(false);
-                      }}
-                    >
-                      {district.name}
-                    </Link>
-                  ))}
-                  <div className="border-t border-gray-100 my-1"></div>
-                  <Link
-                    to="/districts"
-                    className="block px-4 py-2 ml-4 text-sm font-medium text-red-600 hover:text-red-700 transition-colors duration-200"
-                    onClick={() => {
-                      setMobileDistrictsOpen(false);
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    View All Districts
-                  </Link>
-                </div>
-              ) : (
-                <div className="p-4 text-center text-sm text-gray-500">
-                  No districts available
-                </div>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -380,9 +243,6 @@ const Navbar = () => {
             <div className="flex items-center space-x-8">
               {/* Dynamic Navbar Categories */}
               <NavbarCategoriesMenu />
-              
-              {/* Add NavbarDistrictsMenu component */}
-              <NavbarDistrictsMenu />
 
               <div
                 className="relative group"
@@ -502,9 +362,6 @@ const Navbar = () => {
               <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
                 {/* Mobile Experiences Dropdown with Dynamic Categories */}
                 <MobileNavbarCategoriesMenu />
-                
-                {/* Add MobileNavbarDistrictsMenu */}
-                <MobileNavbarDistrictsMenu />
 
                 {/* Mobile Locations Dropdown */}
                 <div className="py-2">
