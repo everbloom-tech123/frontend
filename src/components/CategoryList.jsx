@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import CategoryService from '../Admin_Pages/CategoryService';
 
 // Constants
 const ITEMS_PER_PAGE = 7;
@@ -68,43 +67,15 @@ const CategoryItem = ({ name, isSelected, isHovered, onClick, onMouseEnter, onMo
   </div>
 );
 
-const Categories = () => {
-  const [categories, setCategories] = useState([]);
+const Categories = ({ navbarCategories, isLoading }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
-  const fetchCategories = async () => {
-    try {
-      setIsLoading(true);
-      const data = await CategoryService.getAllCategories();
-      setCategories(data);
-    } catch (error) {
-      console.error('Failed to fetch categories:', error);
-    } finally {
-      setTimeout(() => setIsLoading(false), 300);
-    }
-  };
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
-
-  // Updated click handler with selection logic
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category);
-    navigate(`/viewby/${category.id}`);
-  };
-
   const filteredAndPaginatedCategories = useMemo(() => {
-    const filtered = categories.filter(category =>
+    const filtered = navbarCategories.filter(category =>
       category.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -116,7 +87,12 @@ const Categories = () => {
       totalPages: Math.ceil(filtered.length / ITEMS_PER_PAGE),
       totalResults: filtered.length
     };
-  }, [categories, searchQuery, currentPage]);
+  }, [navbarCategories, searchQuery, currentPage]);
+
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category);
+    navigate(`/viewby/${category.id}`);
+  };
 
   if (isLoading) {
     return (

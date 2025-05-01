@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaShoppingCart } from 'react-icons/fa';
@@ -23,8 +23,14 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [navbarCategories, setNavbarCategories] = useState([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const [isCategoriesClicked, setIsCategoriesClicked] = useState(false); // Track if categories was opened by click
+  const [isDistrictClicked, setIsDistrictClicked] = useState(false); // Track if district was opened by click
   const navigate = useNavigate();
   const location = useLocation();
+  const categoriesRef = useRef(null); // Ref for categories dropdown
+  const districtRef = useRef(null); // Ref for district dropdown
+  const categoriesTimeoutRef = useRef(null); // Ref for debouncing mouse leave
+  const districtTimeoutRef = useRef(null); // Ref for debouncing mouse leave
 
   // Cache duration: 30 minutes (in milliseconds)
   const CACHE_DURATION = 30 * 60 * 1000;
@@ -33,7 +39,13 @@ const Navbar = () => {
     checkAuthStatus();
     setupScrollListener();
     fetchNavbarCategories();
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+      clearTimeout(categoriesTimeoutRef.current);
+      clearTimeout(districtTimeoutRef.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -44,6 +56,8 @@ const Navbar = () => {
     setMobileCategoriesOpen(false);
     setMobileDistrictOpen(false);
     setMobileProfileOpen(false);
+    setIsCategoriesClicked(false);
+    setIsDistrictClicked(false);
   }, [location]);
 
   const setupScrollListener = () => {
@@ -57,19 +71,15 @@ const Navbar = () => {
   const fetchNavbarCategories = async () => {
     setIsLoadingCategories(true);
     try {
-      // Check if cached data exists and is still valid
       const cachedData = localStorage.getItem('navbarCategories');
       const cachedTimestamp = localStorage.getItem('navbarCategoriesTimestamp');
       const currentTime = Date.now();
 
       if (cachedData && cachedTimestamp && (currentTime - parseInt(cachedTimestamp, 10)) < CACHE_DURATION) {
-        // Use cached data
         setNavbarCategories(JSON.parse(cachedData));
       } else {
-        // Fetch new data
         const categories = await NavbarCategoryService.getNavbarCategories();
         setNavbarCategories(categories);
-        // Store in localStorage with timestamp
         localStorage.setItem('navbarCategories', JSON.stringify(categories));
         localStorage.setItem('navbarCategoriesTimestamp', currentTime.toString());
       }
@@ -112,19 +122,61 @@ const Navbar = () => {
   };
 
   const handleCategoriesEnter = () => {
-    setCategoriesOpen(true);
+    clearTimeout(categoriesTimeoutRef.current);
+    if (!isCategoriesClicked) {
+      setCategoriesOpen(true);
+      setDistrictOpen(false);
+    }
   };
 
   const handleCategoriesLeave = () => {
-    setCategoriesOpen(false);
+    if (!isCategoriesClicked) {
+      categoriesTimeoutRef.current = setTimeout(() => {
+        setCategoriesOpen(false);
+      }, 300); // 300ms delay to prevent blinking
+    }
   };
 
   const handleDistrictEnter = () => {
-    setDistrictOpen(true);
+    clearTimeout(districtTimeoutRef.current);
+    if (!isDistrictClicked) {
+      setDistrictOpen(true);
+      setCategoriesOpen(false);
+    }
   };
 
   const handleDistrictLeave = () => {
+    if (!isDistrictClicked) {
+      districtTimeoutRef.current = setTimeout(() => {
+        setDistrictOpen(false);
+      }, 300); // 300ms delay to prevent blinking
+    }
+  };
+
+  const toggleCategories = () => {
+    setCategoriesOpen(!categoriesOpen);
+    setIsCategoriesClicked(!categoriesOpen);
     setDistrictOpen(false);
+    setIsDistrictClicked(false);
+  };
+
+  const toggleDistrict = () => {
+    setDistrictOpen(!districtOpen);
+    setIsDistrictClicked(!districtOpen);
+    setCategoriesOpen(false);
+    setIsCategoriesClicked(false);
+  };
+
+  const handleClickOutside = (event) => {
+    if (
+      categoriesRef.current && !categoriesRef.current.contains(event.target) &&
+      districtRef.current && !districtRef.current.contains(event.target)
+    ) {
+      setCategoriesOpen(false);
+      setIsCategoriesClicked(false);
+      setDistrictOpen(false);
+      setIsDistrictClicked(false);
+    }
   };
 
   const toggleMenu = () => {
@@ -167,16 +219,17 @@ const Navbar = () => {
     return (
       <div
         className="relative group"
+        ref={categoriesRef}
         onMouseEnter={handleCategoriesEnter}
         onMouseLeave={handleCategoriesLeave}
       >
-        <Link
-          to="/experiences"
+        <button
+          onClick={toggleCategories}
           className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
         >
           <span>Experiences</span>
           <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
-        </Link>
+        </button>
         <AnimatePresence>
           {categoriesOpen && (
             <motion.div
@@ -186,7 +239,7 @@ const Navbar = () => {
               transition={{ duration: 0.2 }}
               className="absolute left-0 w-80 mt-2 z-50 bg-white shadow-lg rounded-md overflow-hidden"
             >
-              <Categories />
+              <Categories navbarCategories={navbarCategories} isLoading={isLoadingCategories} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -213,7 +266,7 @@ const Navbar = () => {
               transition={{ duration: 0.2 }}
               className="mt-2 bg-white rounded-md shadow-inner"
             >
-              <Categories />
+              <Categories navbarCategories={navbarCategories} isLoading={isLoadingCategories} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -246,16 +299,17 @@ const Navbar = () => {
 
               <div
                 className="relative group"
+                ref={districtRef}
                 onMouseEnter={handleDistrictEnter}
                 onMouseLeave={handleDistrictLeave}
               >
-                <Link
-                  to="/locations"
+                <button
+                  onClick={toggleDistrict}
                   className="flex items-center space-x-1 text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
                 >
                   <span>Locations</span>
                   <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${districtOpen ? 'rotate-180' : ''}`} />
-                </Link>
+                </button>
                 <AnimatePresence>
                   {districtOpen && (
                     <motion.div
@@ -280,10 +334,10 @@ const Navbar = () => {
               </Link>
 
               <Link
-                to="/My-Booking"
+                to="/about-us"
                 className="text-sm font-bold tracking-wider text-gray-700 hover:text-red-600 transition-colors duration-200"
               >
-                About Us 
+                About Us
               </Link>
 
               <Link
@@ -387,7 +441,6 @@ const Navbar = () => {
                   </AnimatePresence>
                 </div>
 
-                {/* Sales button with tag */}
                 <Link
                   to="/sales"
                   className="flex items-center px-3 py-2 text-sm font-bold text-gray-700 hover:text-red-600 transition-colors duration-200 mx-2"
