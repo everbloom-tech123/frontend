@@ -1,5 +1,6 @@
 import axios from 'axios';
 import config from '../config';
+import { tokenManager } from '../utils/TokenManager';
 
 const API_URL = `${config.API_BASE_URL}/api/v1/users`;
 
@@ -7,28 +8,33 @@ const API_URL = `${config.API_BASE_URL}/api/v1/users`;
   ? 'https://3.83.93.102.nip.io/api/v1/users'
   : 'http://localhost:8080/api/v1/users'; */
 
-export const getCurrentUserProfile = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/me`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+  export const getCurrentUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/me`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 401) {
+          tokenManager.clearSession(); // Now tokenManager is defined
+          window.dispatchEvent(new CustomEvent('auth-update'));
+          throw new Error('Session expired. Please log in again.');
+        }
+        throw new Error(errorData.message || 'Failed to fetch user profile');
       }
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to fetch user profile');
+  
+      return await response.json();
+    } catch (error) {
+      console.error('Get current user profile error:', error);
+      throw error;
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Get current user profile error:', error);
-    throw error;
-  }
-};
+  };
 
 export const getAllUsers = async () => {
   try {

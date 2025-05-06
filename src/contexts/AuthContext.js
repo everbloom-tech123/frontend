@@ -1,5 +1,6 @@
 // src/contexts/AuthContext.js
 import React, { createContext, useState, useContext, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom'; // Add useNavigate
 import { tokenManager } from '../utils/TokenManager';
 import * as AuthService from '../services/AuthService';
 import { GlobalStateManager, AUTH_STATE_CHANGED } from '../utils/GlobalStateManager';
@@ -27,6 +28,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate(); // Add navigate hook
 
   const syncAuthState = () => {
     console.log('Syncing auth state...');
@@ -60,6 +62,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         if (!isTokenValid && token) {
           console.log('Auth sync - Token invalid or expired');
+          handleLogout(); // Call logout if token is invalid/expired
         }
         if (!userData && userStr) {
           console.log('Auth sync - User data invalid');
@@ -85,7 +88,6 @@ export const AuthProvider = ({ children }) => {
       syncAuthState();
     };
 
-    // Listen for both custom events and storage events
     window.addEventListener('auth-update', handleAuthUpdate);
     window.addEventListener('storage', (e) => {
       if (e.key === 'token' || e.key === 'user') {
@@ -94,7 +96,6 @@ export const AuthProvider = ({ children }) => {
       }
     });
 
-    // Also subscribe to GlobalStateManager events
     const unsubscribe = GlobalStateManager.subscribe(AUTH_STATE_CHANGED, () => {
       console.log('GlobalStateManager auth update received');
       syncAuthState();
@@ -114,7 +115,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await AuthService.login(email, password);
       
-      // Parse and store user data
       const userData = {
         id: response.id || 'unknown',
         username: response.username || response.sub || email.split('@')[0],
@@ -122,22 +122,18 @@ export const AuthProvider = ({ children }) => {
         role: response.role || 'ROLE_USER',
       };
       
-      // Update token and user through tokenManager
       tokenManager.setToken(response.token);
       tokenManager.setUser(userData);
       tokenManager.setRole(response.role || 'ROLE_USER');
       
-      // Start token expiration check
       tokenManager.startTokenCheck(() => {
         console.log('Token expired, logging out');
         handleLogout();
       });
       
-      // Update state
       setUser(userData);
       setIsAuthenticated(true);
       
-      // Notify other components
       window.dispatchEvent(new CustomEvent('auth-state-changed', { 
         detail: { user: userData, isAuthenticated: true } 
       }));
@@ -163,7 +159,6 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       
-      // Notify other components
       window.dispatchEvent(new CustomEvent('auth-state-changed', { 
         detail: { user: null, isAuthenticated: false } 
       }));
@@ -172,6 +167,9 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: false,
         user: null
       });
+
+      // Redirect to login page
+      navigate('/signin', { replace: true });
     } catch (err) {
       console.error('Logout error:', err);
     }
@@ -186,7 +184,7 @@ export const AuthProvider = ({ children }) => {
     login: handleLogin,
     logout: handleLogout,
     clearError: () => setError(null),
-    syncAuthState, // Expose sync function
+    syncAuthState,
   }), [user, loading, error, isAuthenticated]);
 
   if (loading && !user && !error) {

@@ -1,5 +1,5 @@
 // src/utils/TokenManager.js
-import { jwtDecode } from 'jwt-decode'; // Changed from import jwtDecode from 'jwt-decode'
+import { jwtDecode } from 'jwt-decode';
 
 export const tokenManager = {
   tokenCheckInterval: null,
@@ -47,7 +47,13 @@ export const tokenManager = {
     try {
       const decoded = jwtDecode(token);
       const currentTime = Date.now() / 1000;
-      return decoded.exp < currentTime;
+      const isExpired = decoded.exp < currentTime;
+      console.log('Token expiration check:', {
+        exp: decoded.exp,
+        currentTime,
+        isExpired
+      });
+      return isExpired;
     } catch (e) {
       console.error('Error decoding token:', e);
       return true;
@@ -59,23 +65,25 @@ export const tokenManager = {
   },
   
   startTokenCheck: (onExpired) => {
-    // Clear any existing interval first
     tokenManager.stopTokenCheck();
     
-    // Check every minute
     tokenManager.tokenCheckInterval = setInterval(() => {
       if (tokenManager.isTokenExpired()) {
         console.log('Token check: token expired');
         tokenManager.stopTokenCheck();
-        if (onExpired) onExpired();
+        if (onExpired) {
+          console.log('Calling onExpired callback');
+          onExpired();
+        }
       }
-    }, 60000);
+    }, 60000); // Check every minute
   },
   
   stopTokenCheck: () => {
     if (tokenManager.tokenCheckInterval) {
       clearInterval(tokenManager.tokenCheckInterval);
       tokenManager.tokenCheckInterval = null;
+      console.log('Token check interval stopped');
     }
   }
 };

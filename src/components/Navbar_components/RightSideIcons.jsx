@@ -1,7 +1,7 @@
 import React from 'react';
 import { Menu, X } from 'lucide-react';
 import ShoppingCart from './ShoppingCart';
-import ProfileDropdown from './ProfileDropdown';
+import ProfileDropdown from './profileDropdown';
 
 const RightSideIcons = ({
   user,

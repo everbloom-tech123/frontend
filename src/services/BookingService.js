@@ -32,6 +32,27 @@ class BookingService {
     }
   }
 
+  static async getBookingsByUser(userId) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/user/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to retrieve user bookings');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('User bookings retrieval error:', error);
+      throw error;
+    }
+  }
+
   /**
    * Retrieves a booking by ID
    * @param {number} id - The booking ID

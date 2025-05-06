@@ -25,34 +25,29 @@ class HomepageService {
      */
     static async getHomepageData(categoriesLimit = 5) {
         try {
-            // Add authentication token if available (even though it's a public endpoint)
-            const token = localStorage.getItem('token');
             const response = await fetch(`${HOMEPAGE_API_URL}/data?categoriesLimit=${categoriesLimit}`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': token ? `Bearer ${token}` : '',
                     'Content-Type': 'application/json'
                 }
             });
-
+    
             // Better error handling
             if (!response.ok) {
                 this.logResponseError(response, 'getHomepageData');
                 
-                // Try to parse error message if available
                 let errorMessage = 'Failed to fetch homepage data';
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.message || errorMessage;
                     console.error('API error details:', errorData);
                 } catch (e) {
-                    // If parsing fails, just use the default message
                     console.error('Could not parse error response:', e);
                 }
                 
                 throw new Error(errorMessage);
             }
-
+    
             const data = await response.json();
             console.log('Homepage data fetched successfully:', {
                 specialProducts: data.specialProducts?.length || 0,
