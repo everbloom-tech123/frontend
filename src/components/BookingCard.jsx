@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaHeart, FaShare } from 'react-icons/fa';
@@ -7,18 +6,16 @@ import { useAuth } from '../contexts/AuthContext';
 const BookingCard = ({
   experience,
   isInWishlist,
-  onBooking,
   onWishlistToggle
 }) => {
   const { isAuthenticated, user } = useAuth();
   const [authState, setAuthState] = useState({ isAuthenticated, user });
+  const [addedToCart, setAddedToCart] = useState(false);
 
-  // Update local state when auth changes
   useEffect(() => {
     setAuthState({ isAuthenticated, user });
   }, [isAuthenticated, user]);
 
-  // Listen for auth changes
   useEffect(() => {
     const handleAuthChange = () => {
       setAuthState({ isAuthenticated, user });
@@ -35,6 +32,37 @@ const BookingCard = ({
   const originalPrice = experience.price || 0;
   const discount = experience.discount || 0;
   const discountedPrice = originalPrice * (1 - discount / 100);
+
+  const handleAddToCart = () => {
+    if (!authState.isAuthenticated) {
+      window.location.href = '/signin';
+      return;
+    }
+
+    const cartItem = {
+      id: experience.id,
+      title: experience.title,
+      price: discountedPrice,
+      quantity: 1,
+      imageUrl: experience.imageUrl || 'https://via.placeholder.com/150?text=Experience',
+      location: experience.location,
+      duration: experience.duration,
+      addedAt: Date.now()
+    };
+
+    const storedCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const existingItem = storedCartItems.find(item => item.id === experience.id);
+
+    if (existingItem) {
+      existingItem.quantity += 1;
+    } else {
+      storedCartItems.push(cartItem);
+    }
+
+    localStorage.setItem('cartItems', JSON.stringify(storedCartItems));
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000); // Reset after 2s
+  };
 
   const handleShare = async () => {
     try {
@@ -53,12 +81,10 @@ const BookingCard = ({
     }
   };
 
-  console.log('Auth State:', { isAuthenticated, user });
-
   return (
     <div className="bg-white rounded-lg shadow-lg p-6 sticky top-24">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Book this experience</h2>
-      
+
       <div className="flex justify-between items-center mb-6">
         <div>
           <p className="text-3xl font-bold text-gray-800">
@@ -76,14 +102,15 @@ const BookingCard = ({
           </div>
         )}
       </div>
-      
+
       <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        onClick={onBooking}
-        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full text-lg transition duration-300"
+        onClick={handleAddToCart}
+        className={`w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-full text-lg transition duration-300
+          ${addedToCart ? 'bg-green-600 hover:bg-green-600' : ''}`}
       >
-        {authState.isAuthenticated ? 'Book Now' : 'Login to Book'}
+        {addedToCart ? 'Added to Cart!' : authState.isAuthenticated ? 'Add to Cart' : 'Login to Add'}
       </motion.button>
 
       <motion.button
@@ -96,13 +123,12 @@ const BookingCard = ({
             : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
         }`}
       >
-        <FaHeart 
-          className={`mr-2 ${isInWishlist ? 'text-red-600' : 'text-gray-400'}`} 
+        <FaHeart
+          className={`mr-2 ${isInWishlist ? 'text-red-600' : 'text-gray-400'}`}
         />
-        {authState.isAuthenticated 
+        {authState.isAuthenticated
           ? (isInWishlist ? 'Remove from Wishlist' : 'Add to Wishlist')
-          : 'Login to Save'
-        }
+          : 'Login to Save'}
       </motion.button>
 
       {authState.isAuthenticated && authState.user && (
@@ -116,7 +142,7 @@ const BookingCard = ({
       <div className="mt-6">
         <h3 className="text-lg font-semibold mb-2">Share this experience</h3>
         <div className="flex space-x-4">
-          <button 
+          <button
             onClick={handleShare}
             className="text-red-600 hover:text-red-700 transition duration-300"
             title="Share this experience"

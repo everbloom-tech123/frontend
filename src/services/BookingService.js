@@ -4,8 +4,18 @@ const API_URL = `${config.API_BASE_URL}/api/bookings`;
 
 class BookingService {
   /**
-   * Submits a new booking
+   * Submits a new booking with multiple products
    * @param {Object} bookingData - The booking information
+   * @param {string} bookingData.name - Customer name
+   * @param {string} bookingData.phone - Customer phone
+   * @param {string} bookingData.email - Customer email
+   * @param {string} bookingData.description - Booking description
+   * @param {string} bookingData.bookedDate - Booking date
+   * @param {number} bookingData.user - User ID
+   * @param {Array} bookingData.bookingDetails - Array of booking details
+   * @param {number} bookingData.bookingDetails[].productId - Product ID
+   * @param {string} bookingData.bookingDetails[].productName - Product name
+   * @param {number} bookingData.bookingDetails[].quantity - Quantity
    * @returns {Promise<Object>} The created booking
    */
   static async submitBooking(bookingData) {
@@ -17,38 +27,29 @@ class BookingService {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(bookingData),
+        body: JSON.stringify({
+          name: bookingData.name,
+          phone: bookingData.phone,
+          email: bookingData.email,
+          description: bookingData.description || '',
+          bookedDate: bookingData.bookedDate,
+          user: bookingData.user,
+          bookingDetails: bookingData.bookingDetails.map(detail => ({
+            productId: detail.productId,
+            productName: detail.productName,
+            quantity: detail.quantity
+          }))
+        }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to submit booking');
+        throw new Error(errorData.error || 'Failed to submit booking');
       }
 
       return await response.json();
     } catch (error) {
       console.error('Booking submission error:', error);
-      throw error;
-    }
-  }
-
-  static async getBookingsByUser(userId) {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/user/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve user bookings');
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('User bookings retrieval error:', error);
       throw error;
     }
   }
@@ -69,7 +70,7 @@ class BookingService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve booking');
+        throw new Error(errorData.error || 'Failed to retrieve booking');
       }
 
       return await response.json();
@@ -95,7 +96,7 @@ class BookingService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve user bookings');
+        throw new Error(errorData.error || 'Failed to retrieve user bookings');
       }
 
       return await response.json();
@@ -120,7 +121,7 @@ class BookingService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve all bookings');
+        throw new Error(errorData.error || 'Failed to retrieve all bookings');
       }
 
       return await response.json();
@@ -145,7 +146,7 @@ class BookingService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve pending bookings');
+        throw new Error(errorData.error || 'Failed to retrieve pending bookings');
       }
 
       return await response.json();
@@ -179,7 +180,7 @@ class BookingService {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to retrieve bookings by status');
+        throw new Error(errorData.error || 'Failed to retrieve bookings by status');
       }
 
       return await response.json();
@@ -197,33 +198,32 @@ class BookingService {
    * @param {string} responseData.message - Response message
    * @returns {Promise<Object>} The updated booking
    */
-  // BookingService.js
-static async respondToBooking(bookingId, responseData) {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(`${API_URL}/admin/${bookingId}/respond`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        status: responseData.status,
-        message: responseData.message || ''  // Ensure message is never null
-      })
-    });
+  static async respondToBooking(bookingId, responseData) {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/admin/${bookingId}/respond`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          status: responseData.status,
+          message: responseData.message.trim() || 'No message provided'
+        })
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to respond to booking');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to respond to booking');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Booking response error:', error);
+      throw error;
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Booking response error:', error);
-    throw error;
   }
-}
 }
 
 export default BookingService;

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import BookingService from '../../services/BookingService';
 
 const BookingManagement = () => {
-  // State management
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -13,7 +12,6 @@ const BookingManagement = () => {
   const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
 
-  // Fetch bookings based on active tab
   const fetchBookings = async () => {
     setLoading(true);
     setError(null);
@@ -38,8 +36,8 @@ const BookingManagement = () => {
       }
       setBookings(result);
     } catch (err) {
-      showNotification(err.message, 'error');
-      setError(err.message);
+      showNotification(err.message || 'Failed to fetch bookings', 'error');
+      setError(err.message || 'Failed to fetch bookings');
     } finally {
       setLoading(false);
     }
@@ -63,11 +61,12 @@ const BookingManagement = () => {
       });
       setShowResponseModal(false);
       setResponseMessage('');
+      setSelectedBooking(null);
       fetchBookings();
       showNotification('Response sent successfully', 'success');
     } catch (err) {
-      showNotification(err.message, 'error');
-      setError(err.message);
+      showNotification(err.message || 'Failed to send response', 'error');
+      setError(err.message || 'Failed to send response');
     } finally {
       setLoading(false);
     }
@@ -92,16 +91,23 @@ const BookingManagement = () => {
     );
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div className="space-y-4">
-      {/* Error Alert */}
       {error && (
         <div className="p-4 bg-red-100 text-red-700 rounded">
           {error}
         </div>
       )}
 
-      {/* Tabs */}
       <div className="border-b">
         <div className="flex">
           {['all', 'pending', 'confirmed', 'declined'].map((tab) => (
@@ -120,7 +126,6 @@ const BookingManagement = () => {
         </div>
       </div>
 
-      {/* Date Range Filter */}
       <div className="flex gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -146,11 +151,14 @@ const BookingManagement = () => {
         </div>
       </div>
 
-      {/* Bookings Table */}
       <div className="overflow-x-auto">
         {loading ? (
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        ) : bookings.length === 0 ? (
+          <div className="text-center p-12 text-gray-500">
+            No bookings found.
           </div>
         ) : (
           <table className="min-w-full">
@@ -158,7 +166,9 @@ const BookingManagement = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Products</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -169,7 +179,17 @@ const BookingManagement = () => {
                 <tr key={booking.id}>
                   <td className="px-6 py-4 whitespace-nowrap">{booking.id}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{booking.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{booking.product.title}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{booking.email}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{booking.phone}</td>
+                  <td className="px-6 py-4">
+                    <ul className="list-disc list-inside">
+                      {booking.bookingDetails?.map((detail, index) => (
+                        <li key={index}>
+                          {detail.productName} (Qty: {detail.quantity})
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap">{booking.bookedDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <StatusBadge status={booking.status} />
@@ -194,12 +214,28 @@ const BookingManagement = () => {
         )}
       </div>
 
-      {/* Response Modal */}
-      {showResponseModal && (
+      {showResponseModal && selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-lg w-full">
             <div className="p-6">
-              <h2 className="text-xl font-bold mb-4">Respond to Booking</h2>
+              <h2 className="text-xl font-bold mb-4">Respond to Booking #{selectedBooking.id}</h2>
+              <div className="mb-4">
+                <p><strong>Name:</strong> {selectedBooking.name}</p>
+                <p><strong>Email:</strong> {selectedBooking.email}</p>
+                <p><strong>Phone:</strong> {selectedBooking.phone}</p>
+                <p><strong>Booked Date:</strong> {selectedBooking.bookedDate}</p>
+                {selectedBooking.description && (
+                  <p><strong>Description:</strong> {selectedBooking.description}</p>
+                )}
+                <p><strong>Products:</strong></p>
+                <ul className="list-disc list-inside">
+                  {selectedBooking.bookingDetails?.map((detail, index) => (
+                    <li key={index}>
+                      {detail.productName} (Qty: {detail.quantity})
+                    </li>
+                  ))}
+                </ul>
+              </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Response Message
@@ -215,19 +251,25 @@ const BookingManagement = () => {
               <div className="flex justify-end gap-2">
                 <button
                   className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200"
-                  onClick={() => setShowResponseModal(false)}
+                  onClick={() => {
+                    setShowResponseModal(false);
+                    setSelectedBooking(null);
+                    setResponseMessage('');
+                  }}
                 >
                   Cancel
                 </button>
                 <button
                   className="px-4 py-2 text-white bg-red-600 rounded hover:bg-red-700"
                   onClick={() => handleResponse('DECLINED')}
+                  disabled={loading}
                 >
                   Decline
                 </button>
                 <button
                   className="px-4 py-2 text-white bg-green-600 rounded hover:bg-green-700"
                   onClick={() => handleResponse('CONFIRMED')}
+                  disabled={loading}
                 >
                   Confirm
                 </button>
@@ -237,9 +279,8 @@ const BookingManagement = () => {
         </div>
       )}
 
-      {/* Notification Toast */}
       {notification.show && (
-        <div 
+        <div
           className={`fixed top-4 right-4 p-4 rounded shadow-lg ${
             notification.type === 'success' ? 'bg-green-500' : 'bg-red-500'
           } text-white z-50`}

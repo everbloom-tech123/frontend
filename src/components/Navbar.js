@@ -8,6 +8,7 @@ import Categories from './CategoryList';
 import District from './DistrictList';
 import NavbarCategoryService from '../services/NavbarCategoryService';
 import LayoutWrapper from './LayoutWrapper';
+import CartDropdown from './CartDropdown'; // Import the new component
 
 const Navbar = () => {
   const [activeItem, setActiveItem] = useState('home');
@@ -25,12 +26,18 @@ const Navbar = () => {
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
   const [isCategoriesClicked, setIsCategoriesClicked] = useState(false); // Track if categories was opened by click
   const [isDistrictClicked, setIsDistrictClicked] = useState(false); // Track if district was opened by click
+  
+  // New state for cart dropdown
+  // Remove the cartItems state, only keep the dropdown open/close state
+  const [cartDropdownOpen, setCartDropdownOpen] = useState(false);
+  
   const navigate = useNavigate();
   const location = useLocation();
   const categoriesRef = useRef(null); // Ref for categories dropdown
   const districtRef = useRef(null); // Ref for district dropdown
   const categoriesTimeoutRef = useRef(null); // Ref for debouncing mouse leave
   const districtTimeoutRef = useRef(null); // Ref for debouncing mouse leave
+  const cartDropdownRef = useRef(null); // Ref for cart dropdown
 
   // Cache duration: 30 minutes (in milliseconds)
   const CACHE_DURATION = 30 * 60 * 1000;
@@ -48,17 +55,10 @@ const Navbar = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setIsMenuOpen(false);
-    setDropdownOpen(false);
-    setCategoriesOpen(false);
-    setDistrictOpen(false);
-    setMobileCategoriesOpen(false);
-    setMobileDistrictOpen(false);
-    setMobileProfileOpen(false);
-    setIsCategoriesClicked(false);
-    setIsDistrictClicked(false);
-  }, [location]);
+  // Remove these functions:
+  // - fetchCartItems
+  // - handleRemoveCartItem
+  // - handleUpdateQuantity
 
   const setupScrollListener = () => {
     window.addEventListener('scroll', handleScroll);
@@ -167,15 +167,18 @@ const Navbar = () => {
     setIsCategoriesClicked(false);
   };
 
+  // Modified handleClickOutside to include cart dropdown with null checks
   const handleClickOutside = (event) => {
     if (
-      categoriesRef.current && !categoriesRef.current.contains(event.target) &&
-      districtRef.current && !districtRef.current.contains(event.target)
+      (categoriesRef.current && !categoriesRef.current.contains(event.target)) &&
+      (districtRef.current && !districtRef.current.contains(event.target)) &&
+      (cartDropdownRef.current && !cartDropdownRef.current.contains(event.target))
     ) {
       setCategoriesOpen(false);
       setIsCategoriesClicked(false);
       setDistrictOpen(false);
       setIsDistrictClicked(false);
+      setCartDropdownOpen(false);
     }
   };
 
@@ -351,16 +354,24 @@ const Navbar = () => {
 
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4 md:space-x-6">
-            <Link
-              to={user ? '/My-Booking' : '/signin'}
-              className="text-gray-700 hover:text-red-600 transition-colors duration-200 relative group"
-            >
-              <FaShoppingCart className="w-5 h-5" />
-              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center transform scale-0 group-hover:scale-100 transition-transform duration-200">
-                0
-              </span>
-            </Link>
+            {/* Cart dropdown */}
+              <div className="relative" ref={cartDropdownRef}>
+                <button
+                  onClick={() => setCartDropdownOpen(!cartDropdownOpen)}
+                  className="flex items-center text-gray-700 hover:text-red-600 transition-colors duration-200"
+                >
+                  <FaShoppingCart className="w-5 h-5" />
+                </button>
+                <AnimatePresence>
+                  {cartDropdownOpen && (
+                    <CartDropdown 
+                      onClose={() => setCartDropdownOpen(false)}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
 
+            {/* User Profile Dropdown */}
             <div className="relative">
               {user ? (
                 <button

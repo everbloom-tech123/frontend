@@ -115,7 +115,10 @@ const ExperienceDetails = () => {
     setActiveMedia(index);
   }, []);
 
-  const handleBooking = () => {
+  // Modify the handleBooking function to handleAddToCart
+  // Modify the handleAddToCart function
+  // Enhanced handleAddToCart function to store more experience details
+  const handleAddToCart = () => {
     if (!isAuthenticated) {
       navigate('/signin', {
         state: { from: `/experience/${id}` }
@@ -123,18 +126,50 @@ const ExperienceDetails = () => {
       return;
     }
 
-    navigate('/booking', {
-      state: {
-        userId: currentUser?.id,
-        userEmail: currentUser?.email,
-        experienceId: id,
-        experienceDetails: {
-          title: experience?.title,
-          price: experience?.price,
-          imageUrl: experience?.imageUrl,
-        }
-      }
-    });
+    // Create a more detailed cart item from the experience
+    const cartItem = {
+      id: experience.id,
+      title: experience.title,
+      price: experience.price,
+      quantity: 1,
+      // Use the first image from imageUrls if available, otherwise use imageUrl or a fallback
+      imageUrl: experience.imageUrls && experience.imageUrls.length > 0 
+        ? experience.imageUrls[0] 
+        : (experience.imageUrl || 'https://via.placeholder.com/150?text=Experience'),
+      // Only include location and duration if they exist
+      ...(experience.location && { location: experience.location }),
+      ...(experience.duration && { duration: experience.duration }),
+      description: experience.description ? 
+        (experience.description.length > 100 ? 
+          `${experience.description.substring(0, 100)}...` : 
+          experience.description) : 
+        undefined,
+      date: new Date().toISOString(),
+      addedAt: Date.now()
+    };
+
+    // Get existing cart items from localStorage
+    const existingCartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    
+    // Check if item already exists in cart
+    const existingItemIndex = existingCartItems.findIndex(item => item.id === cartItem.id);
+    
+    let updatedCartItems;
+    if (existingItemIndex >= 0) {
+      // Update quantity if item exists
+      updatedCartItems = existingCartItems.map((item, index) => 
+        index === existingItemIndex ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    } else {
+      // Add new item if it doesn't exist
+      updatedCartItems = [...existingCartItems, cartItem];
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('cartItems', JSON.stringify(updatedCartItems));
+    
+    // Show success message
+    alert(`${experience?.title} added to your basket!`);
   };
 
   const handleWishlistToggle = async () => {
@@ -331,10 +366,10 @@ const ExperienceDetails = () => {
                   </div>
                   
                   <button
-                    onClick={handleBooking}
+                    onClick={handleAddToCart}
                     className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 mb-4"
                   >
-                    Book Now
+                    Add to Basket
                   </button>
                   
                   <button
