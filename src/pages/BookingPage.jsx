@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import BookingService from '../services/BookingService';
 import * as userService from '../services/userService';
+import { Check, Lock } from 'lucide-react';
 
 const BookingPage = () => {
   const location = useLocation();
@@ -72,9 +73,14 @@ const BookingPage = () => {
     }));
   };
 
+  // Calculate totals
+  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const total = subtotal;
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     setLoading(true);
     setError(null);
 
@@ -143,15 +149,15 @@ const BookingPage = () => {
   // Render error state if cart is empty
   if (cartItems.length === 0 && !loading && error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 mx-auto">
+          <h2 className="text-2xl font-bold text-center text-black mb-4">
             Your Cart is Empty
           </h2>
           <div className="flex justify-center">
             <button
               onClick={() => navigate('/viewall')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Browse Experiences
             </button>
@@ -164,19 +170,19 @@ const BookingPage = () => {
   // Render success state
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+      <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8 mx-auto">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Booking Successful!</h2>
-            <p className="text-gray-600 mb-4">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">Booking Successful!</h2>
+            <p className="text-black mb-4">
               Your booking has been submitted and is pending confirmation.
             </p>
-            <p className="font-medium text-gray-800 mb-6">
+            <p className="font-medium text-black mb-8">
               Booking ID: {bookingResponse?.id}
             </p>
             <button
               onClick={() => navigate('/viewall')}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
             >
               Browse More Experiences
             </button>
@@ -188,135 +194,182 @@ const BookingPage = () => {
 
   // Main booking form render
   return (
-    <div className="container mx-auto px-4 pt-16 pb-8">
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-3xl mx-auto px-4">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">Complete Your Booking</h1>
-              <p className="text-gray-600">Review your cart and enter your details below</p>
-            </div>
+    <div className="min-h-screen bg-white pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pt-20">
+        <div className="text-center mb-12">
+        <h2 className="text-3xl font-extrabold mb-2 text-black">
+  Complete Your Booking
+</h2>
 
-            {/* Cart Summary */}
-            <div className="mb-8">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Cart Summary</h2>
-              {cartItems.map(item => (
-                <div key={item.id} className="flex justify-between items-center mb-2">
+<p className="text-black text-sm font-bold">
+  Just a few more details to secure your amazing experience!
+</p>
+
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Left Column - Booking Information */}
+          <div className="lg:col-span-1 flex flex-col">
+            <div className="bg-white rounded-xl shadow-lg border border-black p-8 flex-1">
+              <div className="flex items-center mb-8">
+                <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                  <span className="text-white font-bold text-sm">1</span>
+                </div>
+                <h3 className="text-xl font-semibold text-black">Your Information</h3>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-6 flex-1">
+                {/* Name and Email Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-gray-800">{item.title}</p>
-                    <p className="text-sm text-gray-500">Quantity: {item.quantity}</p>
+                    <label className="block text-sm font-medium text-black mb-2 flex items-center">
+                      <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
+                      Full name <span className="text-red-600 ml-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={bookingData.name}
+                      onChange={handleInputChange}
+                      placeholder="Enter full name"
+                      required
+                      className="w-full px-4 py-3 text-sm border-2 border-black rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all duration-200 hover:border-red-600"
+                    />
                   </div>
-                  <p className="text-gray-800">${(item.price * item.quantity).toFixed(2)}</p>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2 flex items-center">
+                      <span className="w-2 h-2 bg-orange-400 rounded-full mr-2"></span>
+                      Email address <span className="text-red-600 ml-1">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={bookingData.email}
+                      onChange={handleInputChange}
+                      placeholder="Enter email address"
+                      required
+                      className="w-full px-4 py-3 text-sm border-2 border-black rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all duration-200 hover:border-red-600"
+                    />
+                  </div>
                 </div>
-              ))}
-              <div className="flex justify-between items-center mt-4 font-semibold">
-                <p>Total:</p>
-                <p>${cartItems.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}</p>
+
+                {/* Phone and Date Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2 flex items-center">
+                      <span className="w-2 h-2 bg-yellow-400 rounded-full mr-2"></span>
+                      Phone number <span className="text-red-600 ml-1">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={bookingData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Enter phone number"
+                      required
+                      className="w-full px-4 py-3 text-sm border-2 border-black rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all duration-200 hover:border-red-600"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-black mb-2 flex items-center">
+                      <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
+                      Experience Date <span className="text-red-600 ml-1">*</span>
+                    </label>
+                    <input
+                      type="date"
+                      name="bookedDate"
+                      value={bookingData.bookedDate}
+                      onChange={handleInputChange}
+                      min={today}
+                      max={maxDateString}
+                      required
+                      className="w-full px-4 py-3 text-sm border-2 border-black rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none transition-all duration-200 hover:border-red-600"
+                    />
+                  </div>
+                </div>
+
+                {/* Special Requests */}
+                <div>
+                  <label className="block text-sm font-medium text-black mb-2 flex items-center">
+                    <span className="w-2 h-2 bg-purple-400 rounded-full mr-2"></span>
+                    Special Requests (Optional)
+                  </label>
+                  <textarea
+                    name="description"
+                    value={bookingData.description}
+                    onChange={handleInputChange}
+                    placeholder="Any special requirements or requests..."
+                    rows="4"
+                    className="w-full px-4 py-3 text-sm border-2 border-black rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 outline-none resize-none transition-all duration-200 hover:border-red-600"
+                  />
+                </div>
+
+                {error && (
+                  <div className="p-4 bg-red-100 border-2 border-red-600 rounded-lg">
+                    <p className="text-red-600 text-sm font-medium">{error}</p>
+                  </div>
+                )}
+              </form>
+            </div>
+          </div>
+
+          {/* Right Column - Cart Review */}
+          <div className="lg:col-span-1 flex flex-col">
+            <div className="flex items-center mb-8">
+              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                <span className="text-white font-bold text-sm">2</span>
               </div>
+              <h3 className="text-xl font-semibold text-black">Order Summary</h3>
             </div>
 
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <h3 className="text-red-800 font-medium mb-1">Error</h3>
-                <p className="text-red-600">{error}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Select Date
-                </label>
-                <input
-                  type="date"
-                  name="bookedDate"
-                  value={bookingData.bookedDate}
-                  onChange={handleInputChange}
-                  min={today}
-                  max={maxDateString}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                />
-                <p className="text-sm text-gray-500">
-                  Please select a date within the next year
-                </p>
+            <div className="bg-white rounded-xl shadow-lg border border-black p-8 flex-1">
+              {/* Cart Items */}
+              <div className="space-y-6 mb-8">
+                {cartItems.map((item, index) => (
+                  <div key={item.id} className="flex items-center space-x-4 p-4 rounded-lg bg-white border border-black hover:shadow-md transition-all duration-200">
+                    <div className="w-24 h-24 bg-red-100 rounded-xl overflow-hidden flex-shrink-0">
+                      <img
+                        src={item.image || `https://via.placeholder.com/96x96?text=${encodeURIComponent(item.title.substring(0, 2))}`}
+                        alt={item.title}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-black text-sm leading-5 mb-2">{item.title}</h4>
+                      <p className="text-xs text-black bg-white px-2 py-1 rounded-full inline-block">
+                        Qty: {item.quantity}
+                      </p>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-bold text-red-600 text-sm">${(item.price * item.quantity).toFixed(2)}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={bookingData.name}
-                  onChange={handleInputChange}
-                  placeholder="John Doe"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={bookingData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+1 (555) 000-0000"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={bookingData.email}
-                  onChange={handleInputChange}
-                  placeholder="your@email.com"
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Special Requests
-                </label>
-                <textarea
-                  name="description"
-                  value={bookingData.description}
-                  onChange={handleInputChange}
-                  placeholder="Any special requirements or requests..."
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors min-h-32"
-                />
-              </div>
-
-              {process.env.NODE_ENV === 'development' && (
-                <div className="p-4 bg-gray-100 rounded-lg text-sm font-mono">
-                  Debug Info:
-                  <br />
-                  User ID: {currentUser?.id}
-                  <br />
-                  Selected Date: {bookingData.bookedDate}
-                  <br />
-                  Cart Items: {JSON.stringify(cartItems)}
+              {/* Price Summary */}
+              <div className="border-t-2 border-black pt-6 space-y-4 bg-white p-4 rounded-lg">
+                <div className="flex justify-between text-black text-sm font-medium">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
                 </div>
-              )}
+                <div className="flex justify-between text-base font-bold pt-4 border-t-2 border-black text-red-600">
+                  <span>Total</span>
+                  <span className="text-lg">${total.toFixed(2)}</span>
+                </div>
+              </div>
 
+              {/* Confirm Booking Button */}
               <button
-                type="submit"
+                onClick={handleSubmit}
                 disabled={loading}
-                className={`w-full px-4 py-3 rounded-lg text-white font-medium transition-colors
-                  ${loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                className={`w-full mt-8 py-3 rounded-lg font-semibold text-sm transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${
+                  loading
+                    ? 'bg-black text-white cursor-not-allowed'
+                    : 'bg-red-600 text-white hover:bg-red-700 shadow-md'
+                }`}
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
@@ -330,7 +383,16 @@ const BookingPage = () => {
                   'Confirm Booking'
                 )}
               </button>
-            </form>
+
+              {/* Security Notice */}
+              <div className="mt-6 flex items-center justify-center text-xs text-black bg-white p-3 rounded-lg border border-black">
+                <Lock className="w-4 h-4 mr-2 text-red-600" />
+                <span className="font-medium text-red-600">Secure Checkout - SSL Encrypted</span>
+              </div>
+              <p className="text-center text-xs text-black mt-2">
+                Your financial and personal details are secure.
+              </p>
+            </div>
           </div>
         </div>
       </div>

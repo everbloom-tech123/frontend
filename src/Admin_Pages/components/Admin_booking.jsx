@@ -19,25 +19,46 @@ const BookingManagement = () => {
       let result;
       switch (activeTab) {
         case 'pending':
-          result = await BookingService.getPendingBookings();
+          result = await BookingService.getPendingBookings().catch(err => {
+            console.error("Error fetching pending bookings:", err);
+            return [];
+          });
           break;
         case 'confirmed':
           result = await BookingService.getBookingsByStatus('CONFIRMED', 
             dateRange.startDate, 
-            dateRange.endDate);
+            dateRange.endDate).catch(err => {
+              console.error("Error fetching confirmed bookings:", err);
+              return [];
+            });
           break;
         case 'declined':
           result = await BookingService.getBookingsByStatus('DECLINED',
             dateRange.startDate, 
-            dateRange.endDate);
+            dateRange.endDate).catch(err => {
+              console.error("Error fetching declined bookings:", err);
+              return [];
+            });
           break;
         default:
-          result = await BookingService.getAllBookings();
+          result = await BookingService.getAllBookings().catch(err => {
+            console.error("Error fetching all bookings:", err);
+            return [];
+          });
       }
+      
+      // Ensure result is an array
+      if (!Array.isArray(result)) {
+        console.warn("API returned non-array result:", result);
+        result = [];
+      }
+      
       setBookings(result);
     } catch (err) {
-      showNotification(err.message || 'Failed to fetch bookings', 'error');
-      setError(err.message || 'Failed to fetch bookings');
+      const errorMessage = err.message || 'Failed to fetch bookings';
+      showNotification(errorMessage, 'error');
+      setError(errorMessage);
+      console.error("Booking fetch error:", err);
     } finally {
       setLoading(false);
     }
@@ -98,6 +119,59 @@ const BookingManagement = () => {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  // Helper function to display products for both old and new structure
+  const renderProducts = (booking) => {
+    // Check if booking has the new structure (bookingDetails array)
+    if (booking.bookingDetails && booking.bookingDetails.length > 0) {
+      return (
+        <ul className="list-disc list-inside">
+          {booking.bookingDetails.map((detail, index) => (
+            <li key={index}>
+              {detail.productName} (Qty: {detail.quantity})
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    
+    // Fallback to old structure (single product)
+    if (booking.product) {
+      return (
+        <div>
+          {booking.product.title || booking.product.name || 'Product'} (Qty: 1)
+        </div>
+      );
+    }
+    
+    // No product information available
+    return <span className="text-gray-500">No products</span>;
+  };
+
+  // Helper function to render products in modal
+  const renderProductsInModal = (booking) => {
+    if (booking.bookingDetails && booking.bookingDetails.length > 0) {
+      return (
+        <ul className="list-disc list-inside ml-4">
+          {booking.bookingDetails.map((detail, index) => (
+            <li key={index}>
+              {detail.productName} (Qty: {detail.quantity})
+            </li>
+          ))}
+        </ul>
+      );
+    }
+    
+    if (booking.product) {
+      return (
+        <div className="ml-4">
+          {booking.product.title || booking.product.name || 'Product'} (Qty: 1)
+        </div>
+      );
+    }
+    
+    return <span className="text-gray-500 ml-4">No products</span>;
   };
 
   return (
@@ -182,13 +256,7 @@ const BookingManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap">{booking.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap">{booking.phone}</td>
                   <td className="px-6 py-4">
-                    <ul className="list-disc list-inside">
-                      {booking.bookingDetails?.map((detail, index) => (
-                        <li key={index}>
-                          {detail.productName} (Qty: {detail.quantity})
-                        </li>
-                      ))}
-                    </ul>
+                    {renderProducts(booking)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">{booking.bookedDate}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -227,14 +295,10 @@ const BookingManagement = () => {
                 {selectedBooking.description && (
                   <p><strong>Description:</strong> {selectedBooking.description}</p>
                 )}
-                <p><strong>Products:</strong></p>
-                <ul className="list-disc list-inside">
-                  {selectedBooking.bookingDetails?.map((detail, index) => (
-                    <li key={index}>
-                      {detail.productName} (Qty: {detail.quantity})
-                    </li>
-                  ))}
-                </ul>
+                <div>
+                  <strong>Products:</strong>
+                  {renderProductsInModal(selectedBooking)}
+                </div>
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">

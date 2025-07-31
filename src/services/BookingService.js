@@ -120,11 +120,25 @@ class BookingService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to retrieve all bookings');
+        const text = await response.text();
+        let errorMessage = 'Failed to retrieve all bookings';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError, text);
+        }
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        console.log('Response text:', text.substring(0, 200) + '...');
+        throw new Error('Invalid JSON response from server');
+      }
     } catch (error) {
       console.error('All bookings retrieval error:', error);
       throw error;
@@ -145,11 +159,25 @@ class BookingService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to retrieve pending bookings');
+        const text = await response.text();
+        let errorMessage = 'Failed to retrieve pending bookings';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError, text);
+        }
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        console.log('Response text:', text.substring(0, 200) + '...');
+        throw new Error('Invalid JSON response from server');
+      }
     } catch (error) {
       console.error('Pending bookings retrieval error:', error);
       throw error;
@@ -179,11 +207,25 @@ class BookingService {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to retrieve bookings by status');
+        const text = await response.text();
+        let errorMessage = 'Failed to retrieve bookings by status';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.error || errorMessage;
+        } catch (parseError) {
+          console.error('Error parsing error response:', parseError, text);
+        }
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch (parseError) {
+        console.error('Error parsing response:', parseError);
+        console.log('Response text:', text.substring(0, 200) + '...');
+        throw new Error('Invalid JSON response from server');
+      }
     } catch (error) {
       console.error('Bookings by status retrieval error:', error);
       throw error;

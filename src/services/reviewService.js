@@ -70,9 +70,9 @@ class ReviewService {
 
     static async createReview(reviewData) {
         try {
-            // Validate required fields before submission
-            if (!reviewData.bookingId || !reviewData.rating) {
-                throw new Error('Missing required review data: bookingId and rating are required');
+            // Validate required fields before submission - now includes productId
+            if (!reviewData.bookingId || !reviewData.rating || !reviewData.productId) {
+                throw new Error('Missing required review data: bookingId, productId and rating are required');
             }
             
             const token = localStorage.getItem('token');
@@ -84,7 +84,12 @@ class ReviewService {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(reviewData)
+                body: JSON.stringify({
+                    bookingId: reviewData.bookingId,
+                    productId: reviewData.productId,  // Include productId
+                    rating: reviewData.rating,
+                    comment: reviewData.comment || ''
+                })
             });
         
             console.log('Create review response status:', response.status);
@@ -119,7 +124,10 @@ class ReviewService {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(reviewData)
+                body: JSON.stringify({
+                    rating: reviewData.rating,
+                    comment: reviewData.comment || ''
+                })
             });
         
             if (!response.ok) {
